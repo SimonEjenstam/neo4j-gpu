@@ -1,12 +1,9 @@
-package com.mycompany;
+package se.simonevertsson;
 
 import com.nativelibs4java.opencl.*;
 import com.nativelibs4java.opencl.CLMem.Usage;
-import com.nativelibs4java.opencl.util.*;
-import com.nativelibs4java.util.*;
 import org.bridj.Pointer;
-import static org.bridj.Pointer.*;
-import static java.lang.Math.*;
+
 import java.io.IOException;
 
 public class JavaCLTutorial3 {
