@@ -46,4 +46,8 @@ public class GpuGraphModel {
     public long[] getNodeAdjecencies() {
         return nodeAdjecencies;
     }
+
+    public int[] getLabelIndicies() {
+        return labelIndicies;
+    }
 }

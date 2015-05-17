@@ -41,7 +41,7 @@ public class Experiments {
 
 
         long tick = System.currentTimeMillis();
-        experiments.runCypherQuery();
+//        experiments.runCypherQuery();
         long time = System.currentTimeMillis()-tick;
         System.out.println("Runtime: " + time);
 
