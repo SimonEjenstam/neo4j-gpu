@@ -3,6 +3,7 @@ package se.simonevertsson;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
+import javax.management.relation.Relation;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,9 +16,9 @@ public class QueryGraph {
 
     ArrayList<Relationship> relationships;
 
-    ArrayList<Long> spanningTree = new ArrayList<Long>();
+    ArrayList<Relationship> spanningTree = new ArrayList<Relationship>();
 
-    ArrayList<Long> visitOrder = new ArrayList<Long>();
+    ArrayList<Node> visitOrder = new ArrayList<Node>();
 
 
 }

@@ -17,14 +17,18 @@ public class SpanningTreeGeneratorTest extends TestCase {
     public void testGenerateQueryGraph() throws Exception {
         // Given
         QueryGraph queryGraph = generateMockQueryGraph();
+        LabelDictionary labelDictionary = new LabelDictionary();
 
         // When
-        QueryGraph result = SpanningTreeGenerator.generateQueryGraph(queryGraph);
+        QueryGraph result = SpanningTreeGenerator.generateQueryGraph(queryGraph, labelDictionary);
 
         // Then
         assertEquals(3, result.spanningTree.size());
-        assertEquals(1, result.visitOrder.size());
-        assertEquals(2, (long)result.visitOrder.get(0));
+        assertEquals(4, result.visitOrder.size());
+        assertEquals(2, (long)result.visitOrder.get(0).getId());
+        assertEquals(3, (long)result.visitOrder.get(1).getId());
+        assertEquals(4, (long)result.visitOrder.get(2).getId());
+        assertEquals(1, (long)result.visitOrder.get(3).getId());
     }
 
 //    A1 ----> B2
@@ -40,9 +44,9 @@ public class SpanningTreeGeneratorTest extends TestCase {
 
         Properties props = Properties.properties(Property.property("foo", "bar"));
         Node A1 = GraphMock.node(1, props, 2, "A");
-        Node B2 = GraphMock.node(2, props, 3, "B");
-        Node A3 = GraphMock.node(3, props, 3, "A");
-        Node C4 = GraphMock.node(4, props, 2, "C");
+        Node B2 = GraphMock.node(2, props, 2, "B");
+        Node A3 = GraphMock.node(3, props, 1, "A");
+        Node C4 = GraphMock.node(4, props, 0, "C");
 
         queryGraph.nodes.add(A1);
         queryGraph.nodes.add(B2);

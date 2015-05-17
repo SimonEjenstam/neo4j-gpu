@@ -6,6 +6,7 @@ import org.neo4j.tooling.GlobalGraphOperations;
 
 import javax.management.relation.Relation;
 import javax.xml.crypto.Data;
+import java.util.Iterator;
 
 /**
  * Created by simon on 2015-05-12.
@@ -22,6 +23,11 @@ public class DatabaseService {
                 .newGraphDatabase();
         this.graphOperations = GlobalGraphOperations.at(this.graphDatabase);
         registerShutdownHook(this.graphDatabase);
+    }
+
+    public DatabaseService(GraphDatabaseService graphDb) {
+        this.graphDatabase = graphDb;
+        this.graphOperations = GlobalGraphOperations.at(this.graphDatabase);
     }
 
     private void registerShutdownHook( final GraphDatabaseService graphDb )
@@ -59,5 +65,30 @@ public class DatabaseService {
             e.printStackTrace();
         }
         return result;
+    }
+
+    public void deleteData() {
+        try {
+            Transaction tx = this.graphDatabase.beginTx();
+            deleteAllRelationships();
+            deleteAllNodes();
+            tx.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteAllRelationships() {
+        Iterable<Relationship> allRelationships = this.graphOperations.getAllRelationships();
+        for(Relationship relationship : allRelationships) {
+            relationship.delete();
+        }
+    }
+
+    private void deleteAllNodes() {
+        Iterable<Node> allNodes = this.graphOperations.getAllNodes();
+        for(Node node : allNodes) {
+            node.delete();
+        }
     }
 }

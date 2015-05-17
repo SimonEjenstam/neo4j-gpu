@@ -19,9 +19,7 @@
  */
 package se.simonevertsson.mocking;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -36,7 +34,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import static org.neo4j.helpers.collection.Iterables.asResourceIterable;
-import static org.neo4j.helpers.collection.Iterables.reverse;
 
 public class GraphMock
 {
@@ -50,9 +47,9 @@ public class GraphMock
         return labels;
     }
 
-    public static Node node( long id, Properties properties, int degreeBoth, String... labels )
+    public static Node node( long id, Properties properties, int degreeOutgoing, String... labels )
     {
-        return mockNode( id, labels( labels ), properties, degreeBoth );
+        return mockNode( id, labels( labels ), properties, degreeOutgoing );
     }
 
     public static Relationship relationship( long id, Properties properties, Node start, String type, Node end )
@@ -65,25 +62,12 @@ public class GraphMock
         return Link.link( relationship, node );
     }
 
-
-    private static <T> Answer<Iterator<T>> withIteratorOf( final Iterable<T> iterable )
-    {
-        return new Answer<Iterator<T>>()
-        {
-            @Override
-            public Iterator<T> answer( InvocationOnMock invocation ) throws Throwable
-            {
-                return iterable.iterator();
-            }
-        };
-    }
-
-    private static Node mockNode( long id, Label[] labels, Properties properties, int degreeBoth )
+    private static Node mockNode( long id, Label[] labels, Properties properties, int degreeOutgoing )
     {
         Node node = mockPropertyContainer( Node.class, properties );
         when( node.getId() ).thenReturn( id );
         when( node.getLabels() ).thenReturn( asResourceIterable( asList( labels ) ) );
-        when( node.getDegree(Direction.BOTH) ).thenReturn(degreeBoth);
+        when( node.getDegree(Direction.OUTGOING) ).thenReturn(degreeOutgoing);
         return node;
     }
 

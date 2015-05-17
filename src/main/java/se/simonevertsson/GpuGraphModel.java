@@ -10,13 +10,16 @@ import java.util.Iterator;
  */
 public class GpuGraphModel {
 
+    private int[] labelIndicies;
+
     private int[] nodeLabels;
 
     private int[] adjacencyIndicies;
 
     private long[] nodeAdjecencies;
 
-    public GpuGraphModel(ArrayList<Integer> nodeLabels, ArrayList<Integer> adjecenyIndicies, ArrayList<Long> nodeAdjecencies) {
+    public GpuGraphModel(ArrayList<Integer> labelIndicies, ArrayList<Integer> nodeLabels, ArrayList<Integer> adjecenyIndicies, ArrayList<Long> nodeAdjecencies) {
+        this.labelIndicies = ArrayUtil.toIntArray(labelIndicies);
         this.nodeLabels = ArrayUtil.toIntArray(nodeLabels);
         this.adjacencyIndicies = ArrayUtil.toIntArray(adjecenyIndicies);
         this.nodeAdjecencies = convertArrayListToLongArray(nodeAdjecencies);

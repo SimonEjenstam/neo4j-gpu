@@ -15,32 +15,42 @@ import java.util.Iterator;
  */
 public class SpanningTreeGenerator {
 
-    public static QueryGraph generateQueryGraph(QueryGraph queryGraph) {
-        Relationship initialRelationShip = findInitialRelationship(queryGraph.relationships);
-        queryGraph.visitOrder.add(initialRelationShip.getStartNode().getId());
+    public static QueryGraph generateQueryGraph(QueryGraph queryGraph, LabelDictionary labelDictionary) {
+        Relationship initialRelationShip = findInitialRelationship(queryGraph.relationships, labelDictionary);
 
         HashMap<Long, Boolean> visitedNodes = new HashMap<Long, Boolean>();
+
+        queryGraph.visitOrder.add(initialRelationShip.getStartNode());
+        visitedNodes.put(initialRelationShip.getStartNode().getId(), true);
 
         long originalStartId = initialRelationShip.getStartNode().getId();
         for (Iterator<Relationship> iter = queryGraph.relationships.listIterator(); iter.hasNext(); ) {
             Relationship relationship = iter.next();
             long currentStartId = relationship.getStartNode().getId();
             long currentEndId = relationship.getEndNode().getId();
-            if(currentStartId == originalStartId || currentEndId == originalStartId) {
-                queryGraph.spanningTree.add(relationship.getId());
-                visitedNodes.put(relationship.getStartNode().getId(), true);
+            if(currentStartId == originalStartId && !visitedNodes.containsKey(currentEndId)) {
+                queryGraph.spanningTree.add(relationship);
+                queryGraph.visitOrder.add(relationship.getEndNode());
                 visitedNodes.put(relationship.getEndNode().getId(), true);
+                iter.remove();
             }
         }
 
-        while(visitedNodes.keySet().size() < queryGraph.nodes.size()) {
+        while(queryGraph.visitOrder.size() < queryGraph.nodes.size()) {
             for (Iterator<Relationship> iter = queryGraph.relationships.listIterator(); iter.hasNext(); ) {
                 Relationship relationship = iter.next();
                 long currentStartId = relationship.getStartNode().getId();
                 long currentEndId = relationship.getEndNode().getId();
-                if (visitedNodes.containsKey(currentStartId)) {
-                    queryGraph.spanningTree.add(relationship.getId());
+                if(visitedNodes.containsKey(currentStartId) && !visitedNodes.containsKey(currentEndId)) {
+                    queryGraph.spanningTree.add(relationship);
+                    queryGraph.visitOrder.add(relationship.getEndNode());
                     visitedNodes.put(relationship.getEndNode().getId(), true);
+                    iter.remove();
+                } else if(!visitedNodes.containsKey(currentStartId) && visitedNodes.containsKey(currentEndId)) {
+                    queryGraph.spanningTree.add(relationship);
+                    queryGraph.visitOrder.add(relationship.getStartNode());
+                    visitedNodes.put(relationship.getStartNode().getId(), true);
+                } else if(visitedNodes.containsKey(currentStartId) && visitedNodes.containsKey(currentEndId)) {
                     iter.remove();
                 }
             }
@@ -48,8 +58,8 @@ public class SpanningTreeGenerator {
         return queryGraph;
     }
 
-    private static Relationship findInitialRelationship(ArrayList<Relationship> queryGraphRelationships) {
-        HashMap<String, Integer> labelCounter = countLabels(queryGraphRelationships);
+    private static Relationship findInitialRelationship(ArrayList<Relationship> queryGraphRelationships, LabelDictionary labelDictionary) {
+        HashMap<String, Integer> labelCounter = countLabels(queryGraphRelationships, labelDictionary);
         float maxEstimateSum = 0;
         Relationship initialRelationship = null;
 
@@ -65,22 +75,23 @@ public class SpanningTreeGenerator {
         return initialRelationship;
     }
 
-    private static HashMap<String, Integer> countLabels(ArrayList<Relationship> queryGraphRelationships) {
+    private static HashMap<String, Integer> countLabels(ArrayList<Relationship> queryGraphRelationships, LabelDictionary labelDictionary) {
         HashMap<String, Integer> labelCounter = new HashMap<String, Integer>();
         HashSet<Long> visitedNodes = new HashSet<Long>();
         for(Relationship relationship : queryGraphRelationships) {
             Node startNode = relationship.getStartNode();
             Node endNode = relationship.getEndNode();
-            addNodeLabelsToCount(labelCounter, visitedNodes, startNode);
-            addNodeLabelsToCount(labelCounter, visitedNodes, endNode);
+            addNodeLabelsToCount(labelCounter, visitedNodes, startNode, labelDictionary);
+            addNodeLabelsToCount(labelCounter, visitedNodes, endNode, labelDictionary);
         }
+
         return labelCounter;
     }
 
-    private static void addNodeLabelsToCount(HashMap<String, Integer> labelCounter, HashSet<Long> visitedNodes, Node startNode) {
+    private static void addNodeLabelsToCount(HashMap<String, Integer> labelCounter, HashSet<Long> visitedNodes, Node startNode, LabelDictionary labelDictionary) {
         if( !visitedNodes.contains(startNode.getId()) ) {
             for (Label label : startNode.getLabels()) {
-
+                labelDictionary.insertLabel(label.name());
                 Integer currentLabelCountObject = labelCounter.get(label.name());
                 int currentLabelCount = currentLabelCountObject == null ? 0 : currentLabelCountObject;
                 labelCounter.put(label.name(), currentLabelCount + 1);
@@ -95,7 +106,7 @@ public class SpanningTreeGenerator {
         for(Label label : node.getLabels()) {
             labelFrequency += labelCounter.get(label.name());
         }
-        int nodeDegree = node.getDegree(Direction.BOTH);
+        int nodeDegree = node.getDegree(Direction.OUTGOING);
         return nodeDegree / (float) labelFrequency;
     }
 }
