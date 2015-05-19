@@ -1,6 +1,7 @@
 package se.simonevertsson;
 
 import junit.framework.TestCase;
+import se.simonevertsson.gpu.LabelDictionary;
 
 /**
  * Created by simon on 2015-05-13.

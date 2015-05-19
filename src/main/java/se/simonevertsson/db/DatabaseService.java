@@ -1,12 +1,14 @@
-package se.simonevertsson;
+package se.simonevertsson.db;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.io.fs.FileUtils;
 import org.neo4j.tooling.GlobalGraphOperations;
+import se.simonevertsson.experiments.RelationshipTypes;
 
-import javax.management.relation.Relation;
-import javax.xml.crypto.Data;
-import java.util.Iterator;
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Created by simon on 2015-05-12.
@@ -25,8 +27,8 @@ public class DatabaseService {
         registerShutdownHook(this.graphDatabase);
     }
 
-    public DatabaseService(GraphDatabaseService graphDb) {
-        this.graphDatabase = graphDb;
+    public DatabaseService(String dbPath) throws IOException {
+        createDb(dbPath);
         this.graphOperations = GlobalGraphOperations.at(this.graphDatabase);
     }
 
@@ -41,6 +43,14 @@ public class DatabaseService {
                 graphDb.shutdown();
             }
         });
+    }
+
+
+    void createDb(String dbPath) throws IOException
+    {
+        FileUtils.deleteRecursively(new File(dbPath));
+        this.graphDatabase = new GraphDatabaseFactory().newEmbeddedDatabase( dbPath );
+        registerShutdownHook(this.graphDatabase);
     }
 
     public ResourceIterable<Node> getAllNodes() {
@@ -90,5 +100,23 @@ public class DatabaseService {
         for(Node node : allNodes) {
             node.delete();
         }
+    }
+
+    public GraphDatabaseService getGraphDatabase() {
+        return this.graphDatabase;
+    }
+
+    public Result excuteCypherQuery(String query) {
+        Transaction transaction = this.graphDatabase.beginTx();
+        Result result = this.graphDatabase.execute(
+                "MATCH (a3),(a1),(b2),(c4)" +
+                        "WHERE (a3)<--(a1)-->(b2) AND (a3)<--(b2)-->(c4)<--(a3)" +
+                        "RETURN a1, b2, a3, c4");
+        transaction.success();
+        return result;
+    }
+
+    public void shutdown() {
+        this.graphDatabase.shutdown();
     }
 }

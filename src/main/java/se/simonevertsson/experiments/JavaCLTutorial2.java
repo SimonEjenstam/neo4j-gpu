@@ -1,8 +1,10 @@
-package se.simonevertsson;
+package se.simonevertsson.experiments;
 
 import com.nativelibs4java.opencl.*;
 import com.nativelibs4java.opencl.CLMem.Usage;
 import org.bridj.Pointer;
+import se.simonevertsson.TutorialKernels;
+
 import java.nio.ByteOrder;
 import static org.bridj.Pointer.*;
 import static java.lang.Math.*;

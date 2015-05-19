@@ -1,10 +1,8 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu;
 
-import com.sun.corba.se.impl.orbutil.graph.Graph;
 import org.neo4j.graphdb.*;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * Created by simon on 2015-05-12.
@@ -40,38 +38,12 @@ public class GraphModelConverter {
             currentAdjacencyIndex += relationshipCount;
         }
 
-        return new GpuGraphModel(labelIndicies, nodeLabels, adjecenyIndicies, nodeAdjecencies);
-    }
-
-    public static GpuGraphModel convertNodesToGpuGraphModel(QueryGraph queryGraph, LabelDictionary labelDictionary) {
-        ArrayList<Integer> labelIndicies = new ArrayList<Integer>();
-        ArrayList<Integer> nodeLabels = new ArrayList<Integer>();
-        ArrayList<Integer> adjecenyIndicies = new ArrayList<Integer>();
-        ArrayList<Long> nodeAdjecencies = new ArrayList<Long>();
-
-        int currentAdjacencyIndex = 0;
-        int currentLabelIndex = 0;
-        for(Node sourceNode : queryGraph.nodes) {
-            Iterable<Label> labels = sourceNode.getLabels();
-            int labelCount = 0;
-            for(Label nodeLabel : labels) {
-                int nodeLabelId = labelDictionary.insertLabel(nodeLabel.name());
-                nodeLabels.add(nodeLabelId);
-                labelCount++;
-            }
-            labelIndicies.add(currentLabelIndex);
-            currentLabelIndex += labelCount;
-
-            int relationshipCount = 0;
-            for(Relationship nodeRelationship : queryGraph.relationships) {
-                if(nodeRelationship.getStartNode().getId() == sourceNode.getId()) {
-                    // Add to adjacency list
-                    nodeAdjecencies.add(nodeRelationship.getEndNode().getId());
-                    relationshipCount++;
-                }
-            }
+        if(!adjecenyIndicies.isEmpty()) {
             adjecenyIndicies.add(currentAdjacencyIndex);
-            currentAdjacencyIndex += relationshipCount;
+        }
+
+        if(!labelIndicies.isEmpty()) {
+            labelIndicies.add(currentLabelIndex);
         }
 
         return new GpuGraphModel(labelIndicies, nodeLabels, adjecenyIndicies, nodeAdjecencies);

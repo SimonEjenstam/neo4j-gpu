@@ -1,4 +1,4 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu;
 
 import org.apache.lucene.util.ArrayUtil;
 

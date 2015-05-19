@@ -1,9 +1,10 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import se.simonevertsson.query.QueryGraph;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -1,4 +1,4 @@
-package se.simonevertsson;
+package se.simonevertsson.experiments;
 
 import com.nativelibs4java.opencl.*;
 import com.nativelibs4java.opencl.CLMem.Usage;

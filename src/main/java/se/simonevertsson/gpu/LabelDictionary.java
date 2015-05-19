@@ -1,4 +1,4 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu;
 
 import java.util.HashMap;
 
@@ -36,5 +36,14 @@ public class LabelDictionary {
 
     public int getIdForLabel(String label) {
         return labelToIds.get(label);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for(String label : labelToIds.keySet()) {
+            builder.append(label + ": " + labelToIds.get(label) + "\n");
+        }
+        return builder.toString();
     }
 }
