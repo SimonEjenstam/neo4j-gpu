@@ -16,47 +16,49 @@ import java.util.Iterator;
  */
 public class SpanningTreeGenerator {
 
-    public static QueryGraph generateQueryGraph(QueryGraph queryGraph, LabelDictionary labelDictionary) {
-        Relationship initialRelationShip = findInitialRelationship(queryGraph.relationships, labelDictionary);
+    private final QueryGraph queryGraph;
+    private final LabelDictionary labelDictionary;
+    private HashMap<Long, Boolean> visitedNodes;
 
-        HashMap<Long, Boolean> visitedNodes = new HashMap<Long, Boolean>();
+    public SpanningTreeGenerator(QueryGraph queryGraph, LabelDictionary labelDictionary) {
+        this.queryGraph = queryGraph;
+        this.labelDictionary = labelDictionary;
+    }
 
-        queryGraph.visitOrder.add(initialRelationShip.getStartNode());
+    public QueryGraph generateQueryGraph() {
+        this.visitedNodes = new HashMap<Long, Boolean>();
+
+        Relationship initialRelationShip = findInitialRelationship(this.queryGraph.relationships, this.labelDictionary);
+        this.queryGraph.visitOrder.add(initialRelationShip.getStartNode());
         visitedNodes.put(initialRelationShip.getStartNode().getId(), true);
 
-        long originalStartId = initialRelationShip.getStartNode().getId();
-        for (Iterator<Relationship> iter = queryGraph.relationships.listIterator(); iter.hasNext(); ) {
+        while(this.queryGraph.visitOrder.size() < this.queryGraph.nodes.size()) {
+            addNextLevelOfNodes();
+        }
+
+        return this.queryGraph;
+    }
+
+    private void addNextLevelOfNodes() {
+        for (Iterator<Relationship> iter = this.queryGraph.relationships.listIterator(); iter.hasNext(); ) {
             Relationship relationship = iter.next();
             long currentStartId = relationship.getStartNode().getId();
             long currentEndId = relationship.getEndNode().getId();
-            if(currentStartId == originalStartId && !visitedNodes.containsKey(currentEndId)) {
-                queryGraph.spanningTree.add(relationship);
-                queryGraph.visitOrder.add(relationship.getEndNode());
-                visitedNodes.put(relationship.getEndNode().getId(), true);
+            if(visitedNodes.containsKey(currentStartId) && !visitedNodes.containsKey(currentEndId)) {
+                addNodeToSpanningTree(relationship, relationship.getEndNode());
+                iter.remove();
+            } else if(!visitedNodes.containsKey(currentStartId) && visitedNodes.containsKey(currentEndId)) {
+               addNodeToSpanningTree(relationship, relationship.getStartNode());
+            } else if(visitedNodes.containsKey(currentStartId) && visitedNodes.containsKey(currentEndId)) {
                 iter.remove();
             }
         }
+    }
 
-        while(queryGraph.visitOrder.size() < queryGraph.nodes.size()) {
-            for (Iterator<Relationship> iter = queryGraph.relationships.listIterator(); iter.hasNext(); ) {
-                Relationship relationship = iter.next();
-                long currentStartId = relationship.getStartNode().getId();
-                long currentEndId = relationship.getEndNode().getId();
-                if(visitedNodes.containsKey(currentStartId) && !visitedNodes.containsKey(currentEndId)) {
-                    queryGraph.spanningTree.add(relationship);
-                    queryGraph.visitOrder.add(relationship.getEndNode());
-                    visitedNodes.put(relationship.getEndNode().getId(), true);
-                    iter.remove();
-                } else if(!visitedNodes.containsKey(currentStartId) && visitedNodes.containsKey(currentEndId)) {
-                    queryGraph.spanningTree.add(relationship);
-                    queryGraph.visitOrder.add(relationship.getStartNode());
-                    visitedNodes.put(relationship.getStartNode().getId(), true);
-                } else if(visitedNodes.containsKey(currentStartId) && visitedNodes.containsKey(currentEndId)) {
-                    iter.remove();
-                }
-            }
-        }
-        return queryGraph;
+    private void addNodeToSpanningTree(Relationship relationship, Node node) {
+        this.queryGraph.spanningTree.add(relationship);
+        this.queryGraph.visitOrder.add(node);
+        this.visitedNodes.put(node.getId(), true);
     }
 
     private static Relationship findInitialRelationship(ArrayList<Relationship> queryGraphRelationships, LabelDictionary labelDictionary) {

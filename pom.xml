@@ -27,7 +27,7 @@
 			<url>http://oss.sonatype.org/content/groups/public</url>
 		</pluginRepository>
 	</pluginRepositories>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.nativelibs4java</groupId>

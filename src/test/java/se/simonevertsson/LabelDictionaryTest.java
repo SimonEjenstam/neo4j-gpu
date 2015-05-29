@@ -31,4 +31,17 @@ public class LabelDictionaryTest extends TestCase {
         // Then
         assertEquals(true, (firstResult != secondResult));
     }
+
+    public void testToString() throws Exception {
+        // Given
+        LabelDictionary labelDictionary = new LabelDictionary();
+        int firstResult = labelDictionary.insertLabel("TEST_LABEL1");
+        int secondResult = labelDictionary.insertLabel("TEST_LABEL2");
+
+        // When
+       String result = labelDictionary.toString();
+
+        // Then
+        assertEquals("TEST_LABEL2: 2\nTEST_LABEL1: 1\n", result);
+    }
 }

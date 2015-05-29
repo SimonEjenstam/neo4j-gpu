@@ -30,10 +30,6 @@ public class LabelDictionary {
         }
     }
 
-    public String getLabelFromId(int id) {
-        return idToLabels.get(id);
-    }
-
     public int getIdForLabel(String label) {
         return labelToIds.get(label);
     }

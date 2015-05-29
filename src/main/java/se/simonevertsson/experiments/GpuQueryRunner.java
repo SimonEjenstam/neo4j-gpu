@@ -38,12 +38,15 @@ public class GpuQueryRunner {
     }
 
     private GpuGraphModel convertQuery(LabelDictionary labelDictionary, QueryGraph queryGraph) {
-        SpanningTreeGenerator.generateQueryGraph(queryGraph, labelDictionary);
-        return GraphModelConverter.convertNodesToGpuGraphModel(queryGraph.visitOrder, labelDictionary);
+        SpanningTreeGenerator spanningTreeGenerator = new SpanningTreeGenerator(queryGraph, labelDictionary);
+        spanningTreeGenerator.generateQueryGraph();
+        GraphModelConverter graphModelConverter = new GraphModelConverter(queryGraph.visitOrder, labelDictionary);
+        return graphModelConverter.convert();
     }
 
     private GpuGraphModel convertData(DatabaseService databaseService, LabelDictionary labelDictionary) {
         ResourceIterable<Node> allNodes = databaseService.getAllNodes();
-        return GraphModelConverter.convertNodesToGpuGraphModel(allNodes, labelDictionary);
+        GraphModelConverter graphModelConverter = new GraphModelConverter(allNodes, labelDictionary);
+        return graphModelConverter.convert();
     }
 }

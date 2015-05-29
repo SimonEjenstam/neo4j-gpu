@@ -34,6 +34,11 @@ public class GpuQuery {
         prefixScanArray[0] = 0;
         int[] globalSizes = new int[] { n };
         createDataBuffers(gpuData);
+
+        System.out.println("Query node labels: " + Arrays.toString(gpuQuery.getNodeLabels()));
+        System.out.println("Query node label indicies: " + Arrays.toString(gpuQuery.getLabelIndicies()));
+        System.out.println("Query node adjacencies: " + Arrays.toString(gpuQuery.getNodeAdjecencies()));
+        System.out.println("Query node adjecency indicies: " + Arrays.toString(gpuQuery.getAdjacencyIndicies()));
         int orderCounter = 0;
 
         for(Node queryNode : queryGraph.visitOrder) {
