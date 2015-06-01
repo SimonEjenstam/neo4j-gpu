@@ -3,6 +3,7 @@ package se.simonevertsson.gpu;
 import org.apache.lucene.util.ArrayUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -49,5 +50,15 @@ public class GpuGraphModel {
 
     public int[] getLabelIndicies() {
         return labelIndicies;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Node labels: " + Arrays.toString(this.nodeLabels) + "\n");
+        builder.append("Node label indicies: " + Arrays.toString(this.labelIndicies)+ "\n");
+        builder.append("Node adjacencies: " + Arrays.toString(this.nodeAdjecencies)+ "\n");
+        builder.append("Node adjecency indicies: " + Arrays.toString(this.adjacencyIndicies));
+        return builder.toString();
     }
 }

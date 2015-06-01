@@ -12,6 +12,8 @@ import java.util.Arrays;
  */
 public class CheckCandidatesTest extends TestCase {
 
+
+
     public void testReturnsTrueForCorrectCandidate() throws Exception {
         // Given
         CLContext context = JavaCL.createBestContext();
@@ -35,11 +37,11 @@ public class CheckCandidatesTest extends TestCase {
         };
 
         long[] dataAdjacencies = {
+                1,
+                2,
                 2,
                 3,
-                3,
-                4,
-                4
+                3
         };
 
         int[] dataAdjacencyIndicies = {
@@ -52,29 +54,38 @@ public class CheckCandidatesTest extends TestCase {
 
 
         int[] queryVertexLabels = {
-                1,
                 2,
+                1,
                 1,
                 3
         };
 
         int n = 4;
 
-        int[] candidateSet = {
-                0,
-                0,
-                0,
-                0
+        int dataNodeCount = 4;
+
+        int queryNodeCount = 4;
+
+
+        boolean[] candidateSet = new boolean[dataNodeCount*queryNodeCount];
+
+
+        boolean[] expectedCandidateSet = {
+                false, false, false, false,
+                false, true, false, false,
+                false, false, false, false,
+                false, false, false, false,
         };
 
 
         // Create OpenCL input and output buffers
         CLBuffer<Integer>
-                labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabels), false),
-                label_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabelIndicies), false),
-                adjacency_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataAdjacencyIndicies), false),
-                query_vertex_labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(Arrays.copyOfRange(queryVertexLabels, 0, 1)), false),
-                c_set = context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(candidateSet, 0, n), false);
+                labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabels), true),
+                label_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabelIndicies), true),
+                adjacency_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataAdjacencyIndicies), true),
+                query_vertex_labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(queryVertexLabels), true);
+        CLBuffer<Boolean>
+                c_set = context.createBuffer(CLMem.Usage.Output, Pointer.pointerToBooleans(candidateSet));
 
 
         CheckCandidates kernels = new CheckCandidates(context);
@@ -83,25 +94,25 @@ public class CheckCandidatesTest extends TestCase {
         // When
         CLEvent checkCandidatesEvent = kernels.check_candidates(
                 queue,
-                adjacency_indicies,
-                2,
-                labels,
-                label_indicies,
                 query_vertex_labels,
                 1,
+                0,
+                1,
+                2,
+                label_indicies,
+                labels,
+                adjacency_indicies,
                 c_set,
-                n,
+                dataNodeCount,
                 globalSizes,
                 null);
 
-        Pointer<Integer> outPtr = c_set.read(queue, checkCandidatesEvent); // blocks until add_floats finished
+        Pointer<Boolean> outPtr = c_set.read(queue, checkCandidatesEvent); // blocks until add_floats finished
 
         // Then
-
-        assertEquals(1, (int) outPtr.get(0));
-        assertEquals(0, (int) outPtr.get(1));
-        assertEquals(0, (int) outPtr.get(2));
-        assertEquals(0, (int) outPtr.get(3));
+        for(int i = 0; i < dataNodeCount * queryNodeCount; i++) {
+            assertEquals(expectedCandidateSet[i], (boolean) outPtr.get(i));
+        }
     }
 
 
@@ -128,11 +139,11 @@ public class CheckCandidatesTest extends TestCase {
         };
 
         int[] dataAdjacencies = {
+                1,
+                2,
                 2,
                 3,
-                3,
-                4,
-                4
+                3
         };
 
         int[] dataAdjacencyIndicies = {
@@ -145,57 +156,62 @@ public class CheckCandidatesTest extends TestCase {
 
 
         int[] queryVertexLabels = {
-                1,
                 2,
+                1,
                 1,
                 3
         };
 
-        int n = 4;
+        int dataNodeCount = 4;
 
-        int[] candidateSet = {
-                0,
-                0,
-                0,
-                0
+        int queryNodeCount = 4;
+
+        boolean[] candidateSet = new boolean[dataNodeCount*queryNodeCount];
+
+
+        boolean[] expectedCandidateSet = {
+                true, false, false, false,
+                false, false, false, false,
+                false, false, false, false,
+                false, false, false, false,
         };
 
 
 
         // Create OpenCL input and output buffers
         CLBuffer<Integer>
-                labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabels), false),
-                label_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabelIndicies), false),
-                adjacency_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataAdjacencyIndicies), false),
-                query_vertex_labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(Arrays.copyOfRange(queryVertexLabels, 1, 2)), false),
-                c_set = context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(candidateSet, 0, n), false);
+                labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabels), true),
+                label_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabelIndicies), true),
+                adjacency_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataAdjacencyIndicies), true),
+                query_vertex_labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(queryVertexLabels), true);
+        CLBuffer<Boolean>
+                 c_set = context.createBuffer(CLMem.Usage.Output, Pointer.pointerToBooleans(candidateSet));
 
 
         CheckCandidates kernels = new CheckCandidates(context);
-        int[] globalSizes = new int[] { n };
+        int[] globalSizes = new int[] { dataNodeCount };
 
         // When
         CLEvent checkCandidatesEvent = kernels.check_candidates(
                 queue,
-                adjacency_indicies,
-                2,
-                labels,
-                label_indicies,
                 query_vertex_labels,
+                0,
                 1,
+                2,
+                2,
+                label_indicies,
+                labels,
+                adjacency_indicies,
                 c_set,
-                n,
+                dataNodeCount,
                 globalSizes,
                 null);
 
-        Pointer<Integer> outPtr = c_set.read(queue, checkCandidatesEvent); // blocks until add_floats finished
-
+        Pointer<Boolean> outPtr = c_set.read(queue, checkCandidatesEvent); // blocks until finished
 
         // Then
-
-        assertEquals(0, (int) outPtr.get(0));
-        assertEquals(1, (int) outPtr.get(1));
-        assertEquals(0, (int) outPtr.get(2));
-        assertEquals(0, (int) outPtr.get(3));
+        for(int i = 0; i < dataNodeCount * queryNodeCount; i++) {
+            assertEquals(expectedCandidateSet[i], (boolean) outPtr.get(i));
+        }
     }
 }

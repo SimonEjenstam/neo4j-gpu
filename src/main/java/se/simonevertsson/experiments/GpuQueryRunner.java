@@ -27,11 +27,15 @@ public class GpuQueryRunner {
         tock = System.currentTimeMillis();
 
         System.out.println("GPU Data conversion runtime: " + (tock-tick) + "ms");
+        System.out.println("------Query-----");
+        System.out.println(gpuQuery.toString());
+        System.out.println("------Data-----");
+        System.out.println(gpuData.toString());
 
         /* Execute the query */
         tick = System.currentTimeMillis();
-        GpuQuery gpuGraphQuery = new GpuQuery();
-        gpuGraphQuery.executeQuery(gpuData, gpuQuery, queryGraph);
+        GpuQuery gpuGraphQuery = new GpuQuery(gpuData, gpuQuery);
+        gpuGraphQuery.executeQuery(queryGraph.visitOrder);
         tock = System.currentTimeMillis();
 
         System.out.println("GPU Query runtime: " + (tock - tick) + "ms");
