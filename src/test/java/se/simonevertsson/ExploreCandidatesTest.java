@@ -13,10 +13,10 @@ import java.nio.LongBuffer;
 public class ExploreCandidatesTest extends TestCase {
 
     long[] queryAdjacencies = {
-            2,
-            3,
             1,
             2,
+            2,
+            3,
             3
     };
 
@@ -29,8 +29,8 @@ public class ExploreCandidatesTest extends TestCase {
     };
 
     int[] queryLabels = {
-            2,
             1,
+            2,
             1,
             3
     };
@@ -110,10 +110,80 @@ public class ExploreCandidatesTest extends TestCase {
 
     }
 
-    public void testReturnsTrueForCorrectCandidates() throws Exception {
+    public void testReturnsTrueForCorrectCandidates4() throws Exception {
         // Given
         int[] candidateArray = new int[] {
-                0,2
+                3
+        };
+
+        boolean[] candidateIndicators = {
+                true, false, false, false,
+                false, true, false, false,
+                false, false, true, false,
+                false, false, false, true,
+        };
+
+
+        boolean[] expectedCandidateIndicators = {
+                true, false, false, false,
+                false, true, false, false,
+                false, false, true, false,
+                false, false, false, true,
+        };
+
+        CLBuffer<Boolean>
+                candidate_indicators = context.createBuffer(CLMem.Usage.Output, Pointer.pointerToBooleans(candidateIndicators));
+        CLBuffer<Integer>
+                candidates_array = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateArray), true);
+
+
+        ExploreCandidates kernel = new ExploreCandidates(context);
+        int[] globalSizes = new int[] { candidateArray.length };
+
+        // When
+        CLEvent checkCandidatesEvent = kernel.explore_candidates(
+                queue,
+                3,
+                q_adjacencies,
+                q_adjacency_indicies,
+                q_labels,
+                q_label_indicies,
+                5,
+                5,
+                d_adjacencies,
+                d_adjacency_indicies,
+                d_labels,
+                d_label_indicies,
+                candidates_array,
+                candidate_indicators,
+                dataNodeCount,
+                globalSizes,
+                null
+        );
+
+        Pointer<Boolean> outPtr = candidate_indicators.read(queue, checkCandidatesEvent); // blocks until add_floats finished
+
+        StringBuilder builder = new StringBuilder();
+        int j = 1;
+        for(boolean candidate : outPtr)  {
+            builder.append(candidate + ", ");
+            if(j % dataNodeCount == 0) {
+                builder.append("\n");
+            }
+            j++;
+        }
+        System.out.println(builder.toString());
+
+        // Then
+        for(int i = 0; i < dataNodeCount * queryNodeCount; i++) {
+            assertEquals(expectedCandidateIndicators[i], (boolean) outPtr.get(i));
+        }
+    }
+
+    public void testReturnsTrueForCorrectCandidates3() throws Exception {
+        // Given
+        int[] candidateArray = new int[] {
+                0, 2
         };
 
         boolean[] candidateIndicators = {
@@ -148,8 +218,148 @@ public class ExploreCandidatesTest extends TestCase {
                 q_adjacency_indicies,
                 q_labels,
                 q_label_indicies,
+                4,
+                5,
+                d_adjacencies,
+                d_adjacency_indicies,
+                d_labels,
+                d_label_indicies,
+                candidates_array,
+                candidate_indicators,
+                dataNodeCount,
+                globalSizes,
+                null
+        );
+
+        Pointer<Boolean> outPtr = candidate_indicators.read(queue, checkCandidatesEvent); // blocks until add_floats finished
+
+        StringBuilder builder = new StringBuilder();
+        int j = 1;
+        for(boolean candidate : outPtr)  {
+            builder.append(candidate + ", ");
+            if(j % dataNodeCount == 0) {
+                builder.append("\n");
+            }
+            j++;
+        }
+        System.out.println(builder.toString());
+
+        // Then
+        for(int i = 0; i < dataNodeCount * queryNodeCount; i++) {
+            assertEquals(expectedCandidateIndicators[i], (boolean) outPtr.get(i));
+        }
+    }
+
+    public void testReturnsTrueForCorrectCandidates2() throws Exception {
+        // Given
+        int[] candidateArray = new int[] {
+                0
+        };
+
+        boolean[] candidateIndicators = {
+                true, false, false, false,
+                false, true, false, false,
+                false, false, false, false,
+                false, false, false, false,
+        };
+
+
+        boolean[] expectedCandidateIndicators = {
+                true, false, false, false,
+                false, true, false, false,
+                false, false, true, false,
+                false, false, false, false,
+        };
+
+        CLBuffer<Boolean>
+                candidate_indicators = context.createBuffer(CLMem.Usage.Output, Pointer.pointerToBooleans(candidateIndicators));
+        CLBuffer<Integer>
+                candidates_array = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateArray), true);
+
+
+        ExploreCandidates kernel = new ExploreCandidates(context);
+        int[] globalSizes = new int[] { candidateArray.length };
+
+        // When
+        CLEvent checkCandidatesEvent = kernel.explore_candidates(
+                queue,
                 0,
+                q_adjacencies,
+                q_adjacency_indicies,
+                q_labels,
+                q_label_indicies,
+                0,
+                2,
+                d_adjacencies,
+                d_adjacency_indicies,
+                d_labels,
+                d_label_indicies,
+                candidates_array,
+                candidate_indicators,
+                dataNodeCount,
+                globalSizes,
+                null
+        );
+
+        Pointer<Boolean> outPtr = candidate_indicators.read(queue, checkCandidatesEvent); // blocks until add_floats finished
+
+        StringBuilder builder = new StringBuilder();
+        int j = 1;
+        for(boolean candidate : outPtr)  {
+            builder.append(candidate + ", ");
+            if(j % dataNodeCount == 0) {
+                builder.append("\n");
+            }
+            j++;
+        }
+        System.out.println(builder.toString());
+
+        // Then
+        for(int i = 0; i < dataNodeCount * queryNodeCount; i++) {
+            assertEquals(expectedCandidateIndicators[i], (boolean) outPtr.get(i));
+        }
+    }
+
+    public void testReturnsTrueForCorrectCandidates1() throws Exception {
+        // Given
+        int[] candidateArray = new int[] {
+                1
+        };
+
+        boolean[] candidateIndicators = {
+                false, false, false, false,
+                false, true, false, false,
+                false, false, false, false,
+                false, false, false, false,
+        };
+
+
+        boolean[] expectedCandidateIndicators = {
+                false, false, false, false,
+                false, true, false, false,
+                false, false, true, false,
+                false, false, false, true,
+        };
+
+        CLBuffer<Boolean>
+                candidate_indicators = context.createBuffer(CLMem.Usage.Output, Pointer.pointerToBooleans(candidateIndicators));
+        CLBuffer<Integer>
+                candidates_array = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateArray), true);
+
+
+        ExploreCandidates kernel = new ExploreCandidates(context);
+        int[] globalSizes = new int[] { candidateArray.length };
+
+        // When
+        CLEvent checkCandidatesEvent = kernel.explore_candidates(
+                queue,
                 1,
+                q_adjacencies,
+                q_adjacency_indicies,
+                q_labels,
+                q_label_indicies,
+                2,
+                4,
                 d_adjacencies,
                 d_adjacency_indicies,
                 d_labels,

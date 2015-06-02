@@ -49,7 +49,7 @@ public class GpuQuery {
 
         int orderCounter = 0;
         for(Node queryNode : visitOrder) {
-            int[] candidateArray = checkCandidates(gpuQuery, dataNodeCount, globalSizes, orderCounter, queryNode);
+            int[] candidateArray = checkCandidates(gpuQuery, dataNodeCount, globalSizes, queryNode);
             System.out.println("Candidate array for query node " + queryNode.getId() + ": " + Arrays.toString(candidateArray));
             orderCounter++;
         }
@@ -84,10 +84,10 @@ public class GpuQuery {
                 Pointer.pointerToBooleans(new boolean[dataNodeCount * queryNodeCount]));
     }
 
-    public int[] checkCandidates(GpuGraphModel gpuQuery, int dataNodeCount, int[] globalSizes, int orderCounter, Node queryNode) throws IOException {
+    public int[] checkCandidates(GpuGraphModel gpuQuery, int dataNodeCount, int[] globalSizes, Node queryNode) throws IOException {
         System.out.println("---------------------------");
-        int queryLabelStartIndex = gpuQuery.getLabelIndicies()[orderCounter];
-        int queryLabelEndIndex = gpuQuery.getLabelIndicies()[orderCounter+1];
+        int queryLabelStartIndex = gpuQuery.getLabelIndicies()[((int) queryNode.getId())];
+        int queryLabelEndIndex = gpuQuery.getLabelIndicies()[((int) queryNode.getId())+1];
         int queryNodeDegree = queryNode.getDegree();
         int[] queryNodeLabels = Arrays.copyOfRange(gpuQuery.getNodeLabels(), queryLabelStartIndex, queryLabelEndIndex);
 

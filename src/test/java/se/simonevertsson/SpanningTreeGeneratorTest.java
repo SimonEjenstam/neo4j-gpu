@@ -29,10 +29,10 @@ public class SpanningTreeGeneratorTest extends TestCase {
         // Then
         assertEquals(3, result.spanningTree.size());
         assertEquals(4, result.visitOrder.size());
-        assertEquals(2, (long)result.visitOrder.get(0).getId());
-        assertEquals(1, (long)result.visitOrder.get(1).getId());
-        assertEquals(3, (long)result.visitOrder.get(2).getId());
-        assertEquals(4, (long)result.visitOrder.get(3).getId());
+        assertEquals(1, (long)result.visitOrder.get(0).getId());
+        assertEquals(0, (long)result.visitOrder.get(1).getId());
+        assertEquals(2, (long)result.visitOrder.get(2).getId());
+        assertEquals(3, (long)result.visitOrder.get(3).getId());
     }
 
 }

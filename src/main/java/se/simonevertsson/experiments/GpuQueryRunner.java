@@ -44,7 +44,7 @@ public class GpuQueryRunner {
     private GpuGraphModel convertQuery(LabelDictionary labelDictionary, QueryGraph queryGraph) {
         SpanningTreeGenerator spanningTreeGenerator = new SpanningTreeGenerator(queryGraph, labelDictionary);
         spanningTreeGenerator.generateQueryGraph();
-        GraphModelConverter graphModelConverter = new GraphModelConverter(queryGraph.visitOrder, labelDictionary);
+        GraphModelConverter graphModelConverter = new GraphModelConverter(queryGraph.nodes, labelDictionary);
         return graphModelConverter.convert();
     }
 
