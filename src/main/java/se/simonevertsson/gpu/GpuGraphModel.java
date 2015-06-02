@@ -17,13 +17,13 @@ public class GpuGraphModel {
 
     private int[] adjacencyIndicies;
 
-    private long[] nodeAdjecencies;
+    private int[] nodeAdjecencies;
 
-    public GpuGraphModel(ArrayList<Integer> labelIndicies, ArrayList<Integer> nodeLabels, ArrayList<Integer> adjecenyIndicies, ArrayList<Long> nodeAdjecencies) {
+    public GpuGraphModel(ArrayList<Integer> labelIndicies, ArrayList<Integer> nodeLabels, ArrayList<Integer> adjecenyIndicies, ArrayList<Integer> nodeAdjecencies) {
         this.labelIndicies = ArrayUtil.toIntArray(labelIndicies);
         this.nodeLabels = ArrayUtil.toIntArray(nodeLabels);
         this.adjacencyIndicies = ArrayUtil.toIntArray(adjecenyIndicies);
-        this.nodeAdjecencies = convertArrayListToLongArray(nodeAdjecencies);
+        this.nodeAdjecencies = ArrayUtil.toIntArray(nodeAdjecencies);
     }
 
     private long[] convertArrayListToLongArray(ArrayList<Long> longList) {
@@ -44,7 +44,7 @@ public class GpuGraphModel {
         return adjacencyIndicies;
     }
 
-    public long[] getNodeAdjecencies() {
+    public int[] getNodeAdjecencies() {
         return nodeAdjecencies;
     }
 

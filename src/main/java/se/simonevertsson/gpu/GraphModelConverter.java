@@ -14,7 +14,7 @@ public class GraphModelConverter {
     private ArrayList<Integer> labelIndicies;
     private ArrayList<Integer> nodeLabels;
     private ArrayList<Integer> adjacenyIndicies;
-    private ArrayList<Long> nodeAdjecencies;
+    private ArrayList<Integer> nodeAdjecencies;
 
     public GraphModelConverter(Iterable<Node> nodes, LabelDictionary labelDictionary) {
         this.nodes = nodes;
@@ -57,10 +57,10 @@ public class GraphModelConverter {
         }
     }
 
-    private int addRelationships(ArrayList<Long> nodeAdjecencies, Iterable<Relationship> nodeRelationships) {
+    private int addRelationships(ArrayList<Integer> nodeAdjecencies, Iterable<Relationship> nodeRelationships) {
         int relationshipCount = 0;
         for(Relationship nodeRelationship : nodeRelationships) {
-            nodeAdjecencies.add(nodeRelationship.getEndNode().getId());
+            nodeAdjecencies.add((int)nodeRelationship.getEndNode().getId());
             relationshipCount++;
         }
         return relationshipCount;
@@ -80,6 +80,6 @@ public class GraphModelConverter {
         this.labelIndicies = new ArrayList<Integer>();
         this.nodeLabels = new ArrayList<Integer>();
         this.adjacenyIndicies = new ArrayList<Integer>();
-        this.nodeAdjecencies = new ArrayList<Long>();
+        this.nodeAdjecencies = new ArrayList<Integer>();
     }
 }

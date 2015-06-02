@@ -12,7 +12,7 @@ import java.nio.LongBuffer;
  */
 public class ExploreCandidatesTest extends TestCase {
 
-    long[] queryAdjacencies = {
+    int[] queryAdjacencies = {
             1,
             2,
             2,
@@ -43,7 +43,7 @@ public class ExploreCandidatesTest extends TestCase {
             4
     };
 
-    long[] dataAdjacencies = {
+    int[] dataAdjacencies = {
             1,
             2,
             2,
@@ -81,12 +81,12 @@ public class ExploreCandidatesTest extends TestCase {
     private CLContext context;
     private CLQueue queue;
 
-    private CLBuffer<Long> q_adjacencies;
+    private CLBuffer<Integer> q_adjacencies;
     private CLBuffer<Integer> q_adjacency_indicies;
     private CLBuffer<Integer> q_labels;
     private CLBuffer<Integer> q_label_indicies;
 
-    private CLBuffer<Long> d_adjacencies;
+    private CLBuffer<Integer> d_adjacencies;
     private CLBuffer<Integer> d_adjacency_indicies;
     private CLBuffer<Integer> d_labels;
     private CLBuffer<Integer> d_label_indicies;
@@ -98,12 +98,12 @@ public class ExploreCandidatesTest extends TestCase {
 
 
         // Create OpenCL input and output buffers
-        this.q_adjacencies = context.createLongBuffer(CLMem.Usage.Input, LongBuffer.wrap(queryAdjacencies), true);
+        this.q_adjacencies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(queryAdjacencies), true);
         this.q_adjacency_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(queryAdjacencyIndicies), true);
         this.q_labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(queryLabels), true);
         this.q_label_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(queryLabelIndicies), true);
 
-        this.d_adjacencies = context.createLongBuffer(CLMem.Usage.Input, LongBuffer.wrap(dataAdjacencies), true);
+        this.d_adjacencies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataAdjacencies), true);
         this.d_adjacency_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataAdjacencyIndicies), true);
         this.d_labels = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabels), true);
         this.d_label_indicies = context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(dataLabelIndicies), true);

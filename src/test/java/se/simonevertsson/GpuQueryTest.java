@@ -71,7 +71,7 @@ public class GpuQueryTest extends TestCase {
         Pointer<Boolean> c_set = Pointer.pointerToBooleans(candidateSet);
 
         // When
-        int[] result = gpuQuery.gatherCandidateArray(0, c_set, dataNodeCount);
+        int[] result = gpuQuery.gatherCandidateArray(0);
 
 
 
