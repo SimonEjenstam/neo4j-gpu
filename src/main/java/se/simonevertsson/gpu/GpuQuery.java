@@ -5,6 +5,7 @@ import org.bridj.Pointer;
 import org.neo4j.graphdb.Node;
 import se.simonevertsson.CheckCandidates;
 import se.simonevertsson.ExploreCandidates;
+import se.simonevertsson.RefineCandidates;
 import se.simonevertsson.query.QueryGraph;
 
 import java.io.IOException;
@@ -48,9 +49,58 @@ public class GpuQuery {
     }
 
     public void executeQuery(ArrayList<Node> visitOrder) throws IOException {
-
         createDataBuffers(dataNodeCount, queryNodeCount);
 
+        candidateInitialization(visitOrder);
+
+        System.out.println("--------------REFINEMENT STEP-------------");
+        candidateRefinement(visitOrder);
+
+        System.out.println("--------------FINDING CANDIDATE EDGES-------------");
+        candidateEdgeSearch(visitOrder);
+
+        System.out.println("--------------JOINING CANDIDATE EDGES-------------");
+        candidateEdgeJoin();
+    }
+
+    private void candidateEdgeJoin(ArrayList<Node> visitOrder) {
+        for (Node queryNode : visitOrder) {
+            int[] candidateArray = gatherCandidateArray((int) queryNode.getId());
+            
+        }
+    }
+
+    private void candidateEdgeSearch(ArrayList<Node> visitOrder) {
+
+    }
+
+    private void candidateRefinement(ArrayList<Node> visitOrder) throws IOException {
+        boolean[] oldCandidateIndicators = pointerToArray(this.candidateIndicatorsPointer, this.dataNodeCount*this.queryNodeCount);
+        boolean candidateIndicatorsHasChanged = true;
+        while(candidateIndicatorsHasChanged) {
+            System.out.println("Candidate indicators have been updated, refining again.");
+            for (Node queryNode : visitOrder) {
+                int[] candidateArray = gatherCandidateArray((int) queryNode.getId());
+                refineCandidates((int) queryNode.getId(), candidateArray);
+            }
+
+            boolean[] newCandidateIndicators = pointerToArray(this.candidateIndicatorsPointer, this.dataNodeCount*this.queryNodeCount);
+            candidateIndicatorsHasChanged = !Arrays.equals(oldCandidateIndicators, newCandidateIndicators);
+            oldCandidateIndicators = newCandidateIndicators;
+        }
+    }
+
+    private boolean[] pointerToArray(Pointer<Boolean> pointer, int size) {
+        boolean[] result = new boolean[size];
+        int i = 0;
+        for(boolean element : pointer) {
+            result[i] = element;
+            i++;
+        }
+        return result;
+    }
+
+    private void candidateInitialization(ArrayList<Node> visitOrder) throws IOException {
         for(Node queryNode : visitOrder) {
             if(!initializedQueryNode[((int) queryNode.getId())]) {
                 checkCandidates(gpuQuery, queryNode);
@@ -106,7 +156,7 @@ public class GpuQuery {
             null
         );
 
-        this.candidateIndicatorsPointer = candidateIndicators.read(this.queue, exploreCandidatesEvent); // blocks until add_floats finished;
+        this.candidateIndicatorsPointer = candidateIndicators.read(this.queue, exploreCandidatesEvent);
     }
 
     private void createDataBuffers(int dataNodeCount, int queryNodeCount) {
@@ -167,7 +217,7 @@ public class GpuQuery {
                 globalSizes,
                 null);
 
-        this.candidateIndicatorsPointer = candidateIndicators.read(this.queue, checkCandidatesEvent); // blocks until add_floats finished;
+        this.candidateIndicatorsPointer = candidateIndicators.read(this.queue, checkCandidatesEvent);
     }
 
     public int[] gatherCandidateArray(int nodeId) {
@@ -194,5 +244,39 @@ public class GpuQuery {
             }
         }
         return candidateArray;
+    }
+
+
+    private void refineCandidates(int queryNodeId, int[] candidateArray) throws IOException {
+        int queryNodeAdjacencyIndexStart = gpuQuery.getAdjacencyIndicies()[queryNodeId];
+        int queryNodeAdjacencyIndexEnd = gpuQuery.getAdjacencyIndicies()[queryNodeId + 1];
+
+        IntBuffer candidatesArrayBuffer = IntBuffer.wrap(candidateArray);
+        CLBuffer<Integer> candidatesArray
+                = this.context.createIntBuffer(CLMem.Usage.Input, candidatesArrayBuffer, true);
+        int[] globalSizes = new int[] { candidateArray.length };
+
+        RefineCandidates kernel = new RefineCandidates(context);
+        CLEvent refineCandidatesEvent = kernel.refine_candidates(
+                queue,
+                queryNodeId,
+                queryNodeAdjacencies,
+                queryNodeAdjacencyIndicies,
+                queryNodeLabels,
+                queryNodeLabelIndicies,
+                queryNodeAdjacencyIndexStart,
+                queryNodeAdjacencyIndexEnd,
+                dataAdjacencies,
+                dataAdjacencyIndicies,
+                dataLabels,
+                dataLabelIndicies,
+                candidatesArray,
+                candidateIndicators,
+                this.dataNodeCount,
+                globalSizes,
+                null
+        );
+
+        this.candidateIndicatorsPointer = candidateIndicators.read(this.queue, refineCandidatesEvent);
     }
 }
