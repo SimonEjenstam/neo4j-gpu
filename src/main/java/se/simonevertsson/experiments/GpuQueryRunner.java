@@ -34,7 +34,7 @@ public class GpuQueryRunner {
 
         /* Execute the query */
         tick = System.currentTimeMillis();
-        GpuQuery gpuGraphQuery = new GpuQuery(gpuData, gpuQuery);
+        GpuQuery gpuGraphQuery = new GpuQuery(gpuData, gpuQuery, queryGraph);
         gpuGraphQuery.executeQuery(queryGraph.visitOrder);
         tock = System.currentTimeMillis();
 

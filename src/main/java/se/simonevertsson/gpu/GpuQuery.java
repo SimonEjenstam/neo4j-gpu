@@ -3,16 +3,15 @@ package se.simonevertsson.gpu;
 import com.nativelibs4java.opencl.*;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Node;
-import se.simonevertsson.CheckCandidates;
-import se.simonevertsson.ExploreCandidates;
-import se.simonevertsson.RefineCandidates;
+import org.neo4j.graphdb.Relationship;
+import se.simonevertsson.*;
 import se.simonevertsson.query.QueryGraph;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
-import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * Created by simon.evertsson on 2015-05-19.
@@ -25,6 +24,7 @@ public class GpuQuery {
     private final GpuGraphModel gpuQuery;
     private final int queryNodeCount;
     private final int dataNodeCount;
+    private final QueryGraph queryGraph;
     private CLBuffer<Integer> dataAdjacencyIndicies;
     private CLBuffer<Integer> dataLabels;
     private CLBuffer<Integer> dataLabelIndicies;
@@ -38,9 +38,10 @@ public class GpuQuery {
     private Pointer<Boolean> candidateIndicatorsPointer;
 
 
-    public GpuQuery(GpuGraphModel gpuData, GpuGraphModel gpuQuery) {
+    public GpuQuery(GpuGraphModel gpuData, GpuGraphModel gpuQuery, QueryGraph queryGraph) {
         this.gpuData = gpuData;
         this.gpuQuery = gpuQuery;
+        this.queryGraph = queryGraph;
         this.context = JavaCL.createBestContext();
         this.queue = this.context.createDefaultQueue();
         this.dataNodeCount = gpuData.getNodeLabels().length;
@@ -57,21 +58,107 @@ public class GpuQuery {
         candidateRefinement(visitOrder);
 
         System.out.println("--------------FINDING CANDIDATE EDGES-------------");
-        candidateEdgeSearch(visitOrder);
+        HashMap<Long, EdgeCandidates> edgeCandidatesHashMap =  candidateEdgeSearch();
 
         System.out.println("--------------JOINING CANDIDATE EDGES-------------");
-        candidateEdgeJoin();
+        candidateEdgeJoin(visitOrder);
     }
 
     private void candidateEdgeJoin(ArrayList<Node> visitOrder) {
-        for (Node queryNode : visitOrder) {
-            int[] candidateArray = gatherCandidateArray((int) queryNode.getId());
-            
-        }
+
     }
 
-    private void candidateEdgeSearch(ArrayList<Node> visitOrder) {
+    private HashMap<Long, EdgeCandidates> candidateEdgeSearch() throws IOException {
+        ArrayList<Relationship> relationships = this.queryGraph.relationships;
+        HashMap<Long, EdgeCandidates> edgeCandidatesHashMap = new HashMap<Long, EdgeCandidates>();
 
+        for(Relationship relationship : relationships) {
+            int queryStartNodeId = (int) relationship.getStartNode().getId();
+            int queryEndNodeId = (int) relationship.getEndNode().getId();
+            int[] candidateArray = gatherCandidateArray((int) relationship.getStartNode().getId());
+            CLBuffer<Integer>
+                    candidatesArray = this.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateArray), true);
+
+            Pointer<Integer> candidateEdgeCounts = countEdgeCandidates(queryStartNodeId, queryEndNodeId, candidatesArray);
+
+            int totalCandidateEdgeCount = 0;
+            int[] candidateEdgeEndNodeIndicies = new int[candidateArray.length];
+            for(int i = 0; i < candidateArray.length; i++) {
+                candidateEdgeEndNodeIndicies[i] = totalCandidateEdgeCount;
+                totalCandidateEdgeCount += candidateEdgeCounts.get(i);
+            }
+
+            CLBuffer<Integer>
+                    candidateEdgeEndNodeIndiciesBuffer = this.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateArray), true);
+
+            Pointer<Integer> candidateEdgeEndNodes =
+                    searchCandidateEdges(queryStartNodeId, queryEndNodeId, candidatesArray, candidateEdgeEndNodeIndiciesBuffer, totalCandidateEdgeCount);
+
+            EdgeCandidates edgeCandidates = new EdgeCandidates(
+                    queryStartNodeId,
+                    queryEndNodeId,
+                    candidateEdgeEndNodeIndiciesBuffer.read(this.queue),
+                    candidateEdgeEndNodes,
+                    candidatesArray.read(this.queue));
+
+            edgeCandidatesHashMap.put(relationship.getId(), edgeCandidates);
+
+        }
+
+        return edgeCandidatesHashMap;
+    }
+
+    private Pointer<Integer> searchCandidateEdges(int queryStartNodeId, int queryEndNodeId, CLBuffer<Integer> candidatesArray,
+                                                  CLBuffer<Integer> candidateEdgeEndNodeIndicies, int totalCandidateEdgeCount) throws IOException {
+
+        CLBuffer candidateEdgeEndNodes = this.context.createIntBuffer(CLMem.Usage.Output, totalCandidateEdgeCount);
+
+
+        int[] globalSizes = new int[] {(int) candidatesArray.getElementCount()};
+
+        SearchEdgeCandidates kernel = new SearchEdgeCandidates(this.context);
+        CLEvent searchEdgeCandidatesEvent = kernel.count_edge_candidates(
+                this.queue,
+                queryStartNodeId,
+                queryEndNodeId,
+                this.dataAdjacencies,
+                this.dataAdjacencyIndicies,
+                candidateEdgeEndNodes,
+                candidateEdgeEndNodeIndicies,
+                candidatesArray,
+                this.candidateIndicators,
+                this.dataNodeCount,
+                globalSizes,
+                null
+        );
+
+        return candidateEdgeEndNodes.read(queue, searchEdgeCandidatesEvent);
+    }
+
+
+    private Pointer<Integer> countEdgeCandidates(int queryStartNodeId, int queryEndNodeId, CLBuffer<Integer> candidateArray) throws IOException {
+
+        CLBuffer candidateEdgeCounts = this.context.createIntBuffer(CLMem.Usage.Output, candidateArray.getElementCount());
+
+
+        int[] globalSizes = new int[] {(int) candidateArray.getElementCount()};
+
+        CountEdgeCandidates kernel = new CountEdgeCandidates(this.context);
+        CLEvent countEdgeCandidatesEvent = kernel.count_edge_candidates(
+                this.queue,
+                queryStartNodeId,
+                queryEndNodeId,
+                this.dataAdjacencies,
+                this.dataAdjacencyIndicies,
+                candidateEdgeCounts,
+                candidateArray,
+                this.candidateIndicators,
+                this.dataNodeCount,
+                globalSizes,
+                null
+        );
+
+        return candidateEdgeCounts.read(queue, countEdgeCandidatesEvent);
     }
 
     private void candidateRefinement(ArrayList<Node> visitOrder) throws IOException {

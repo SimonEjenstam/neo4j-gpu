@@ -46,11 +46,8 @@ public class SpanningTreeGenerator {
             long currentEndId = relationship.getEndNode().getId();
             if(visitedNodes.containsKey(currentStartId) && !visitedNodes.containsKey(currentEndId)) {
                 addNodeToSpanningTree(relationship, relationship.getEndNode());
-                iter.remove();
             } else if(!visitedNodes.containsKey(currentStartId) && visitedNodes.containsKey(currentEndId)) {
                addNodeToSpanningTree(relationship, relationship.getStartNode());
-            } else if(visitedNodes.containsKey(currentStartId) && visitedNodes.containsKey(currentEndId)) {
-                iter.remove();
             }
         }
     }

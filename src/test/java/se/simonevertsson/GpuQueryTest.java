@@ -53,7 +53,7 @@ public class GpuQueryTest extends TestCase {
 
     public void testGatherCandidates() throws Exception {
         // Given
-        GpuQuery gpuQuery = new GpuQuery(null, null);
+        GpuQuery gpuQuery = new GpuQuery(null, null, null);
 
         int dataNodeCount = 4;
 
