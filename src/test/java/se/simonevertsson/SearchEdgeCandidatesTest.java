@@ -349,7 +349,7 @@ public class SearchEdgeCandidatesTest extends TestCase {
         }
     }
 
-    public void testReturns<rueForCorrectCandidates5() throws Exception {
+    public void testReturnsTrueForCorrectCandidates5() throws Exception {
         // Given
         int[] candidateArray = new int[]{
                 2

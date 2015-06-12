@@ -15,7 +15,7 @@ public class Main {
     public static final String DB_PATH = "target/foo";
     public static final String DB_CONFIG_PATH = "target";
     public static final String EXPERIMENT_QUERY =
-            "MATCH (a3),(a1),(b2),(c4)" +
+            "MATCH (a1),(b2),(a3),(c4)" +
             "WHERE (a3)<--(a1)-->(b2) AND (a3)<--(b2)-->(c4)<--(a3)" +
             "RETURN a1, b2, a3, c4";
 
