@@ -13,6 +13,7 @@ public class EdgeCandidates {
     private final int queryStartNodeId;
     private final int queryEndNodeId;
     private final int count;
+    private final int startNodeCount;
 
     public EdgeCandidates(int queryStartNodeId, int queryEndNodeId, CLBuffer<Integer> candidateEndNodeIndicies, CLBuffer<Integer> candidateEndNodes, CLBuffer<Integer> candidateStartNodes) {
         this.queryStartNodeId = queryStartNodeId;
@@ -20,7 +21,8 @@ public class EdgeCandidates {
         this.candidateEndNodeIndicies = candidateEndNodeIndicies;
         this.candidateEndNodes = candidateEndNodes;
         this.candidateStartNodes = candidateStartNodes;
-        this.count = (int) this.candidateEndNodeIndicies.getElementCount();
+        this.count = (int) this.candidateEndNodeIndicies.getElementCount()-1;
+        this.startNodeCount = (int) this.candidateStartNodes.getElementCount();
     }
 
     public CLBuffer<Integer> getCandidateEndNodeIndicies() {
@@ -45,5 +47,9 @@ public class EdgeCandidates {
 
     public int getCount() {
         return count;
+    }
+
+    public int getStartNodeCount() {
+        return startNodeCount;
     }
 }

@@ -65,12 +65,123 @@ public class GpuQuery {
         candidateEdgeJoin(edgeCandidatesHashMap);
     }
 
-    private void candidateEdgeJoin(HashMap<Integer, EdgeCandidates> edgeCandidatesHashMap) {
+    private void candidateEdgeJoin(HashMap<Integer, EdgeCandidates> edgeCandidatesHashMap) throws IOException {
         ArrayList<Integer> visitedQueryEdges = new ArrayList<Integer>();
         ArrayList<Integer> visitedQueryVertices = new ArrayList<Integer>();
 
-        CLBuffer<Integer> possiblePartialSolutions = initializePossiblePartialSolutions(edgeCandidatesHashMap, visitedQueryEdges, visitedQueryVertices);
+        CLBuffer<Integer> possibleSolutions = initializePossiblePartialSolutions(edgeCandidatesHashMap, visitedQueryEdges, visitedQueryVertices);
 
+        for(int relationshipId : edgeCandidatesHashMap.keySet()) {
+            if(!visitedQueryEdges.contains(relationshipId)) {
+                EdgeCandidates edgeCandidates = edgeCandidatesHashMap.get(relationshipId);
+                int startNodeId = edgeCandidates.getQueryStartNodeId();
+                int endNodeId = edgeCandidates.getQueryEndNodeId();
+                boolean startNodeVisisted = visitedQueryVertices.contains(startNodeId);
+                boolean endNodeVisisted = visitedQueryVertices.contains(endNodeId);
+
+                int combinationCountsLength = (int)possibleSolutions.getElementCount()/this.queryNodeCount;
+
+                CLBuffer<Integer>
+                        combinationCounts = this.context.createIntBuffer(CLMem.Usage.Output, combinationCountsLength);
+
+                if(startNodeVisisted && endNodeVisisted) {
+                    /* Prune existing possible solutions */
+                    System.out.println("Pruning with candidates of (" + startNodeId + ", " + endNodeId + ")");
+                } else if(startNodeVisisted || endNodeVisisted) {
+                    /* Combine candidate edges with existing possible solutions */
+                    Pointer<Integer> combinationCountsPointer = countSolutionCombinations(
+                            possibleSolutions,
+                            edgeCandidates, startNodeId,
+                            endNodeId, startNodeVisisted,
+                            combinationCountsLength,
+                            combinationCounts);
+
+                    int[] combinationIndicies = generatePrefixScanArray(combinationCountsPointer, combinationCountsLength);
+
+                    CLBuffer<Integer> newPossibleSolutions = generateSolutionCombinations(
+                            possibleSolutions,
+                            combinationCountsLength,
+                            edgeCandidates,
+                            startNodeId,
+                            endNodeId,
+                            startNodeVisisted,
+                            combinationIndicies);
+
+                    Pointer<Integer> newPossibleSolutionsPointer = newPossibleSolutions.read(this.queue);
+
+                    int result[] = new int[combinationIndicies[combinationIndicies.length-1]*this.queryNodeCount];
+                    int i = 0;
+                    for(int element : newPossibleSolutionsPointer) {
+                        result[i] = element;
+                        i++;
+                    }
+
+                    System.out.println("Combinations after combining with candidates of (" + startNodeId + ", " + endNodeId + ")");
+                    System.out.println(Arrays.toString(result));
+
+                    possibleSolutions = newPossibleSolutions;
+
+                    visitedQueryEdges.add(relationshipId);
+                    if(startNodeVisisted) {
+                        visitedQueryVertices.add(endNodeId);
+                    } else {
+                        visitedQueryVertices.add(startNodeId);
+                    }
+                }
+            }
+        }
+
+    }
+
+    private CLBuffer<Integer> generateSolutionCombinations(CLBuffer<Integer> oldPossibleSolutions, int oldPossibleSolutionCount, EdgeCandidates edgeCandidates, int startNodeId, int endNodeId, boolean startNodeVisisted, int[] combinationIndicies) throws IOException {
+        int totalCombinationCount = combinationIndicies[combinationIndicies.length-1];
+
+        int[] globalSizes = new int[] { oldPossibleSolutionCount };
+        CLBuffer<Integer>
+                combinationIndicesBuffer = this.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(combinationIndicies), true),
+                possibleSolutions = this.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryNodeCount);
+
+        GenerateSolutionCombinations kernel = new GenerateSolutionCombinations(this.context);
+        CLEvent generateSolutionCombinationsEvent = kernel.generate_solution_combinations(
+                this.queue,
+                startNodeId,
+                endNodeId,
+                this.queryNodeCount,
+                oldPossibleSolutions,
+                combinationIndicesBuffer,
+                edgeCandidates.getCandidateStartNodes(),
+                edgeCandidates.getCandidateEndNodeIndicies(),
+                edgeCandidates.getCandidateEndNodes(),
+                startNodeVisisted,
+                edgeCandidates.getStartNodeCount(),
+                possibleSolutions,
+                globalSizes,
+                null
+        );
+        generateSolutionCombinationsEvent.waitFor();
+
+        return possibleSolutions;
+    }
+
+    private Pointer<Integer> countSolutionCombinations(CLBuffer<Integer> possiblePartialSolutions, EdgeCandidates edgeCandidates, int startNodeId, int endNodeId, boolean startNodeVisisted, int combinationCountsLength, CLBuffer<Integer> combinationCounts) throws IOException {
+        int[] globalSizes = new int[] { combinationCountsLength };
+        CountSolutionCombinations kernel = new CountSolutionCombinations(this.context);
+        CLEvent countSolutionCombinationsEvent = kernel.count_solution_combinations(
+                this.queue,
+                startNodeId,
+                endNodeId,
+                possiblePartialSolutions,
+                edgeCandidates.getCandidateStartNodes(),
+                edgeCandidates.getCandidateEndNodeIndicies(),
+                edgeCandidates.getCandidateEndNodes(),
+                startNodeVisisted,
+                edgeCandidates.getStartNodeCount(),
+                combinationCounts,
+                globalSizes,
+                null
+        );
+
+        return combinationCounts.read(this.queue, countSolutionCombinationsEvent);
     }
 
     private CLBuffer<Integer> initializePossiblePartialSolutions(HashMap<Integer, EdgeCandidates> edgeCandidatesHashMap, ArrayList<Integer> visitedQueryEdges, ArrayList<Integer> visitedQueryVertices) {
@@ -81,21 +192,11 @@ public class GpuQuery {
         int initalPartialSolutionCount = initialEdgeCandidates.getCount();
         int[] possiblePartialSolutionsArray = fillCandidateEdges(initialEdgeCandidates);
 
+        System.out.println("Initial partial solutions:");
+        System.out.println(Arrays.toString(possiblePartialSolutionsArray));
+
         CLBuffer<Integer>
                 possiblePartialSolutions = this.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(possiblePartialSolutionsArray), true);
-
-        for(int relationshipId : edgeCandidatesHashMap.keySet()) {
-            if(!visitedQueryEdges.contains(relationshipId)) {
-                EdgeCandidates edgeCandidates = edgeCandidatesHashMap.get(relationshipId);
-                int startNodeId = edgeCandidates.getQueryStartNodeId();
-                int endNodeId = edgeCandidates.getQueryEndNodeId();
-                if(visitedQueryVertices.contains(startNodeId) && visitedQueryVertices.contains(endNodeId) ) {
-                    /* Prune existing possible solutions */
-                } else if(visitedQueryVertices.contains(startNodeId) || visitedQueryVertices.contains(endNodeId)) {
-                    /* Combine candidate edges with existing possible solutions */
-                }
-            }
-        }
 
         visitedQueryEdges.add(minCandidatesQueryEdgeId);
         visitedQueryVertices.add(initialEdgeCandidates.getQueryStartNodeId());
@@ -108,6 +209,8 @@ public class GpuQuery {
         int solutionNodeCount = this.queryGraph.nodes.size();
         int partialSolutionCount = edgeCandidates.getCount();
         int[] possiblePartialSolutionsArray = new int[solutionNodeCount*partialSolutionCount];
+        Arrays.fill(possiblePartialSolutionsArray, -1);
+
         Pointer<Integer> candidateStartNodes = edgeCandidates.getCandidateStartNodes().read(this.queue);
         Pointer<Integer> candidateEndNodes = edgeCandidates.getCandidateEndNodes().read(this.queue);
         Pointer<Integer> candidateEndNodeIndicies = edgeCandidates.getCandidateEndNodeIndicies().read(this.queue);
@@ -119,12 +222,7 @@ public class GpuQuery {
             for(int i = 0; i < edgeCandidates.getCandidateStartNodes().getElementCount(); i++) {
 
                 int startNode = candidateStartNodes.get(i);
-                int maxIndex;
-                if(i + 1 < edgeCandidates.getCandidateStartNodes().getElementCount()) {
-                    maxIndex  = candidateEndNodeIndicies.get(i+1);
-                } else {
-                    maxIndex = (int) edgeCandidates.getCandidateEndNodeIndicies().getElementCount();
-                }
+                int maxIndex = candidateEndNodeIndicies.get(i+1);
 
                 for(int j = candidateEndNodeIndicies.get(i); j < maxIndex; j++){
                     int endNode = candidateEndNodes.get(j);
@@ -166,21 +264,17 @@ public class GpuQuery {
             CLBuffer<Integer>
                     candidatesArray = this.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateArray), true);
 
-            CLBuffer<Integer> candidateEdgeCounts = countEdgeCandidates(queryStartNodeId, queryEndNodeId, candidatesArray);
+            Pointer<Integer> candidateEdgeCountsPointer = countEdgeCandidates(queryStartNodeId, queryEndNodeId, candidatesArray);
 
-            int totalCandidateEdgeCount = 0;
-            int[] candidateEdgeEndNodeIndicies = new int[candidateArray.length];
-            Pointer<Integer> candidateEdgeCountsPointer = candidateEdgeCounts.read(this.queue);
-            for(int i = 0; i < candidateArray.length; i++) {
-                candidateEdgeEndNodeIndicies[i] = totalCandidateEdgeCount;
-                totalCandidateEdgeCount += candidateEdgeCountsPointer.get(i);
-            }
+            int candidateArrayLength = candidateArray.length;
+
+            int[] candidateEdgeEndNodeIndicies = generatePrefixScanArray(candidateEdgeCountsPointer, candidateArrayLength);
 
             CLBuffer<Integer>
-                    candidateEdgeEndNodeIndiciesBuffer = this.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateArray), true);
+                    candidateEdgeEndNodeIndiciesBuffer = this.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateEdgeEndNodeIndicies), true);
 
             CLBuffer<Integer> candidateEdgeEndNodes =
-                    searchCandidateEdges(queryStartNodeId, queryEndNodeId, candidatesArray, candidateEdgeEndNodeIndiciesBuffer, totalCandidateEdgeCount);
+                    searchCandidateEdges(queryStartNodeId, queryEndNodeId, candidatesArray, candidateEdgeEndNodeIndiciesBuffer, candidateEdgeEndNodeIndicies[candidateArray.length]);
 
             EdgeCandidates edgeCandidates = new EdgeCandidates(
                     queryStartNodeId,
@@ -189,12 +283,61 @@ public class GpuQuery {
                     candidateEdgeEndNodes,
                     candidatesArray);
 
+            printEdgeCandidate(edgeCandidates);
+
             edgeCandidatesHashMap.put((int) relationship.getId(), edgeCandidates);
 
         }
 
         return edgeCandidatesHashMap;
     }
+
+    private int[] generatePrefixScanArray(Pointer<Integer> bufferPointer, int bufferSize) {
+        int totalElementCount = 0;
+        int[] prefixScanArray = new int[bufferSize +1];
+        for(int i = 0; i < bufferSize; i++) {
+            prefixScanArray[i] = totalElementCount;
+            totalElementCount += bufferPointer.get(i);
+        }
+        prefixScanArray[bufferSize] = totalElementCount;
+        return prefixScanArray;
+    }
+
+    private void printEdgeCandidate(EdgeCandidates edgeCandidates) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("-----Edge candidates for query edge (");
+        builder.append(edgeCandidates.getQueryStartNodeId());
+        builder.append(", ");
+        builder.append(edgeCandidates.getQueryEndNodeId());
+        builder.append(")-----\n");
+
+        Pointer<Integer> startNodesPointer = edgeCandidates.getCandidateStartNodes().read(this.queue);
+        Pointer<Integer> endNodeIndiciesPointer = edgeCandidates.getCandidateEndNodeIndicies().read(this.queue);
+        Pointer<Integer> endNodesPointer = edgeCandidates.getCandidateEndNodes().read(this.queue);
+
+        builder.append("Start nodes: [");
+        for(int i = 0; i < edgeCandidates.getStartNodeCount(); i++) {
+            builder.append(startNodesPointer.get(i) + ", ");
+        }
+
+        builder.append("]\n");
+
+        builder.append("End node indicies: [");
+        for(int i = 0; i < edgeCandidates.getStartNodeCount()+1; i++) {
+            builder.append(endNodeIndiciesPointer.get(i) + ", ");
+        }
+
+        builder.append("]\n");
+
+        builder.append("End nodes: [");
+        for(int i = 0; i < edgeCandidates.getCount(); i++) {
+            builder.append(endNodesPointer.get(i) + ", ");
+        }
+        builder.append("]\n");
+
+        System.out.println(builder.toString());
+    }
+
 
     private CLBuffer<Integer> searchCandidateEdges(int queryStartNodeId, int queryEndNodeId, CLBuffer<Integer> candidatesArray,
                                                   CLBuffer<Integer> candidateEdgeEndNodeIndicies, int totalCandidateEdgeCount) throws IOException {
@@ -225,7 +368,7 @@ public class GpuQuery {
     }
 
 
-    private CLBuffer<Integer> countEdgeCandidates(int queryStartNodeId, int queryEndNodeId, CLBuffer<Integer> candidateArray) throws IOException {
+    private Pointer<Integer> countEdgeCandidates(int queryStartNodeId, int queryEndNodeId, CLBuffer<Integer> candidateArray) throws IOException {
 
         CLBuffer candidateEdgeCounts = this.context.createIntBuffer(CLMem.Usage.Output, candidateArray.getElementCount());
 
@@ -247,12 +390,12 @@ public class GpuQuery {
                 null
         );
 
-        countEdgeCandidatesEvent.waitFor();
-        return candidateEdgeCounts;
+
+        return candidateEdgeCounts.read(this.queue, countEdgeCandidatesEvent);
     }
 
     private void candidateRefinement(ArrayList<Node> visitOrder) throws IOException {
-        boolean[] oldCandidateIndicators = pointerToArray(this.candidateIndicatorsPointer, this.dataNodeCount*this.queryNodeCount);
+        boolean[] oldCandidateIndicators = pointerToArray(this.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
         boolean candidateIndicatorsHasChanged = true;
         while(candidateIndicatorsHasChanged) {
             System.out.println("Candidate indicators have been updated, refining again.");
