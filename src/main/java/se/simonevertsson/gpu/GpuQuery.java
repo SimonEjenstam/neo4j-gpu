@@ -55,13 +55,13 @@ public class GpuQuery {
 
         candidateInitialization(visitOrder);
 
-        System.out.println("--------------REFINEMENT STEP-------------");
+//        System.out.println("--------------REFINEMENT STEP-------------");
         candidateRefinement(visitOrder);
 
-        System.out.println("--------------FINDING CANDIDATE EDGES-------------");
+//        System.out.println("--------------FINDING CANDIDATE EDGES-------------");
         HashMap<Integer, EdgeCandidates> edgeCandidatesHashMap =  candidateEdgeSearch();
 
-        System.out.println("--------------JOINING CANDIDATE EDGES-------------");
+//        System.out.println("--------------JOINING CANDIDATE EDGES-------------");
         candidateEdgeJoin(edgeCandidatesHashMap);
     }
 
@@ -79,28 +79,72 @@ public class GpuQuery {
                 boolean startNodeVisisted = visitedQueryVertices.contains(startNodeId);
                 boolean endNodeVisisted = visitedQueryVertices.contains(endNodeId);
 
-                int combinationCountsLength = (int)possibleSolutions.getElementCount()/this.queryNodeCount;
+                int possibleSolutionCount = (int)possibleSolutions.getElementCount()/this.queryNodeCount;
 
                 CLBuffer<Integer>
-                        combinationCounts = this.context.createIntBuffer(CLMem.Usage.Output, combinationCountsLength);
+                        combinationCounts = this.context.createIntBuffer(CLMem.Usage.Output, possibleSolutionCount);
 
                 if(startNodeVisisted && endNodeVisisted) {
                     /* Prune existing possible solutions */
-                    System.out.println("Pruning with candidates of (" + startNodeId + ", " + endNodeId + ")");
+                    CLBuffer<Boolean> validationIndicators = validateSolutions(possibleSolutions, possibleSolutionCount, startNodeId, endNodeId, edgeCandidates);
+
+                    Pointer<Boolean> validationIndicatorsPointer = validationIndicators.read(this.queue);
+//                    System.out.println("Result after validation:");
+//                    System.out.println(Arrays.toString(pointerToArray(validationIndicatorsPointer, possibleSolutionCount)));
+
+                    int[] outputIndexArray = new int[possibleSolutionCount+1];
+                    int validSolutionCount = 0;
+
+                    if(validationIndicatorsPointer.get(0)) {
+                        validSolutionCount++;
+                    }
+
+                    for (int i = 1; i < possibleSolutionCount; i++) {
+                        int nextElement = validationIndicatorsPointer.get(i-1) ? 1 : 0;
+                        outputIndexArray[i] = outputIndexArray[i-1] + nextElement;
+                        if(validationIndicatorsPointer.get(i)) {
+                            validSolutionCount++;
+                        }
+                    }
+
+                    outputIndexArray[outputIndexArray.length-1] = validSolutionCount;
+
+                    CLBuffer<Integer> prunedPossibleSolutions = prunePossibleSolutions(
+                            possibleSolutions,
+                            possibleSolutionCount,
+                            validationIndicators,
+                            outputIndexArray);
+
+                    Pointer<Integer> prunedPossibleSolutionsPointer = prunedPossibleSolutions.read(this.queue);
+
+                    int result[] = new int[validSolutionCount*this.queryNodeCount];
+                    int i = 0;
+                    for(int element : prunedPossibleSolutionsPointer) {
+                        result[i] = element;
+                        i++;
+                    }
+
+//                    System.out.println("Solutions after pruning with candidates of (" + startNodeId + ", " + endNodeId + ")");
+//                    System.out.println(Arrays.toString(result));
+
+                    possibleSolutions = prunedPossibleSolutions;
+
+                    visitedQueryEdges.add(relationshipId);
+
                 } else if(startNodeVisisted || endNodeVisisted) {
                     /* Combine candidate edges with existing possible solutions */
                     Pointer<Integer> combinationCountsPointer = countSolutionCombinations(
                             possibleSolutions,
                             edgeCandidates, startNodeId,
                             endNodeId, startNodeVisisted,
-                            combinationCountsLength,
+                            possibleSolutionCount,
                             combinationCounts);
 
-                    int[] combinationIndicies = generatePrefixScanArray(combinationCountsPointer, combinationCountsLength);
+                    int[] combinationIndicies = generatePrefixScanArray(combinationCountsPointer, possibleSolutionCount);
 
                     CLBuffer<Integer> newPossibleSolutions = generateSolutionCombinations(
                             possibleSolutions,
-                            combinationCountsLength,
+                            possibleSolutionCount,
                             edgeCandidates,
                             startNodeId,
                             endNodeId,
@@ -116,8 +160,8 @@ public class GpuQuery {
                         i++;
                     }
 
-                    System.out.println("Combinations after combining with candidates of (" + startNodeId + ", " + endNodeId + ")");
-                    System.out.println(Arrays.toString(result));
+//                    System.out.println("Combinations after combining with candidates of (" + startNodeId + ", " + endNodeId + ")");
+//                    System.out.println(Arrays.toString(result));
 
                     possibleSolutions = newPossibleSolutions;
 
@@ -131,6 +175,88 @@ public class GpuQuery {
             }
         }
 
+        printFinalSolutions(possibleSolutions);
+
+    }
+
+    private void printFinalSolutions(CLBuffer<Integer> solutionsBuffer) {
+        Pointer<Integer> solutionsPointer = solutionsBuffer.read(this.queue);
+        int solutionCount = (int) (solutionsBuffer.getElementCount()/this.queryNodeCount);
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("Final solutions:\n");
+
+        for(int i = 0; i < solutionCount*queryNodeCount; i++) {
+            if(i % this.queryNodeCount == 0) {
+                builder.append("(");
+                builder.append(solutionsPointer.get(i));
+            } else {
+                builder.append(", ");
+                builder.append(solutionsPointer.get(i));
+                if (i % this.queryNodeCount == this.queryNodeCount - 1) {
+                    builder.append(")\n");
+                }
+            }
+        }
+
+        System.out.println(builder.toString());
+    }
+
+    private CLBuffer<Integer> prunePossibleSolutions(CLBuffer<Integer> oldPossibleSolutions, int possibleSolutionCount, CLBuffer<Boolean> validationIndicators, int[] outputIndexArray) throws IOException {
+        CLBuffer<Integer> outputIndices = this.context.createIntBuffer(
+                CLMem.Usage.Input,
+                IntBuffer.wrap(outputIndexArray),
+                true);
+
+        CLBuffer<Integer> prunedPossibleSolutions = this.context.createIntBuffer(
+                CLMem.Usage.Input,
+                outputIndexArray[outputIndexArray.length-1]*this.queryNodeCount
+                );
+
+        int[] globalSizes = new int[] { possibleSolutionCount };
+
+        PruneSolutions kernel = new PruneSolutions(this.context);
+        CLEvent pruneSolutionsEvent = kernel.prune_solutions(
+                this.queue,
+                this.queryNodeCount,
+                oldPossibleSolutions,
+                validationIndicators,
+                outputIndices,
+                prunedPossibleSolutions,
+                globalSizes,
+                null
+        );
+
+        pruneSolutionsEvent.waitFor();
+
+        return prunedPossibleSolutions;
+    }
+
+    private CLBuffer<Boolean> validateSolutions(CLBuffer<Integer> possibleSolutions, int possibleSolutionCount, int startNodeId, int endNodeId, EdgeCandidates edgeCandidates) throws IOException {
+        CLBuffer<Boolean> validationIndicators = this.context.createBuffer(
+                CLMem.Usage.Output,
+                Pointer.pointerToBooleans(new boolean[possibleSolutionCount]));
+
+        int[] globalSizes = new int[] { possibleSolutionCount };
+
+        ValidateSolutions kernel = new ValidateSolutions(this.context);
+        CLEvent validateSolutionsEvent = kernel.validate_solutions(
+                this.queue,
+                startNodeId,
+                endNodeId,
+                possibleSolutions,
+                edgeCandidates.getCandidateStartNodes(),
+                edgeCandidates.getCandidateEndNodeIndicies(),
+                edgeCandidates.getCandidateEndNodes(),
+                edgeCandidates.getStartNodeCount(),
+                validationIndicators,
+                globalSizes,
+                null
+        );
+
+        validateSolutionsEvent.waitFor();
+
+        return validationIndicators;
     }
 
     private CLBuffer<Integer> generateSolutionCombinations(CLBuffer<Integer> oldPossibleSolutions, int oldPossibleSolutionCount, EdgeCandidates edgeCandidates, int startNodeId, int endNodeId, boolean startNodeVisisted, int[] combinationIndicies) throws IOException {
@@ -192,8 +318,8 @@ public class GpuQuery {
         int initalPartialSolutionCount = initialEdgeCandidates.getCount();
         int[] possiblePartialSolutionsArray = fillCandidateEdges(initialEdgeCandidates);
 
-        System.out.println("Initial partial solutions:");
-        System.out.println(Arrays.toString(possiblePartialSolutionsArray));
+//        System.out.println("Initial partial solutions:");
+//        System.out.println(Arrays.toString(possiblePartialSolutionsArray));
 
         CLBuffer<Integer>
                 possiblePartialSolutions = this.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(possiblePartialSolutionsArray), true);
@@ -283,7 +409,7 @@ public class GpuQuery {
                     candidateEdgeEndNodes,
                     candidatesArray);
 
-            printEdgeCandidate(edgeCandidates);
+//            printEdgeCandidate(edgeCandidates);
 
             edgeCandidatesHashMap.put((int) relationship.getId(), edgeCandidates);
 
@@ -398,7 +524,7 @@ public class GpuQuery {
         boolean[] oldCandidateIndicators = pointerToArray(this.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
         boolean candidateIndicatorsHasChanged = true;
         while(candidateIndicatorsHasChanged) {
-            System.out.println("Candidate indicators have been updated, refining again.");
+//            System.out.println("Candidate indicators have been updated, refining again.");
             for (Node queryNode : visitOrder) {
                 int[] candidateArray = gatherCandidateArray((int) queryNode.getId());
                 refineCandidates((int) queryNode.getId(), candidateArray);
@@ -424,12 +550,12 @@ public class GpuQuery {
         for(Node queryNode : visitOrder) {
             if(!initializedQueryNode[((int) queryNode.getId())]) {
                 checkCandidates(gpuQuery, queryNode);
-                printCandidateIndicatorMatrix();
+//                printCandidateIndicatorMatrix();
             }
             int[] candidateArray = gatherCandidateArray((int) queryNode.getId());
-            System.out.println("Candidate array for query node " + queryNode.getId() + ": " + Arrays.toString(candidateArray));
+//            System.out.println("Candidate array for query node " + queryNode.getId() + ": " + Arrays.toString(candidateArray));
             exploreCandidates((int) queryNode.getId(), candidateArray);
-            printCandidateIndicatorMatrix();
+//            printCandidateIndicatorMatrix();
         }
     }
 
@@ -509,7 +635,7 @@ public class GpuQuery {
     }
 
     public void checkCandidates(GpuGraphModel gpuQuery, Node queryNode) throws IOException {
-        System.out.println("---------------------------");
+//        System.out.println("---------------------------");
         int queryLabelStartIndex = gpuQuery.getLabelIndicies()[((int) queryNode.getId())];
         int queryLabelEndIndex = gpuQuery.getLabelIndicies()[((int) queryNode.getId())+1];
         int queryNodeDegree = queryNode.getDegree();
@@ -517,9 +643,9 @@ public class GpuQuery {
         int[] globalSizes = new int[] { dataNodeCount };
 
 
-        System.out.println("Query node: " + queryNode.getId());
-        System.out.println("Query node degree: " + queryNodeDegree);
-        System.out.println("Query node dataLabels: " + Arrays.toString(queryNodeLabels));
+//        System.out.println("Query node: " + queryNode.getId());
+//        System.out.println("Query node degree: " + queryNodeDegree);
+//        System.out.println("Query node dataLabels: " + Arrays.toString(queryNodeLabels));
 
         CheckCandidates kernels = new CheckCandidates(context);
         CLEvent checkCandidatesEvent = kernels.check_candidates(
