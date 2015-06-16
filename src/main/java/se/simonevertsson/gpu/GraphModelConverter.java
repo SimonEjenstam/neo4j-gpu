@@ -46,8 +46,12 @@ public class GraphModelConverter {
     private int addLabels(int currentLabelIndex, Node sourceNode) {
         Iterable<Label> labels = sourceNode.getLabels();
         int labelCount = convertAndAddLabels(nodeLabels, labels);
-        labelIndicies.add(currentLabelIndex);
-        currentLabelIndex += labelCount;
+        if(labelCount == 0) {
+            labelIndicies.add(-1);
+        } else {
+            labelIndicies.add(currentLabelIndex);
+            currentLabelIndex += labelCount;
+        }
         return currentLabelIndex;
     }
 

@@ -12,7 +12,6 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 
 /**
  * Created by simon.evertsson on 2015-05-19.
@@ -26,25 +25,45 @@ public class GpuQuery {
     private final int queryNodeCount;
     private final int dataNodeCount;
     private final QueryGraph queryGraph;
-    private CLBuffer<Integer> dataAdjacencyIndicies;
+    private final CheckCandidates checkCandidatesKernel;
+    private final ExploreCandidates exploreCandidatesKernel;
+    private final RefineCandidates refineCandidatesKernel;
+    private final CountEdgeCandidates countEdgeCandidatesKernel;
+    private final SearchEdgeCandidates searchEdgeCandidatesKernel;
+    private final CountSolutionCombinations countSolutionCombinationsKernel;
+    private final GenerateSolutionCombinations generateSolutionCombinationsKernel;
+    private final ValidateSolutions validateSolutionsKernel;
+    private final PruneSolutions pruneSolutionsKernel;
+    private CLBuffer<Integer> dataAdjacencyIndices;
     private CLBuffer<Integer> dataLabels;
-    private CLBuffer<Integer> dataLabelIndicies;
+    private CLBuffer<Integer> dataLabelIndices;
     private CLBuffer<Boolean> candidateIndicators;
-    private CLBuffer<Integer> dataAdjacencies;
+    private CLBuffer<Integer> dataAdjacences;
     private CLBuffer<Integer> queryNodeLabels;
-    private CLBuffer<Integer> queryNodeLabelIndicies;
+    private CLBuffer<Integer> queryNodeLabelIndices;
     private CLBuffer<Integer> queryNodeAdjacencies;
-    private CLBuffer<Integer> queryNodeAdjacencyIndicies;
+    private CLBuffer<Integer> queryNodeAdjacencyIndices;
     private boolean[] initializedQueryNode;
     private Pointer<Boolean> candidateIndicatorsPointer;
 
 
-    public GpuQuery(GpuGraphModel gpuData, GpuGraphModel gpuQuery, QueryGraph queryGraph) {
+    public GpuQuery(GpuGraphModel gpuData, GpuGraphModel gpuQuery, QueryGraph queryGraph) throws IOException {
         this.gpuData = gpuData;
         this.gpuQuery = gpuQuery;
         this.queryGraph = queryGraph;
+
         this.context = JavaCL.createBestContext();
         this.queue = this.context.createDefaultQueue();
+        this.checkCandidatesKernel = new CheckCandidates(this.context);
+        this.exploreCandidatesKernel = new ExploreCandidates(this.context);
+        this.refineCandidatesKernel = new RefineCandidates(this.context);
+        this.countEdgeCandidatesKernel = new CountEdgeCandidates(this.context);
+        this.searchEdgeCandidatesKernel = new SearchEdgeCandidates(this.context);
+        this.countSolutionCombinationsKernel = new CountSolutionCombinations(this.context);
+        this.generateSolutionCombinationsKernel = new GenerateSolutionCombinations(this.context);
+        this.validateSolutionsKernel = new ValidateSolutions(this.context);
+        this.pruneSolutionsKernel = new PruneSolutions(this.context);
+
         this.dataNodeCount = gpuData.getNodeLabels().length;
         this.queryNodeCount = gpuQuery.getNodeLabels().length;
         this.initializedQueryNode = new boolean[queryNodeCount];
@@ -215,8 +234,7 @@ public class GpuQuery {
 
         int[] globalSizes = new int[] { possibleSolutionCount };
 
-        PruneSolutions kernel = new PruneSolutions(this.context);
-        CLEvent pruneSolutionsEvent = kernel.prune_solutions(
+        CLEvent pruneSolutionsEvent = this.pruneSolutionsKernel.prune_solutions(
                 this.queue,
                 this.queryNodeCount,
                 oldPossibleSolutions,
@@ -239,8 +257,7 @@ public class GpuQuery {
 
         int[] globalSizes = new int[] { possibleSolutionCount };
 
-        ValidateSolutions kernel = new ValidateSolutions(this.context);
-        CLEvent validateSolutionsEvent = kernel.validate_solutions(
+        CLEvent validateSolutionsEvent = this.validateSolutionsKernel.validate_solutions(
                 this.queue,
                 startNodeId,
                 endNodeId,
@@ -267,8 +284,7 @@ public class GpuQuery {
                 combinationIndicesBuffer = this.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(combinationIndicies), true),
                 possibleSolutions = this.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryNodeCount);
 
-        GenerateSolutionCombinations kernel = new GenerateSolutionCombinations(this.context);
-        CLEvent generateSolutionCombinationsEvent = kernel.generate_solution_combinations(
+        CLEvent generateSolutionCombinationsEvent = this.generateSolutionCombinationsKernel.generate_solution_combinations(
                 this.queue,
                 startNodeId,
                 endNodeId,
@@ -291,8 +307,7 @@ public class GpuQuery {
 
     private Pointer<Integer> countSolutionCombinations(CLBuffer<Integer> possiblePartialSolutions, EdgeCandidates edgeCandidates, int startNodeId, int endNodeId, boolean startNodeVisisted, int combinationCountsLength, CLBuffer<Integer> combinationCounts) throws IOException {
         int[] globalSizes = new int[] { combinationCountsLength };
-        CountSolutionCombinations kernel = new CountSolutionCombinations(this.context);
-        CLEvent countSolutionCombinationsEvent = kernel.count_solution_combinations(
+        CLEvent countSolutionCombinationsEvent = this.countSolutionCombinationsKernel.count_solution_combinations(
                 this.queue,
                 startNodeId,
                 endNodeId,
@@ -473,13 +488,12 @@ public class GpuQuery {
 
         int[] globalSizes = new int[] {(int) candidatesArray.getElementCount()};
 
-        SearchEdgeCandidates kernel = new SearchEdgeCandidates(this.context);
-        CLEvent searchEdgeCandidatesEvent = kernel.count_edge_candidates(
+        CLEvent searchEdgeCandidatesEvent = this.searchEdgeCandidatesKernel.count_edge_candidates(
                 this.queue,
                 queryStartNodeId,
                 queryEndNodeId,
-                this.dataAdjacencies,
-                this.dataAdjacencyIndicies,
+                this.dataAdjacences,
+                this.dataAdjacencyIndices,
                 candidateEdgeEndNodes,
                 candidateEdgeEndNodeIndicies,
                 candidatesArray,
@@ -501,13 +515,12 @@ public class GpuQuery {
 
         int[] globalSizes = new int[] {(int) candidateArray.getElementCount()};
 
-        CountEdgeCandidates kernel = new CountEdgeCandidates(this.context);
-        CLEvent countEdgeCandidatesEvent = kernel.count_edge_candidates(
+        CLEvent countEdgeCandidatesEvent = this.countEdgeCandidatesKernel.count_edge_candidates(
                 this.queue,
                 queryStartNodeId,
                 queryEndNodeId,
-                this.dataAdjacencies,
-                this.dataAdjacencyIndicies,
+                this.dataAdjacences,
+                this.dataAdjacencyIndices,
                 candidateEdgeCounts,
                 candidateArray,
                 this.candidateIndicators,
@@ -581,20 +594,19 @@ public class GpuQuery {
                 = this.context.createIntBuffer(CLMem.Usage.Input, candidatesArrayBuffer, true);
         int[] globalSizes = new int[] { candidateArray.length };
 
-        ExploreCandidates kernel = new ExploreCandidates(context);
-        CLEvent exploreCandidatesEvent = kernel.explore_candidates(
+        CLEvent exploreCandidatesEvent = this.exploreCandidatesKernel.explore_candidates(
             queue,
             queryNodeId,
             queryNodeAdjacencies,
-            queryNodeAdjacencyIndicies,
+                queryNodeAdjacencyIndices,
             queryNodeLabels,
-            queryNodeLabelIndicies,
+                queryNodeLabelIndices,
             queryNodeAdjacencyIndexStart,
             queryNodeAdjacencyIndexEnd,
-            dataAdjacencies,
-            dataAdjacencyIndicies,
+                dataAdjacences,
+                dataAdjacencyIndices,
             dataLabels,
-            dataLabelIndicies,
+                dataLabelIndices,
             candidatesArray,
             candidateIndicators,
             this.dataNodeCount,
@@ -619,14 +631,14 @@ public class GpuQuery {
 
 
         this.queryNodeLabels = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelsBuffer, true);
-        this.queryNodeLabelIndicies = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelIndiciesBuffer, true);
+        this.queryNodeLabelIndices = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelIndiciesBuffer, true);
         this.queryNodeAdjacencies = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacenciesBuffer, true);
-        this.queryNodeAdjacencyIndicies = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacencyIndiciesBuffer, true);
+        this.queryNodeAdjacencyIndices = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacencyIndiciesBuffer, true);
 
-        this.dataAdjacencies = this.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
-        this.dataAdjacencyIndicies = this.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
+        this.dataAdjacences = this.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
+        this.dataAdjacencyIndices = this.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
         this.dataLabels = context.createIntBuffer(CLMem.Usage.Input, dataLabelsBuffer, true);
-        this.dataLabelIndicies = context.createIntBuffer(CLMem.Usage.Input, dataLabelIndexBuffer, true);
+        this.dataLabelIndices = context.createIntBuffer(CLMem.Usage.Input, dataLabelIndexBuffer, true);
 
 
         this.candidateIndicators = context.createBuffer(
@@ -647,17 +659,16 @@ public class GpuQuery {
 //        System.out.println("Query node degree: " + queryNodeDegree);
 //        System.out.println("Query node dataLabels: " + Arrays.toString(queryNodeLabels));
 
-        CheckCandidates kernels = new CheckCandidates(context);
-        CLEvent checkCandidatesEvent = kernels.check_candidates(
+        CLEvent checkCandidatesEvent = this.checkCandidatesKernel.check_candidates(
                 this.queue,
                 this.queryNodeLabels,
                 (int) queryNode.getId(),
                 queryLabelStartIndex,
                 queryLabelEndIndex,
                 queryNodeDegree,
-                this.dataLabelIndicies,
+                this.dataLabelIndices,
                 this.dataLabels,
-                this.dataAdjacencyIndicies,
+                this.dataAdjacencyIndices,
                 candidateIndicators,
                 dataNodeCount,
                 globalSizes,
@@ -702,20 +713,19 @@ public class GpuQuery {
                 = this.context.createIntBuffer(CLMem.Usage.Input, candidatesArrayBuffer, true);
         int[] globalSizes = new int[] { candidateArray.length };
 
-        RefineCandidates kernel = new RefineCandidates(context);
-        CLEvent refineCandidatesEvent = kernel.refine_candidates(
+        CLEvent refineCandidatesEvent = this.refineCandidatesKernel.refine_candidates(
                 queue,
                 queryNodeId,
                 queryNodeAdjacencies,
-                queryNodeAdjacencyIndicies,
+                queryNodeAdjacencyIndices,
                 queryNodeLabels,
-                queryNodeLabelIndicies,
+                queryNodeLabelIndices,
                 queryNodeAdjacencyIndexStart,
                 queryNodeAdjacencyIndexEnd,
-                dataAdjacencies,
-                dataAdjacencyIndicies,
+                dataAdjacences,
+                dataAdjacencyIndices,
                 dataLabels,
-                dataLabelIndicies,
+                dataLabelIndices,
                 candidatesArray,
                 candidateIndicators,
                 this.dataNodeCount,

@@ -11,6 +11,7 @@ import java.util.Map;
 public class CypherQueryRunner {
 
     public String runCypherQuery(DatabaseService dbService, String query) {
+        System.out.println("Starting CypherQueryRunner");
         long tick = System.currentTimeMillis();
         Result result = dbService.excuteCypherQuery(query);
         long tock = System.currentTimeMillis();
