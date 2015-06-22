@@ -40,7 +40,7 @@ public class GpuGraphModel {
         return nodeLabels;
     }
 
-    public int[] getAdjacencyIndicies() {
+    public int[] getAdjacencyIndices() {
         return adjacencyIndicies;
     }
 

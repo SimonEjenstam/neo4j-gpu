@@ -30,6 +30,15 @@ public class GraphModelConverter {
             currentAdjacencyIndex = addRelationships(currentAdjacencyIndex, sourceNode);
         }
 
+        if(currentLabelIndex == 0) {
+            /* No labels were found, add an invalid label */
+            nodeLabels.add(-1);
+        }
+
+        if(currentAdjacencyIndex == 0) {
+            nodeAdjecencies.add(-1);
+        }
+
         appendLastIndexIfNotEmpty(labelIndicies, currentLabelIndex);
         appendLastIndexIfNotEmpty(adjacenyIndicies, currentAdjacencyIndex);
         return new GpuGraphModel(labelIndicies, nodeLabels, adjacenyIndicies, nodeAdjecencies);
@@ -38,8 +47,12 @@ public class GraphModelConverter {
     private int addRelationships(int currentAdjacencyIndex, Node sourceNode) {
         Iterable<Relationship> nodeRelationships = sourceNode.getRelationships(Direction.OUTGOING);
         int relationshipCount = addRelationships(nodeAdjecencies, nodeRelationships);
-        adjacenyIndicies.add(currentAdjacencyIndex);
-        currentAdjacencyIndex += relationshipCount;
+        if(relationshipCount == 0) {
+            adjacenyIndicies.add(-1);
+        } else {
+            adjacenyIndicies.add(currentAdjacencyIndex);
+            currentAdjacencyIndex += relationshipCount;
+        }
         return currentAdjacencyIndex;
     }
 

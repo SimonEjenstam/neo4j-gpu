@@ -4,8 +4,6 @@ import com.nativelibs4java.opencl.*;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import se.simonevertsson.*;
-import se.simonevertsson.query.QueryGraph;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
@@ -17,62 +15,27 @@ import java.util.HashMap;
  * Created by simon.evertsson on 2015-05-19.
  */
 public class GpuQuery {
+    private QueryContext queryContext;
+    private final QueryKernels queryKernels;
+    private BufferContainer bufferContainer;
 
-    private final CLContext context;
-    private final CLQueue queue;
-    private final GpuGraphModel gpuData;
-    private final GpuGraphModel gpuQuery;
-    private final int queryNodeCount;
-    private final int dataNodeCount;
-    private final QueryGraph queryGraph;
-    private final CheckCandidates checkCandidatesKernel;
-    private final ExploreCandidates exploreCandidatesKernel;
-    private final RefineCandidates refineCandidatesKernel;
-    private final CountEdgeCandidates countEdgeCandidatesKernel;
-    private final SearchEdgeCandidates searchEdgeCandidatesKernel;
-    private final CountSolutionCombinations countSolutionCombinationsKernel;
-    private final GenerateSolutionCombinations generateSolutionCombinationsKernel;
-    private final ValidateSolutions validateSolutionsKernel;
-    private final PruneSolutions pruneSolutionsKernel;
-    private CLBuffer<Integer> dataAdjacencyIndices;
-    private CLBuffer<Integer> dataLabels;
-    private CLBuffer<Integer> dataLabelIndices;
-    private CLBuffer<Boolean> candidateIndicators;
-    private CLBuffer<Integer> dataAdjacences;
-    private CLBuffer<Integer> queryNodeLabels;
-    private CLBuffer<Integer> queryNodeLabelIndices;
-    private CLBuffer<Integer> queryNodeAdjacencies;
-    private CLBuffer<Integer> queryNodeAdjacencyIndices;
-    private boolean[] initializedQueryNode;
-    private Pointer<Boolean> candidateIndicatorsPointer;
+    public GpuQuery(QueryContext queryContext) throws IOException {
+        this.queryContext = queryContext;
 
+        this.queryKernels = new QueryKernels();
+        queryKernels.initializeQueryKernels();
 
-    public GpuQuery(GpuGraphModel gpuData, GpuGraphModel gpuQuery, QueryGraph queryGraph) throws IOException {
-        this.gpuData = gpuData;
-        this.gpuQuery = gpuQuery;
-        this.queryGraph = queryGraph;
-
-        this.context = JavaCL.createBestContext();
-        this.queue = this.context.createDefaultQueue();
-        this.checkCandidatesKernel = new CheckCandidates(this.context);
-        this.exploreCandidatesKernel = new ExploreCandidates(this.context);
-        this.refineCandidatesKernel = new RefineCandidates(this.context);
-        this.countEdgeCandidatesKernel = new CountEdgeCandidates(this.context);
-        this.searchEdgeCandidatesKernel = new SearchEdgeCandidates(this.context);
-        this.countSolutionCombinationsKernel = new CountSolutionCombinations(this.context);
-        this.generateSolutionCombinationsKernel = new GenerateSolutionCombinations(this.context);
-        this.validateSolutionsKernel = new ValidateSolutions(this.context);
-        this.pruneSolutionsKernel = new PruneSolutions(this.context);
-
-        this.dataNodeCount = gpuData.getNodeLabels().length;
-        this.queryNodeCount = gpuQuery.getNodeLabels().length;
-        this.initializedQueryNode = new boolean[queryNodeCount];
+        this.bufferContainer = BufferContainerGenerator.generateBufferContainer(this.queryContext, this.queryKernels);
+        createCandidateIndicatorsBuffer(queryContext.dataNodeCount, queryContext.queryNodeCount);
     }
 
     public void executeQuery(ArrayList<Node> visitOrder) throws IOException {
-        createDataBuffers(dataNodeCount, queryNodeCount);
 
-        candidateInitialization(visitOrder);
+        /****** Candidate initialization step ******/
+        CandidateInitializer candidateInitializer =
+                new CandidateInitializer(this.queryContext, this.queryKernels, this.bufferContainer);
+        candidateInitializer.candidateInitialization(visitOrder);
+
 
 //        System.out.println("--------------REFINEMENT STEP-------------");
         candidateRefinement(visitOrder);
@@ -98,16 +61,16 @@ public class GpuQuery {
                 boolean startNodeVisisted = visitedQueryVertices.contains(startNodeId);
                 boolean endNodeVisisted = visitedQueryVertices.contains(endNodeId);
 
-                int possibleSolutionCount = (int)possibleSolutions.getElementCount()/this.queryNodeCount;
+                int possibleSolutionCount = (int)possibleSolutions.getElementCount()/ this.queryContext.queryNodeCount;
 
                 CLBuffer<Integer>
-                        combinationCounts = this.context.createIntBuffer(CLMem.Usage.Output, possibleSolutionCount);
+                        combinationCounts = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, possibleSolutionCount);
 
                 if(startNodeVisisted && endNodeVisisted) {
                     /* Prune existing possible solutions */
                     CLBuffer<Boolean> validationIndicators = validateSolutions(possibleSolutions, possibleSolutionCount, startNodeId, endNodeId, edgeCandidates);
 
-                    Pointer<Boolean> validationIndicatorsPointer = validationIndicators.read(this.queue);
+                    Pointer<Boolean> validationIndicatorsPointer = validationIndicators.read(this.queryKernels.queue);
 //                    System.out.println("Result after validation:");
 //                    System.out.println(Arrays.toString(pointerToArray(validationIndicatorsPointer, possibleSolutionCount)));
 
@@ -134,9 +97,9 @@ public class GpuQuery {
                             validationIndicators,
                             outputIndexArray);
 
-                    Pointer<Integer> prunedPossibleSolutionsPointer = prunedPossibleSolutions.read(this.queue);
+                    Pointer<Integer> prunedPossibleSolutionsPointer = prunedPossibleSolutions.read(this.queryKernels.queue);
 
-                    int result[] = new int[validSolutionCount*this.queryNodeCount];
+                    int result[] = new int[validSolutionCount* this.queryContext.queryNodeCount];
                     int i = 0;
                     for(int element : prunedPossibleSolutionsPointer) {
                         result[i] = element;
@@ -170,9 +133,9 @@ public class GpuQuery {
                             startNodeVisisted,
                             combinationIndicies);
 
-                    Pointer<Integer> newPossibleSolutionsPointer = newPossibleSolutions.read(this.queue);
+                    Pointer<Integer> newPossibleSolutionsPointer = newPossibleSolutions.read(this.queryKernels.queue);
 
-                    int result[] = new int[combinationIndicies[combinationIndicies.length-1]*this.queryNodeCount];
+                    int result[] = new int[combinationIndicies[combinationIndicies.length-1]* this.queryContext.queryNodeCount];
                     int i = 0;
                     for(int element : newPossibleSolutionsPointer) {
                         result[i] = element;
@@ -199,20 +162,20 @@ public class GpuQuery {
     }
 
     private void printFinalSolutions(CLBuffer<Integer> solutionsBuffer) {
-        Pointer<Integer> solutionsPointer = solutionsBuffer.read(this.queue);
-        int solutionCount = (int) (solutionsBuffer.getElementCount()/this.queryNodeCount);
+        Pointer<Integer> solutionsPointer = solutionsBuffer.read(this.queryKernels.queue);
+        int solutionCount = (int) (solutionsBuffer.getElementCount()/ this.queryContext.queryNodeCount);
 
         StringBuilder builder = new StringBuilder();
         builder.append("Final solutions:\n");
 
-        for(int i = 0; i < solutionCount*queryNodeCount; i++) {
-            if(i % this.queryNodeCount == 0) {
+        for(int i = 0; i < solutionCount* queryContext.queryNodeCount; i++) {
+            if(i % this.queryContext.queryNodeCount == 0) {
                 builder.append("(");
                 builder.append(solutionsPointer.get(i));
             } else {
                 builder.append(", ");
                 builder.append(solutionsPointer.get(i));
-                if (i % this.queryNodeCount == this.queryNodeCount - 1) {
+                if (i % this.queryContext.queryNodeCount == this.queryContext.queryNodeCount - 1) {
                     builder.append(")\n");
                 }
             }
@@ -222,21 +185,21 @@ public class GpuQuery {
     }
 
     private CLBuffer<Integer> prunePossibleSolutions(CLBuffer<Integer> oldPossibleSolutions, int possibleSolutionCount, CLBuffer<Boolean> validationIndicators, int[] outputIndexArray) throws IOException {
-        CLBuffer<Integer> outputIndices = this.context.createIntBuffer(
+        CLBuffer<Integer> outputIndices = this.queryKernels.context.createIntBuffer(
                 CLMem.Usage.Input,
                 IntBuffer.wrap(outputIndexArray),
                 true);
 
-        CLBuffer<Integer> prunedPossibleSolutions = this.context.createIntBuffer(
+        CLBuffer<Integer> prunedPossibleSolutions = this.queryKernels.context.createIntBuffer(
                 CLMem.Usage.Input,
-                outputIndexArray[outputIndexArray.length-1]*this.queryNodeCount
-                );
+                outputIndexArray[outputIndexArray.length - 1] * this.queryContext.queryNodeCount
+        );
 
         int[] globalSizes = new int[] { possibleSolutionCount };
 
-        CLEvent pruneSolutionsEvent = this.pruneSolutionsKernel.prune_solutions(
-                this.queue,
-                this.queryNodeCount,
+        CLEvent pruneSolutionsEvent = this.queryKernels.pruneSolutionsKernel.prune_solutions(
+                this.queryKernels.queue,
+                this.queryContext.queryNodeCount,
                 oldPossibleSolutions,
                 validationIndicators,
                 outputIndices,
@@ -251,14 +214,14 @@ public class GpuQuery {
     }
 
     private CLBuffer<Boolean> validateSolutions(CLBuffer<Integer> possibleSolutions, int possibleSolutionCount, int startNodeId, int endNodeId, EdgeCandidates edgeCandidates) throws IOException {
-        CLBuffer<Boolean> validationIndicators = this.context.createBuffer(
+        CLBuffer<Boolean> validationIndicators = this.queryKernels.context.createBuffer(
                 CLMem.Usage.Output,
                 Pointer.pointerToBooleans(new boolean[possibleSolutionCount]));
 
         int[] globalSizes = new int[] { possibleSolutionCount };
 
-        CLEvent validateSolutionsEvent = this.validateSolutionsKernel.validate_solutions(
-                this.queue,
+        CLEvent validateSolutionsEvent = this.queryKernels.validateSolutionsKernel.validate_solutions(
+                this.queryKernels.queue,
                 startNodeId,
                 endNodeId,
                 possibleSolutions,
@@ -281,14 +244,14 @@ public class GpuQuery {
 
         int[] globalSizes = new int[] { oldPossibleSolutionCount };
         CLBuffer<Integer>
-                combinationIndicesBuffer = this.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(combinationIndicies), true),
-                possibleSolutions = this.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryNodeCount);
+                combinationIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(combinationIndicies), true),
+                possibleSolutions = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryContext.queryNodeCount);
 
-        CLEvent generateSolutionCombinationsEvent = this.generateSolutionCombinationsKernel.generate_solution_combinations(
-                this.queue,
+        CLEvent generateSolutionCombinationsEvent = this.queryKernels.generateSolutionCombinationsKernel.generate_solution_combinations(
+                this.queryKernels.queue,
                 startNodeId,
                 endNodeId,
-                this.queryNodeCount,
+                this.queryContext.queryNodeCount,
                 oldPossibleSolutions,
                 combinationIndicesBuffer,
                 edgeCandidates.getCandidateStartNodes(),
@@ -307,8 +270,8 @@ public class GpuQuery {
 
     private Pointer<Integer> countSolutionCombinations(CLBuffer<Integer> possiblePartialSolutions, EdgeCandidates edgeCandidates, int startNodeId, int endNodeId, boolean startNodeVisisted, int combinationCountsLength, CLBuffer<Integer> combinationCounts) throws IOException {
         int[] globalSizes = new int[] { combinationCountsLength };
-        CLEvent countSolutionCombinationsEvent = this.countSolutionCombinationsKernel.count_solution_combinations(
-                this.queue,
+        CLEvent countSolutionCombinationsEvent = this.queryKernels.countSolutionCombinationsKernel.count_solution_combinations(
+                this.queryKernels.queue,
                 startNodeId,
                 endNodeId,
                 possiblePartialSolutions,
@@ -322,14 +285,14 @@ public class GpuQuery {
                 null
         );
 
-        return combinationCounts.read(this.queue, countSolutionCombinationsEvent);
+        return combinationCounts.read(this.queryKernels.queue, countSolutionCombinationsEvent);
     }
 
     private CLBuffer<Integer> initializePossiblePartialSolutions(HashMap<Integer, EdgeCandidates> edgeCandidatesHashMap, ArrayList<Integer> visitedQueryEdges, ArrayList<Integer> visitedQueryVertices) {
         int minCandidatesQueryEdgeId = findUnvisitedQueryEdgeId(edgeCandidatesHashMap, visitedQueryEdges);
         EdgeCandidates initialEdgeCandidates = edgeCandidatesHashMap.get(minCandidatesQueryEdgeId);
 
-        int solutionSize = this.queryGraph.nodes.size();
+        int solutionSize = this.queryContext.queryGraph.nodes.size();
         int initalPartialSolutionCount = initialEdgeCandidates.getCount();
         int[] possiblePartialSolutionsArray = fillCandidateEdges(initialEdgeCandidates);
 
@@ -337,7 +300,7 @@ public class GpuQuery {
 //        System.out.println(Arrays.toString(possiblePartialSolutionsArray));
 
         CLBuffer<Integer>
-                possiblePartialSolutions = this.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(possiblePartialSolutionsArray), true);
+                possiblePartialSolutions = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(possiblePartialSolutionsArray), true);
 
         visitedQueryEdges.add(minCandidatesQueryEdgeId);
         visitedQueryVertices.add(initialEdgeCandidates.getQueryStartNodeId());
@@ -347,14 +310,14 @@ public class GpuQuery {
     }
 
     private int[] fillCandidateEdges(EdgeCandidates edgeCandidates) {
-        int solutionNodeCount = this.queryGraph.nodes.size();
+        int solutionNodeCount = this.queryContext.queryGraph.nodes.size();
         int partialSolutionCount = edgeCandidates.getCount();
         int[] possiblePartialSolutionsArray = new int[solutionNodeCount*partialSolutionCount];
         Arrays.fill(possiblePartialSolutionsArray, -1);
 
-        Pointer<Integer> candidateStartNodes = edgeCandidates.getCandidateStartNodes().read(this.queue);
-        Pointer<Integer> candidateEndNodes = edgeCandidates.getCandidateEndNodes().read(this.queue);
-        Pointer<Integer> candidateEndNodeIndicies = edgeCandidates.getCandidateEndNodeIndicies().read(this.queue);
+        Pointer<Integer> candidateStartNodes = edgeCandidates.getCandidateStartNodes().read(this.queryKernels.queue);
+        Pointer<Integer> candidateEndNodes = edgeCandidates.getCandidateEndNodes().read(this.queryKernels.queue);
+        Pointer<Integer> candidateEndNodeIndicies = edgeCandidates.getCandidateEndNodeIndicies().read(this.queryKernels.queue);
         int addedPartialSolutions = 0;
         int indexOffset = 0;
         while(addedPartialSolutions < edgeCandidates.getCount()) {
@@ -395,7 +358,7 @@ public class GpuQuery {
     }
 
     private HashMap<Integer, EdgeCandidates> candidateEdgeSearch() throws IOException {
-        ArrayList<Relationship> relationships = this.queryGraph.relationships;
+        ArrayList<Relationship> relationships = this.queryContext.queryGraph.relationships;
         HashMap<Integer, EdgeCandidates> edgeCandidatesHashMap = new HashMap<Integer, EdgeCandidates>();
 
         for(Relationship relationship : relationships) {
@@ -403,7 +366,7 @@ public class GpuQuery {
             int queryEndNodeId = (int) relationship.getEndNode().getId();
             int[] candidateArray = gatherCandidateArray((int) relationship.getStartNode().getId());
             CLBuffer<Integer>
-                    candidatesArray = this.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateArray), true);
+                    candidatesArray = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateArray), true);
 
             Pointer<Integer> candidateEdgeCountsPointer = countEdgeCandidates(queryStartNodeId, queryEndNodeId, candidatesArray);
 
@@ -412,7 +375,7 @@ public class GpuQuery {
             int[] candidateEdgeEndNodeIndicies = generatePrefixScanArray(candidateEdgeCountsPointer, candidateArrayLength);
 
             CLBuffer<Integer>
-                    candidateEdgeEndNodeIndiciesBuffer = this.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateEdgeEndNodeIndicies), true);
+                    candidateEdgeEndNodeIndiciesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateEdgeEndNodeIndicies), true);
 
             CLBuffer<Integer> candidateEdgeEndNodes =
                     searchCandidateEdges(queryStartNodeId, queryEndNodeId, candidatesArray, candidateEdgeEndNodeIndiciesBuffer, candidateEdgeEndNodeIndicies[candidateArray.length]);
@@ -452,9 +415,9 @@ public class GpuQuery {
         builder.append(edgeCandidates.getQueryEndNodeId());
         builder.append(")-----\n");
 
-        Pointer<Integer> startNodesPointer = edgeCandidates.getCandidateStartNodes().read(this.queue);
-        Pointer<Integer> endNodeIndiciesPointer = edgeCandidates.getCandidateEndNodeIndicies().read(this.queue);
-        Pointer<Integer> endNodesPointer = edgeCandidates.getCandidateEndNodes().read(this.queue);
+        Pointer<Integer> startNodesPointer = edgeCandidates.getCandidateStartNodes().read(this.queryKernels.queue);
+        Pointer<Integer> endNodeIndiciesPointer = edgeCandidates.getCandidateEndNodeIndicies().read(this.queryKernels.queue);
+        Pointer<Integer> endNodesPointer = edgeCandidates.getCandidateEndNodes().read(this.queryKernels.queue);
 
         builder.append("Start nodes: [");
         for(int i = 0; i < edgeCandidates.getStartNodeCount(); i++) {
@@ -483,22 +446,22 @@ public class GpuQuery {
     private CLBuffer<Integer> searchCandidateEdges(int queryStartNodeId, int queryEndNodeId, CLBuffer<Integer> candidatesArray,
                                                   CLBuffer<Integer> candidateEdgeEndNodeIndicies, int totalCandidateEdgeCount) throws IOException {
 
-        CLBuffer candidateEdgeEndNodes = this.context.createIntBuffer(CLMem.Usage.Output, totalCandidateEdgeCount);
+        CLBuffer candidateEdgeEndNodes = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, totalCandidateEdgeCount);
 
 
         int[] globalSizes = new int[] {(int) candidatesArray.getElementCount()};
 
-        CLEvent searchEdgeCandidatesEvent = this.searchEdgeCandidatesKernel.count_edge_candidates(
-                this.queue,
+        CLEvent searchEdgeCandidatesEvent = this.queryKernels.searchEdgeCandidatesKernel.count_edge_candidates(
+                this.queryKernels.queue,
                 queryStartNodeId,
                 queryEndNodeId,
-                this.dataAdjacences,
-                this.dataAdjacencyIndices,
+                this.bufferContainer.dataBuffers.dataAdjacencesBuffer,
+                this.bufferContainer.dataBuffers.dataAdjacencyIndicesBuffer,
                 candidateEdgeEndNodes,
                 candidateEdgeEndNodeIndicies,
                 candidatesArray,
-                this.candidateIndicators,
-                this.dataNodeCount,
+                this.bufferContainer.queryBuffers.candidateIndicatorsBuffer,
+                this.queryContext.dataNodeCount,
                 globalSizes,
                 null
         );
@@ -510,40 +473,44 @@ public class GpuQuery {
 
     private Pointer<Integer> countEdgeCandidates(int queryStartNodeId, int queryEndNodeId, CLBuffer<Integer> candidateArray) throws IOException {
 
-        CLBuffer candidateEdgeCounts = this.context.createIntBuffer(CLMem.Usage.Output, candidateArray.getElementCount());
+        CLBuffer candidateEdgeCounts = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, candidateArray.getElementCount());
 
 
         int[] globalSizes = new int[] {(int) candidateArray.getElementCount()};
 
-        CLEvent countEdgeCandidatesEvent = this.countEdgeCandidatesKernel.count_edge_candidates(
-                this.queue,
+        CLEvent countEdgeCandidatesEvent = this.queryKernels.countEdgeCandidatesKernel.count_edge_candidates(
+                this.queryKernels.queue,
                 queryStartNodeId,
                 queryEndNodeId,
-                this.dataAdjacences,
-                this.dataAdjacencyIndices,
+                this.bufferContainer.dataBuffers.dataAdjacencesBuffer,
+                this.bufferContainer.dataBuffers.dataAdjacencyIndicesBuffer,
                 candidateEdgeCounts,
                 candidateArray,
-                this.candidateIndicators,
-                this.dataNodeCount,
+                this.bufferContainer.queryBuffers.candidateIndicatorsBuffer,
+                this.queryContext.dataNodeCount,
                 globalSizes,
                 null
         );
 
 
-        return candidateEdgeCounts.read(this.queue, countEdgeCandidatesEvent);
+        return candidateEdgeCounts.read(this.queryKernels.queue, countEdgeCandidatesEvent);
     }
 
     private void candidateRefinement(ArrayList<Node> visitOrder) throws IOException {
-        boolean[] oldCandidateIndicators = pointerToArray(this.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
+        boolean[] oldCandidateIndicators = pointerToArray(this.bufferContainer.queryBuffers.candidateIndicatorsPointer, this.queryContext.dataNodeCount * this.queryContext.queryNodeCount);
         boolean candidateIndicatorsHasChanged = true;
         while(candidateIndicatorsHasChanged) {
 //            System.out.println("Candidate indicators have been updated, refining again.");
             for (Node queryNode : visitOrder) {
                 int[] candidateArray = gatherCandidateArray((int) queryNode.getId());
-                refineCandidates((int) queryNode.getId(), candidateArray);
+                if(candidateArray.length > 0) {
+                    refineCandidates((int) queryNode.getId(), candidateArray);
+                } else {
+                    throw new IllegalStateException("Candidate refinement yielded no candidates for query node " + queryNode.getId());
+                }
             }
 
-            boolean[] newCandidateIndicators = pointerToArray(this.candidateIndicatorsPointer, this.dataNodeCount*this.queryNodeCount);
+            boolean[] newCandidateIndicators = pointerToArray(this.bufferContainer.queryBuffers.candidateIndicatorsPointer, this.queryContext.dataNodeCount * this.queryContext.queryNodeCount);
             candidateIndicatorsHasChanged = !Arrays.equals(oldCandidateIndicators, newCandidateIndicators);
             oldCandidateIndicators = newCandidateIndicators;
         }
@@ -559,25 +526,12 @@ public class GpuQuery {
         return result;
     }
 
-    private void candidateInitialization(ArrayList<Node> visitOrder) throws IOException {
-        for(Node queryNode : visitOrder) {
-            if(!initializedQueryNode[((int) queryNode.getId())]) {
-                checkCandidates(gpuQuery, queryNode);
-//                printCandidateIndicatorMatrix();
-            }
-            int[] candidateArray = gatherCandidateArray((int) queryNode.getId());
-//            System.out.println("Candidate array for query node " + queryNode.getId() + ": " + Arrays.toString(candidateArray));
-            exploreCandidates((int) queryNode.getId(), candidateArray);
-//            printCandidateIndicatorMatrix();
-        }
-    }
-
     private void printCandidateIndicatorMatrix() {
         StringBuilder builder = new StringBuilder();
         int j = 1;
-        for(boolean candidate : candidateIndicatorsPointer)  {
+        for(boolean candidate : bufferContainer.queryBuffers.candidateIndicatorsPointer)  {
             builder.append(candidate + ", ");
-            if(j % dataNodeCount == 0) {
+            if(j % queryContext.dataNodeCount == 0) {
                 builder.append("\n");
             }
             j++;
@@ -585,154 +539,83 @@ public class GpuQuery {
         System.out.println(builder.toString());
     }
 
-    private void exploreCandidates(int queryNodeId, int[] candidateArray) throws IOException {
-        int queryNodeAdjacencyIndexStart = gpuQuery.getAdjacencyIndicies()[queryNodeId];
-        int queryNodeAdjacencyIndexEnd = gpuQuery.getAdjacencyIndicies()[queryNodeId + 1];
+    private DataBuffers createDataBuffers(GpuGraphModel data) {
+        IntBuffer dataAdjacenciesBuffer = IntBuffer.wrap(data.getNodeAdjecencies());
+        IntBuffer dataAdjacencyIndexBuffer = IntBuffer.wrap(data.getAdjacencyIndices());
+        IntBuffer dataLabelsBuffer = IntBuffer.wrap(data.getNodeLabels());
+        IntBuffer dataLabelIndexBuffer = IntBuffer.wrap(data.getLabelIndicies());
 
-        IntBuffer candidatesArrayBuffer = IntBuffer.wrap(candidateArray);
-        CLBuffer<Integer> candidatesArray
-                = this.context.createIntBuffer(CLMem.Usage.Input, candidatesArrayBuffer, true);
-        int[] globalSizes = new int[] { candidateArray.length };
+        DataBuffers dataBuffers = new DataBuffers();
 
-        CLEvent exploreCandidatesEvent = this.exploreCandidatesKernel.explore_candidates(
-            queue,
-            queryNodeId,
-            queryNodeAdjacencies,
-                queryNodeAdjacencyIndices,
-            queryNodeLabels,
-                queryNodeLabelIndices,
-            queryNodeAdjacencyIndexStart,
-            queryNodeAdjacencyIndexEnd,
-                dataAdjacences,
-                dataAdjacencyIndices,
-            dataLabels,
-                dataLabelIndices,
-            candidatesArray,
-            candidateIndicators,
-            this.dataNodeCount,
-            globalSizes,
-            null
-        );
+        dataBuffers.dataAdjacencesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
+        dataBuffers.dataAdjacencyIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
+        dataBuffers.dataLabelsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelsBuffer, true);
+        dataBuffers.dataLabelIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelIndexBuffer, true);
 
-        this.candidateIndicatorsPointer = candidateIndicators.read(this.queue, exploreCandidatesEvent);
+
+        return dataBuffers;
     }
 
-    private void createDataBuffers(int dataNodeCount, int queryNodeCount) {
-        IntBuffer queryNodeAdjacenciesBuffer = IntBuffer.wrap(gpuQuery.getNodeAdjecencies());
-        IntBuffer queryNodeAdjacencyIndiciesBuffer = IntBuffer.wrap(gpuQuery.getAdjacencyIndicies());
-        IntBuffer queryNodeLabelsBuffer = IntBuffer.wrap(gpuQuery.getNodeLabels());
-        IntBuffer queryNodeLabelIndiciesBuffer = IntBuffer.wrap(gpuQuery.getLabelIndicies());
 
+    private QueryBuffers createQueryBuffers(GpuGraphModel query) {
 
-        IntBuffer dataAdjacenciesBuffer = IntBuffer.wrap(gpuData.getNodeAdjecencies());
-        IntBuffer dataAdjacencyIndexBuffer = IntBuffer.wrap(gpuData.getAdjacencyIndicies());
-        IntBuffer dataLabelsBuffer = IntBuffer.wrap(gpuData.getNodeLabels());
-        IntBuffer dataLabelIndexBuffer = IntBuffer.wrap(gpuData.getLabelIndicies());
+        IntBuffer queryNodeAdjacenciesBuffer = IntBuffer.wrap(query.getNodeAdjecencies());
+        IntBuffer queryNodeAdjacencyIndiciesBuffer = IntBuffer.wrap(query.getAdjacencyIndices());
+        IntBuffer queryNodeLabelsBuffer = IntBuffer.wrap(query.getNodeLabels());
+        IntBuffer queryNodeLabelIndiciesBuffer = IntBuffer.wrap(query.getLabelIndicies());
 
+        QueryBuffers queryBuffers = new QueryBuffers();
 
-        this.queryNodeLabels = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelsBuffer, true);
-        this.queryNodeLabelIndices = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelIndiciesBuffer, true);
-        this.queryNodeAdjacencies = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacenciesBuffer, true);
-        this.queryNodeAdjacencyIndices = this.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacencyIndiciesBuffer, true);
+        queryBuffers.queryNodeLabelsBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelsBuffer, true);
+        queryBuffers.queryNodeLabelIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelIndiciesBuffer, true);
+        queryBuffers.queryNodeAdjacenciesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacenciesBuffer, true);
+        queryBuffers.queryNodeAdjacencyIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacencyIndiciesBuffer, true);
 
-        this.dataAdjacences = this.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
-        this.dataAdjacencyIndices = this.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
-        this.dataLabels = context.createIntBuffer(CLMem.Usage.Input, dataLabelsBuffer, true);
-        this.dataLabelIndices = context.createIntBuffer(CLMem.Usage.Input, dataLabelIndexBuffer, true);
+        return queryBuffers;
+    }
 
+    private void createCandidateIndicatorsBuffer(int dataNodeCount, int queryNodeCount) {
+        boolean candidateIndicators[] = new boolean[dataNodeCount * queryNodeCount];
 
-        this.candidateIndicators = context.createBuffer(
+        this.bufferContainer.queryBuffers.candidateIndicatorsBuffer = queryKernels.context.createBuffer(
                 CLMem.Usage.Output,
-                Pointer.pointerToBooleans(new boolean[dataNodeCount * queryNodeCount]));
-    }
-
-    public void checkCandidates(GpuGraphModel gpuQuery, Node queryNode) throws IOException {
-//        System.out.println("---------------------------");
-        int queryLabelStartIndex = gpuQuery.getLabelIndicies()[((int) queryNode.getId())];
-        int queryLabelEndIndex = gpuQuery.getLabelIndicies()[((int) queryNode.getId())+1];
-        int queryNodeDegree = queryNode.getDegree();
-        int[] queryNodeLabels = Arrays.copyOfRange(gpuQuery.getNodeLabels(), queryLabelStartIndex, queryLabelEndIndex);
-        int[] globalSizes = new int[] { dataNodeCount };
-
-
-//        System.out.println("Query node: " + queryNode.getId());
-//        System.out.println("Query node degree: " + queryNodeDegree);
-//        System.out.println("Query node dataLabels: " + Arrays.toString(queryNodeLabels));
-
-        CLEvent checkCandidatesEvent = this.checkCandidatesKernel.check_candidates(
-                this.queue,
-                this.queryNodeLabels,
-                (int) queryNode.getId(),
-                queryLabelStartIndex,
-                queryLabelEndIndex,
-                queryNodeDegree,
-                this.dataLabelIndices,
-                this.dataLabels,
-                this.dataAdjacencyIndices,
-                candidateIndicators,
-                dataNodeCount,
-                globalSizes,
-                null);
-
-        this.candidateIndicatorsPointer = candidateIndicators.read(this.queue, checkCandidatesEvent);
+                Pointer.pointerToBooleans(candidateIndicators), true);
     }
 
     public int[] gatherCandidateArray(int nodeId) {
-        int[] prefixScanArray = new int[dataNodeCount];
-        int candidateCount = 0;
-        int offset = dataNodeCount * nodeId;
-        if(candidateIndicatorsPointer.get(offset + 0)) {
-            candidateCount++;
-        }
-
-        for (int i = 1; i < dataNodeCount; i++) {
-            int nextElement = candidateIndicatorsPointer.get(offset + i-1) ? 1 : 0;
-            prefixScanArray[i] = prefixScanArray[i-1] + nextElement;
-            if(candidateIndicatorsPointer.get(offset + i)) {
-                candidateCount++;
-            }
-        }
-
-        int[] candidateArray = new int[candidateCount];
-
-        for (int i = 0; i < dataNodeCount; i++) {
-            if(candidateIndicatorsPointer.get(offset + i)) {
-                candidateArray[prefixScanArray[i]] = i;
-            }
-        }
-        return candidateArray;
+        return QueryUtils.gatherCandidateArray(this.bufferContainer.queryBuffers.candidateIndicatorsPointer, this.queryContext.dataNodeCount, nodeId);
     }
 
 
     private void refineCandidates(int queryNodeId, int[] candidateArray) throws IOException {
-        int queryNodeAdjacencyIndexStart = gpuQuery.getAdjacencyIndicies()[queryNodeId];
-        int queryNodeAdjacencyIndexEnd = gpuQuery.getAdjacencyIndicies()[queryNodeId + 1];
+        int queryNodeAdjacencyIndexStart = queryContext.gpuQuery.getAdjacencyIndices()[queryNodeId];
+        int queryNodeAdjacencyIndexEnd = queryContext.gpuQuery.getAdjacencyIndices()[queryNodeId + 1];
 
         IntBuffer candidatesArrayBuffer = IntBuffer.wrap(candidateArray);
         CLBuffer<Integer> candidatesArray
-                = this.context.createIntBuffer(CLMem.Usage.Input, candidatesArrayBuffer, true);
+                = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, candidatesArrayBuffer, true);
         int[] globalSizes = new int[] { candidateArray.length };
 
-        CLEvent refineCandidatesEvent = this.refineCandidatesKernel.refine_candidates(
-                queue,
+        CLEvent refineCandidatesEvent = this.queryKernels.refineCandidatesKernel.refine_candidates(
+                queryKernels.queue,
                 queryNodeId,
-                queryNodeAdjacencies,
-                queryNodeAdjacencyIndices,
-                queryNodeLabels,
-                queryNodeLabelIndices,
+                bufferContainer.queryBuffers.queryNodeAdjacenciesBuffer,
+                bufferContainer.queryBuffers.queryNodeAdjacencyIndicesBuffer,
+                bufferContainer.queryBuffers.queryNodeLabelsBuffer,
+                bufferContainer.queryBuffers.queryNodeLabelIndicesBuffer,
                 queryNodeAdjacencyIndexStart,
                 queryNodeAdjacencyIndexEnd,
-                dataAdjacences,
-                dataAdjacencyIndices,
-                dataLabels,
-                dataLabelIndices,
+                bufferContainer.dataBuffers.dataAdjacencesBuffer,
+                bufferContainer.dataBuffers.dataAdjacencyIndicesBuffer,
+                bufferContainer.dataBuffers.dataLabelsBuffer,
+                bufferContainer.dataBuffers.dataLabelIndicesBuffer,
                 candidatesArray,
-                candidateIndicators,
-                this.dataNodeCount,
+                bufferContainer.queryBuffers.candidateIndicatorsBuffer,
+                this.queryContext.dataNodeCount,
                 globalSizes,
                 null
         );
 
-        this.candidateIndicatorsPointer = candidateIndicators.read(this.queue, refineCandidatesEvent);
+        this.bufferContainer.queryBuffers.candidateIndicatorsPointer = bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(this.queryKernels.queue, refineCandidatesEvent);
     }
 }

@@ -109,9 +109,7 @@ public class DatabaseService {
     public Result excuteCypherQuery(String query) {
         Transaction transaction = this.graphDatabase.beginTx();
         Result result = this.graphDatabase.execute(
-                "MATCH (a3),(a1),(b2),(c4)" +
-                        "WHERE (a3)<--(a1)-->(b2) AND (a3)<--(b2)-->(c4)<--(a3)" +
-                        "RETURN a1, b2, a3, c4");
+                query);
         transaction.success();
         return result;
     }

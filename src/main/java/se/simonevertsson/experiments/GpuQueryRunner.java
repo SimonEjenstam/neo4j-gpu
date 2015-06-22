@@ -20,7 +20,7 @@ public class GpuQueryRunner {
         /* Convert database data and query data to fit the GPU */
         tick = System.currentTimeMillis();
         LabelDictionary labelDictionary = new LabelDictionary();
-        QueryGraph queryGraph = QueryGraphGenerator.generateMockQueryGraph();
+        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
 
         GpuGraphModel gpuData = convertData(databaseService, labelDictionary);
         GpuGraphModel gpuQuery = convertQuery(labelDictionary, queryGraph);
@@ -33,7 +33,8 @@ public class GpuQueryRunner {
         System.out.println(gpuData.toString());
 
         /* Execute the query */
-        GpuQuery gpuGraphQuery = new GpuQuery(gpuData, gpuQuery, queryGraph);
+        QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph);
+        GpuQuery gpuGraphQuery = new GpuQuery(queryContext);
         tick = System.currentTimeMillis();
         gpuGraphQuery.executeQuery(queryGraph.visitOrder);
         tock = System.currentTimeMillis();

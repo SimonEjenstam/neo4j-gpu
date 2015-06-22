@@ -88,15 +88,15 @@ public class SpanningTreeGenerator {
         return labelCounter;
     }
 
-    private static void addNodeLabelsToCount(HashMap<String, Integer> labelCounter, HashSet<Long> visitedNodes, Node startNode, LabelDictionary labelDictionary) {
-        if( !visitedNodes.contains(startNode.getId()) ) {
-            for (Label label : startNode.getLabels()) {
+    private static void addNodeLabelsToCount(HashMap<String, Integer> labelCounter, HashSet<Long> visitedNodes, Node node, LabelDictionary labelDictionary) {
+        if( !visitedNodes.contains(node.getId()) ) {
+            for (Label label : node.getLabels()) {
                 labelDictionary.insertLabel(label.name());
                 Integer currentLabelCountObject = labelCounter.get(label.name());
                 int currentLabelCount = currentLabelCountObject == null ? 0 : currentLabelCountObject;
                 labelCounter.put(label.name(), currentLabelCount + 1);
             }
-            visitedNodes.add(startNode.getId());
+            visitedNodes.add(node.getId());
         }
     }
 
@@ -107,6 +107,10 @@ public class SpanningTreeGenerator {
             labelFrequency += labelCounter.get(label.name());
         }
         int nodeDegree = node.getDegree(Direction.OUTGOING);
-        return nodeDegree / (float) labelFrequency;
+        if(labelFrequency > 0) {
+            return nodeDegree / (float) labelFrequency;
+        } else {
+            return nodeDegree;
+        }
     }
 }
