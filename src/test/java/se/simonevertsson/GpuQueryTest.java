@@ -15,7 +15,7 @@ public class GpuQueryTest extends TestCase {
 
 //    public void testCheckCandidates() throws Exception {
 //        // Given
-//        QueryGraph queryGraph = MockHelper.generateMockQueryGraph();
+//        QueryGraph queryGraph = MockHelper.generateBasicMockQueryGraph();
 //        LabelDictionary dictionary = new LabelDictionary();
 //        GraphModelConverter converter = new GraphModelConverter(queryGraph.nodes, dictionary);
 //        GpuGraphModel queryGraphModel = converter.convert();

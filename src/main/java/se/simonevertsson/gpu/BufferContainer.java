@@ -2,7 +2,7 @@ package se.simonevertsson.gpu;
 
 public class BufferContainer {
     DataBuffers dataBuffers;
-    QueryBuffers queryBuffers;
+    public QueryBuffers queryBuffers;
 
     public BufferContainer(DataBuffers dataBuffers, QueryBuffers queryBuffers) {
         this.dataBuffers = dataBuffers;

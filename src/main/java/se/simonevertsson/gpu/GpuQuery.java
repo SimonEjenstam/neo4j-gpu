@@ -23,7 +23,6 @@ public class GpuQuery {
         this.queryContext = queryContext;
 
         this.queryKernels = new QueryKernels();
-        queryKernels.initializeQueryKernels();
 
         this.bufferContainer = BufferContainerGenerator.generateBufferContainer(this.queryContext, this.queryKernels);
         createCandidateIndicatorsBuffer(queryContext.dataNodeCount, queryContext.queryNodeCount);
@@ -455,8 +454,8 @@ public class GpuQuery {
                 this.queryKernels.queue,
                 queryStartNodeId,
                 queryEndNodeId,
-                this.bufferContainer.dataBuffers.dataAdjacencesBuffer,
-                this.bufferContainer.dataBuffers.dataAdjacencyIndicesBuffer,
+                this.bufferContainer.dataBuffers.dataRelationshipsBuffer,
+                this.bufferContainer.dataBuffers.dataRelationshipIndicesBuffer,
                 candidateEdgeEndNodes,
                 candidateEdgeEndNodeIndicies,
                 candidatesArray,
@@ -482,8 +481,8 @@ public class GpuQuery {
                 this.queryKernels.queue,
                 queryStartNodeId,
                 queryEndNodeId,
-                this.bufferContainer.dataBuffers.dataAdjacencesBuffer,
-                this.bufferContainer.dataBuffers.dataAdjacencyIndicesBuffer,
+                this.bufferContainer.dataBuffers.dataRelationshipsBuffer,
+                this.bufferContainer.dataBuffers.dataRelationshipIndicesBuffer,
                 candidateEdgeCounts,
                 candidateArray,
                 this.bufferContainer.queryBuffers.candidateIndicatorsBuffer,
@@ -540,15 +539,15 @@ public class GpuQuery {
     }
 
     private DataBuffers createDataBuffers(GpuGraphModel data) {
-        IntBuffer dataAdjacenciesBuffer = IntBuffer.wrap(data.getNodeAdjecencies());
-        IntBuffer dataAdjacencyIndexBuffer = IntBuffer.wrap(data.getAdjacencyIndices());
+        IntBuffer dataAdjacenciesBuffer = IntBuffer.wrap(data.getNodeRelationships());
+        IntBuffer dataAdjacencyIndexBuffer = IntBuffer.wrap(data.getRelationshipIndices());
         IntBuffer dataLabelsBuffer = IntBuffer.wrap(data.getNodeLabels());
-        IntBuffer dataLabelIndexBuffer = IntBuffer.wrap(data.getLabelIndicies());
+        IntBuffer dataLabelIndexBuffer = IntBuffer.wrap(data.getLabelIndices());
 
         DataBuffers dataBuffers = new DataBuffers();
 
-        dataBuffers.dataAdjacencesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
-        dataBuffers.dataAdjacencyIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
+        dataBuffers.dataRelationshipsBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
+        dataBuffers.dataRelationshipIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
         dataBuffers.dataLabelsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelsBuffer, true);
         dataBuffers.dataLabelIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelIndexBuffer, true);
 
@@ -559,10 +558,10 @@ public class GpuQuery {
 
     private QueryBuffers createQueryBuffers(GpuGraphModel query) {
 
-        IntBuffer queryNodeAdjacenciesBuffer = IntBuffer.wrap(query.getNodeAdjecencies());
-        IntBuffer queryNodeAdjacencyIndiciesBuffer = IntBuffer.wrap(query.getAdjacencyIndices());
+        IntBuffer queryNodeAdjacenciesBuffer = IntBuffer.wrap(query.getNodeRelationships());
+        IntBuffer queryNodeAdjacencyIndiciesBuffer = IntBuffer.wrap(query.getRelationshipIndices());
         IntBuffer queryNodeLabelsBuffer = IntBuffer.wrap(query.getNodeLabels());
-        IntBuffer queryNodeLabelIndiciesBuffer = IntBuffer.wrap(query.getLabelIndicies());
+        IntBuffer queryNodeLabelIndiciesBuffer = IntBuffer.wrap(query.getLabelIndices());
 
         QueryBuffers queryBuffers = new QueryBuffers();
 
@@ -588,8 +587,8 @@ public class GpuQuery {
 
 
     private void refineCandidates(int queryNodeId, int[] candidateArray) throws IOException {
-        int queryNodeAdjacencyIndexStart = queryContext.gpuQuery.getAdjacencyIndices()[queryNodeId];
-        int queryNodeAdjacencyIndexEnd = queryContext.gpuQuery.getAdjacencyIndices()[queryNodeId + 1];
+        int queryNodeAdjacencyIndexStart = queryContext.gpuQuery.getRelationshipIndices()[queryNodeId];
+        int queryNodeAdjacencyIndexEnd = queryContext.gpuQuery.getRelationshipIndices()[queryNodeId + 1];
 
         IntBuffer candidatesArrayBuffer = IntBuffer.wrap(candidateArray);
         CLBuffer<Integer> candidatesArray
@@ -605,8 +604,8 @@ public class GpuQuery {
                 bufferContainer.queryBuffers.queryNodeLabelIndicesBuffer,
                 queryNodeAdjacencyIndexStart,
                 queryNodeAdjacencyIndexEnd,
-                bufferContainer.dataBuffers.dataAdjacencesBuffer,
-                bufferContainer.dataBuffers.dataAdjacencyIndicesBuffer,
+                bufferContainer.dataBuffers.dataRelationshipsBuffer,
+                bufferContainer.dataBuffers.dataRelationshipIndicesBuffer,
                 bufferContainer.dataBuffers.dataLabelsBuffer,
                 bufferContainer.dataBuffers.dataLabelIndicesBuffer,
                 candidatesArray,

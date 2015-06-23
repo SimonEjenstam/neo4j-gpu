@@ -15,15 +15,15 @@ public class BufferContainerGenerator {
 
     private static DataBuffers createDataBuffers(QueryKernels queryKernels, QueryContext queryContext) {
         GpuGraphModel data = queryContext.gpuData;
-        IntBuffer dataAdjacenciesBuffer = IntBuffer.wrap(data.getNodeAdjecencies());
-        IntBuffer dataAdjacencyIndexBuffer = IntBuffer.wrap(data.getAdjacencyIndices());
+        IntBuffer dataAdjacenciesBuffer = IntBuffer.wrap(data.getNodeRelationships());
+        IntBuffer dataAdjacencyIndexBuffer = IntBuffer.wrap(data.getRelationshipIndices());
         IntBuffer dataLabelsBuffer = IntBuffer.wrap(data.getNodeLabels());
-        IntBuffer dataLabelIndexBuffer = IntBuffer.wrap(data.getLabelIndicies());
+        IntBuffer dataLabelIndexBuffer = IntBuffer.wrap(data.getLabelIndices());
 
         DataBuffers dataBuffers = new DataBuffers();
 
-        dataBuffers.dataAdjacencesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
-        dataBuffers.dataAdjacencyIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
+        dataBuffers.dataRelationshipsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
+        dataBuffers.dataRelationshipIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
         dataBuffers.dataLabelsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelsBuffer, true);
         dataBuffers.dataLabelIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelIndexBuffer, true);
 
@@ -35,10 +35,10 @@ public class BufferContainerGenerator {
     private static QueryBuffers createQueryBuffers(QueryKernels queryKernels, QueryContext queryContext) {
         GpuGraphModel query = queryContext.gpuQuery;
 
-        IntBuffer queryNodeAdjacenciesBuffer = IntBuffer.wrap(query.getNodeAdjecencies());
-        IntBuffer queryNodeAdjacencyIndiciesBuffer = IntBuffer.wrap(query.getAdjacencyIndices());
+        IntBuffer queryNodeAdjacenciesBuffer = IntBuffer.wrap(query.getNodeRelationships());
+        IntBuffer queryNodeAdjacencyIndiciesBuffer = IntBuffer.wrap(query.getRelationshipIndices());
         IntBuffer queryNodeLabelsBuffer = IntBuffer.wrap(query.getNodeLabels());
-        IntBuffer queryNodeLabelIndiciesBuffer = IntBuffer.wrap(query.getLabelIndicies());
+        IntBuffer queryNodeLabelIndiciesBuffer = IntBuffer.wrap(query.getLabelIndices());
 
         boolean candidateIndicators[] = new boolean[queryContext.dataNodeCount * queryContext.queryNodeCount];
 

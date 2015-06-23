@@ -1,16 +1,12 @@
 package se.simonevertsson;
 
 import junit.framework.TestCase;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
 import se.simonevertsson.gpu.LabelDictionary;
 import se.simonevertsson.gpu.SpanningTreeGenerator;
+import se.simonevertsson.gpu.TypeDictionary;
 import se.simonevertsson.query.QueryGraph;
-import se.simonevertsson.query.QueryLabel;
-import se.simonevertsson.query.QueryNode;
 
-import java.util.ArrayList;
+import java.lang.reflect.Type;
 
 /**
  * Created by simon on 2015-05-12.
@@ -19,9 +15,10 @@ public class SpanningTreeGeneratorTest extends TestCase {
 
     public void testGenerateQueryGraph() throws Exception {
         // Given
-        QueryGraph queryGraph = MockHelper.generateMockQueryGraph();
+        QueryGraph queryGraph = MockHelper.generateBasicMockQueryGraph();
         LabelDictionary labelDictionary = new LabelDictionary();
-        SpanningTreeGenerator spanningTreeGenerator = new SpanningTreeGenerator(queryGraph, labelDictionary);
+        TypeDictionary typeDictionary = new TypeDictionary();
+        SpanningTreeGenerator spanningTreeGenerator = new SpanningTreeGenerator(queryGraph, labelDictionary, typeDictionary);
 
         // When
         QueryGraph result = spanningTreeGenerator.generateQueryGraph();

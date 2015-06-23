@@ -11,54 +11,52 @@ import java.util.Iterator;
  */
 public class GpuGraphModel {
 
-    private int[] labelIndicies;
+    private int[] labelIndices;
 
     private int[] nodeLabels;
 
-    private int[] adjacencyIndicies;
+    private int[] relationshipIndices;
 
-    private int[] nodeAdjecencies;
+    private int[] nodeRelationships;
 
-    public GpuGraphModel(ArrayList<Integer> labelIndicies, ArrayList<Integer> nodeLabels, ArrayList<Integer> adjecenyIndicies, ArrayList<Integer> nodeAdjecencies) {
-        this.labelIndicies = ArrayUtil.toIntArray(labelIndicies);
+    private int[] relationshipTypes;
+
+    public GpuGraphModel(ArrayList<Integer> labelIndices, ArrayList<Integer> nodeLabels, ArrayList<Integer> relationshipIndices, ArrayList<Integer> nodeRelationships, ArrayList<Integer> relationshipTypes) {
+        this.labelIndices = ArrayUtil.toIntArray(labelIndices);
         this.nodeLabels = ArrayUtil.toIntArray(nodeLabels);
-        this.adjacencyIndicies = ArrayUtil.toIntArray(adjecenyIndicies);
-        this.nodeAdjecencies = ArrayUtil.toIntArray(nodeAdjecencies);
-    }
-
-    private long[] convertArrayListToLongArray(ArrayList<Long> longList) {
-        long[] ret = new long[longList.size()];
-        Iterator<Long> iterator = longList.iterator();
-        for (int i = 0; i < ret.length; i++)
-        {
-            ret[i] = iterator.next().longValue();
-        }
-        return ret;
+        this.relationshipIndices = ArrayUtil.toIntArray(relationshipIndices);
+        this.nodeRelationships = ArrayUtil.toIntArray(nodeRelationships);
+        this.relationshipTypes = ArrayUtil.toIntArray(relationshipTypes);
     }
 
     public int[] getNodeLabels() {
         return nodeLabels;
     }
 
-    public int[] getAdjacencyIndices() {
-        return adjacencyIndicies;
+    public int[] getRelationshipIndices() {
+        return relationshipIndices;
     }
 
-    public int[] getNodeAdjecencies() {
-        return nodeAdjecencies;
+    public int[] getNodeRelationships() {
+        return nodeRelationships;
     }
 
-    public int[] getLabelIndicies() {
-        return labelIndicies;
+    public int[] getLabelIndices() {
+        return labelIndices;
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("Node labels: " + Arrays.toString(this.nodeLabels) + "\n");
-        builder.append("Node label indicies: " + Arrays.toString(this.labelIndicies)+ "\n");
-        builder.append("Node adjacencies: " + Arrays.toString(this.nodeAdjecencies)+ "\n");
-        builder.append("Node adjecency indicies: " + Arrays.toString(this.adjacencyIndicies));
+        builder.append("Label indicies: " + Arrays.toString(this.labelIndices)+ "\n");
+        builder.append("Node relationships: " + Arrays.toString(this.nodeRelationships)+ "\n");
+        builder.append("Relationship types: " + Arrays.toString(this.relationshipTypes)+ "\n");
+        builder.append("Relationship indicies: " + Arrays.toString(this.relationshipIndices));
         return builder.toString();
+    }
+
+    public int[] getRelationshipTypes() {
+        return relationshipTypes;
     }
 }

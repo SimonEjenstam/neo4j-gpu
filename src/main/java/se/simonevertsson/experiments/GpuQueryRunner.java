@@ -20,10 +20,11 @@ public class GpuQueryRunner {
         /* Convert database data and query data to fit the GPU */
         tick = System.currentTimeMillis();
         LabelDictionary labelDictionary = new LabelDictionary();
+        TypeDictionary typeDictionary = new TypeDictionary();
         QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
 
-        GpuGraphModel gpuData = convertData(databaseService, labelDictionary);
-        GpuGraphModel gpuQuery = convertQuery(labelDictionary, queryGraph);
+        GpuGraphModel gpuData = convertData(databaseService, labelDictionary, typeDictionary);
+        GpuGraphModel gpuQuery = convertQuery(labelDictionary, typeDictionary, queryGraph);
         tock = System.currentTimeMillis();
 
         System.out.println("GPU Data conversion runtime: " + (tock-tick) + "ms");
@@ -33,7 +34,7 @@ public class GpuQueryRunner {
         System.out.println(gpuData.toString());
 
         /* Execute the query */
-        QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph);
+        QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph, labelDictionary, typeDictionary);
         GpuQuery gpuGraphQuery = new GpuQuery(queryContext);
         tick = System.currentTimeMillis();
         gpuGraphQuery.executeQuery(queryGraph.visitOrder);
@@ -42,16 +43,16 @@ public class GpuQueryRunner {
         System.out.println("GPU Query runtime: " + (tock - tick) + "ms");
     }
 
-    private GpuGraphModel convertQuery(LabelDictionary labelDictionary, QueryGraph queryGraph) {
-        SpanningTreeGenerator spanningTreeGenerator = new SpanningTreeGenerator(queryGraph, labelDictionary);
+    private GpuGraphModel convertQuery(LabelDictionary labelDictionary, TypeDictionary typeDictionary, QueryGraph queryGraph) {
+        SpanningTreeGenerator spanningTreeGenerator = new SpanningTreeGenerator(queryGraph, labelDictionary, typeDictionary);
         spanningTreeGenerator.generateQueryGraph();
-        GraphModelConverter graphModelConverter = new GraphModelConverter(queryGraph.nodes, labelDictionary);
+        GraphModelConverter graphModelConverter = new GraphModelConverter(queryGraph.nodes, labelDictionary, typeDictionary);
         return graphModelConverter.convert();
     }
 
-    private GpuGraphModel convertData(DatabaseService databaseService, LabelDictionary labelDictionary) {
+    private GpuGraphModel convertData(DatabaseService databaseService, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
         ResourceIterable<Node> allNodes = databaseService.getAllNodes();
-        GraphModelConverter graphModelConverter = new GraphModelConverter(allNodes, labelDictionary);
+        GraphModelConverter graphModelConverter = new GraphModelConverter(allNodes, labelDictionary, typeDictionary);
         return graphModelConverter.convert();
     }
 }

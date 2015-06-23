@@ -20,7 +20,7 @@ public class SpanningTreeGenerator {
     private final LabelDictionary labelDictionary;
     private HashMap<Long, Boolean> visitedNodes;
 
-    public SpanningTreeGenerator(QueryGraph queryGraph, LabelDictionary labelDictionary) {
+    public SpanningTreeGenerator(QueryGraph queryGraph, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
         this.queryGraph = queryGraph;
         this.labelDictionary = labelDictionary;
     }

@@ -9,7 +9,7 @@ public class QueryBuffers {
     CLBuffer<Integer> queryNodeLabelIndicesBuffer;
     CLBuffer<Integer> queryNodeAdjacenciesBuffer;
     CLBuffer<Integer> queryNodeAdjacencyIndicesBuffer;
-    Pointer<Boolean> candidateIndicatorsPointer;
+    public Pointer<Boolean> candidateIndicatorsPointer;
 
     public QueryBuffers() {
     }

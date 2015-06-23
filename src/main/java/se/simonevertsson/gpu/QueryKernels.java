@@ -20,10 +20,11 @@ public class QueryKernels {
     ValidateSolutions validateSolutionsKernel;
     PruneSolutions pruneSolutionsKernel;
 
-    public QueryKernels() {
+    public QueryKernels() throws IOException {
+        initializeQueryKernels();
     }
 
-    void initializeQueryKernels() throws IOException {
+    private void initializeQueryKernels() throws IOException {
         this.context = JavaCL.createBestContext();
         this.queue = this.context.createDefaultQueue();
         this.checkCandidatesKernel = new CheckCandidates(this.context);
