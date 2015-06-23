@@ -36,7 +36,7 @@ __kernel void check_candidates(
         }
     }
 
-    int d_node_degree = d_relationships[d_relationship_indices[i]] == -1 ? 0 : (d_relationship_indices[i+1] - d_relationship_indices[i]);
+    int d_node_degree = d_relationships[d_relationship_indices[i]] != -1 ? (d_relationship_indices[i+1] - d_relationship_indices[i]) : 0;
 
     candidate_indicators[ q_node*data_node_count + i ] = (labels_match  && q_node_degree <= d_node_degree);
 }

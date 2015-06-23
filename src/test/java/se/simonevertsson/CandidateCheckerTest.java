@@ -16,13 +16,6 @@ public class CandidateCheckerTest extends TestCase {
 
     public void testYieldsCorrectOutputForMockQueryWithQueryNode1() throws IOException {
         // Given
-        boolean[] expectedCandidateSet = {
-                true, false, false, false,
-                false, false, false, false,
-                false, false, false, false,
-                false, false, false, false,
-        };
-
         MockQuery mockQuery = MockHelper.generateMockQuery();
 
         int dataNodeCount = mockQuery.queryContext.dataNodeCount;
@@ -37,21 +30,20 @@ public class CandidateCheckerTest extends TestCase {
         Pointer<Boolean> result = mockQuery.bufferContainer.queryBuffers.candidateIndicatorsPointer;
 
         // Then
+        boolean[] expectedCandidateIndicators = {
+                true, false, false, false,
+                false, false, false, false,
+                false, false, false, false,
+                false, false, false, false,
+        };
 
         for(int i = 0; i < dataNodeCount * queryNodeCount; i++) {
-            assertEquals(expectedCandidateSet[i], (boolean) result.get(i));
+            assertEquals(expectedCandidateIndicators[i], (boolean) result.get(i));
         }
     }
 
     public void testYieldsCorrectOutputForMockQueryWithQueryNode2() throws IOException {
         // Given
-        boolean[] expectedCandidateSet = {
-                false, false, false, false,
-                false, true, false, false,
-                false, false, false, false,
-                false, false, false, false,
-        };
-
         MockQuery mockQuery = MockHelper.generateMockQuery();
 
         int dataNodeCount = mockQuery.queryContext.dataNodeCount;
@@ -66,22 +58,21 @@ public class CandidateCheckerTest extends TestCase {
         Pointer<Boolean> result = mockQuery.bufferContainer.queryBuffers.candidateIndicatorsPointer;
 
         // Then
+        boolean[] expectedCandidateIndicators = {
+                false, false, false, false,
+                false, true, false, false,
+                false, false, false, false,
+                false, false, false, false,
+        };
 
         for(int i = 0; i < dataNodeCount * queryNodeCount; i++) {
-            assertEquals(expectedCandidateSet[i], (boolean) result.get(i));
+            assertEquals(expectedCandidateIndicators[i], (boolean) result.get(i));
         }
     }
 
 
     public void testYieldsCorrectOutputForMockQueryWithQueryNode3() throws IOException {
         // Given
-        boolean[] expectedCandidateSet = {
-                false, false, false, false,
-                false, false, false, false,
-                true, true, true, false,
-                false, false, false, false,
-        };
-
         MockQuery mockQuery = MockHelper.generateMockQuery();
 
         int dataNodeCount = mockQuery.queryContext.dataNodeCount;
@@ -96,22 +87,21 @@ public class CandidateCheckerTest extends TestCase {
         Pointer<Boolean> result = mockQuery.bufferContainer.queryBuffers.candidateIndicatorsPointer;
 
         // Then
+        boolean[] expectedCandidateIndicators = {
+                false, false, false, false,
+                false, false, false, false,
+                true, true, true, false,
+                false, false, false, false,
+        };
 
         for(int i = 0; i < dataNodeCount * queryNodeCount; i++) {
-            assertEquals(expectedCandidateSet[i], (boolean) result.get(i));
+            assertEquals(expectedCandidateIndicators[i], (boolean) result.get(i));
         }
     }
 
 
     public void testYieldsCorrectOutputForMockQueryWithQueryNode4() throws IOException {
         // Given
-        boolean[] expectedCandidateSet = {
-                false, false, false, false,
-                false, false, false, false,
-                false, false, false, false,
-                false, false, false, true,
-        };
-
         MockQuery mockQuery = MockHelper.generateMockQuery();
 
         int dataNodeCount = mockQuery.queryContext.dataNodeCount;
@@ -126,11 +116,15 @@ public class CandidateCheckerTest extends TestCase {
         Pointer<Boolean> result = mockQuery.bufferContainer.queryBuffers.candidateIndicatorsPointer;
 
         // Then
+        boolean[] expectedCandidateIndicators = {
+                false, false, false, false,
+                false, false, false, false,
+                false, false, false, false,
+                false, false, false, true,
+        };
 
         for(int i = 0; i < dataNodeCount * queryNodeCount; i++) {
-            assertEquals(expectedCandidateSet[i], (boolean) result.get(i));
+            assertEquals(expectedCandidateIndicators[i], (boolean) result.get(i));
         }
     }
-
-
 }

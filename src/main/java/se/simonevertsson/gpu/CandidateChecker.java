@@ -36,7 +36,7 @@ public class CandidateChecker {
                 queryNodeDegree,
                 this.dataBuffers.dataLabelIndicesBuffer,
                 this.dataBuffers.dataLabelsBuffer,
-                this.dataBuffers.dataRelationshipsBuffer,
+                this.dataBuffers.dataNodeRelationshipsBuffer,
                 this.dataBuffers.dataRelationshipIndicesBuffer,
                 this.queryBuffers.candidateIndicatorsBuffer,
                 this.dataNodeCount,

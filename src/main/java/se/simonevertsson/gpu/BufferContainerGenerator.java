@@ -15,15 +15,17 @@ public class BufferContainerGenerator {
 
     private static DataBuffers createDataBuffers(QueryKernels queryKernels, QueryContext queryContext) {
         GpuGraphModel data = queryContext.gpuData;
-        IntBuffer dataAdjacenciesBuffer = IntBuffer.wrap(data.getNodeRelationships());
-        IntBuffer dataAdjacencyIndexBuffer = IntBuffer.wrap(data.getRelationshipIndices());
+        IntBuffer dataRelationshipsBuffer = IntBuffer.wrap(data.getNodeRelationships());
+        IntBuffer dataRelationshipTypesBuffer = IntBuffer.wrap(data.getRelationshipTypes());
+        IntBuffer dataRelationshipIndicesBuffer = IntBuffer.wrap(data.getRelationshipIndices());
         IntBuffer dataLabelsBuffer = IntBuffer.wrap(data.getNodeLabels());
         IntBuffer dataLabelIndexBuffer = IntBuffer.wrap(data.getLabelIndices());
 
         DataBuffers dataBuffers = new DataBuffers();
 
-        dataBuffers.dataRelationshipsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
-        dataBuffers.dataRelationshipIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
+        dataBuffers.dataNodeRelationshipsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataRelationshipsBuffer, true);
+        dataBuffers.dataRelationshipTypesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataRelationshipTypesBuffer, true);
+        dataBuffers.dataRelationshipIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataRelationshipIndicesBuffer, true);
         dataBuffers.dataLabelsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelsBuffer, true);
         dataBuffers.dataLabelIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelIndexBuffer, true);
 
@@ -35,19 +37,21 @@ public class BufferContainerGenerator {
     private static QueryBuffers createQueryBuffers(QueryKernels queryKernels, QueryContext queryContext) {
         GpuGraphModel query = queryContext.gpuQuery;
 
-        IntBuffer queryNodeAdjacenciesBuffer = IntBuffer.wrap(query.getNodeRelationships());
-        IntBuffer queryNodeAdjacencyIndiciesBuffer = IntBuffer.wrap(query.getRelationshipIndices());
+        IntBuffer queryNodeRelationshipsBuffer = IntBuffer.wrap(query.getNodeRelationships());
+        IntBuffer queryRelationshipTypesBuffer = IntBuffer.wrap(query.getRelationshipTypes());
+        IntBuffer queryRelationshipIndicesBuffer = IntBuffer.wrap(query.getRelationshipIndices());
         IntBuffer queryNodeLabelsBuffer = IntBuffer.wrap(query.getNodeLabels());
-        IntBuffer queryNodeLabelIndiciesBuffer = IntBuffer.wrap(query.getLabelIndices());
+        IntBuffer queryNodeLabelIndicesBuffer = IntBuffer.wrap(query.getLabelIndices());
 
         boolean candidateIndicators[] = new boolean[queryContext.dataNodeCount * queryContext.queryNodeCount];
 
         QueryBuffers queryBuffers = new QueryBuffers();
 
         queryBuffers.queryNodeLabelsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelsBuffer, true);
-        queryBuffers.queryNodeLabelIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelIndiciesBuffer, true);
-        queryBuffers.queryNodeAdjacenciesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacenciesBuffer, true);
-        queryBuffers.queryNodeAdjacencyIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacencyIndiciesBuffer, true);
+        queryBuffers.queryNodeLabelIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelIndicesBuffer, true);
+        queryBuffers.queryNodeRelationshipsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeRelationshipsBuffer, true);
+        queryBuffers.queryRelationshipTypesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryRelationshipTypesBuffer, true);
+        queryBuffers.queryRelationshipIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryRelationshipIndicesBuffer, true);
 
         queryBuffers.candidateIndicatorsBuffer = queryKernels.context.createBuffer(
             CLMem.Usage.Output,

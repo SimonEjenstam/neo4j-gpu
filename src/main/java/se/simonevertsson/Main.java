@@ -32,10 +32,8 @@ public class Main {
 
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH " +
-//                    "(a1)-->(a2)," +
-//                    "(a2)-->(a3)," +
-//                    "(a3)-->(a1)" +
-//                    "RETURN a1, a2, a3";
+//                    "(a1)-->(a2)" +
+//                    "RETURN count(*)";
 
     public static void main(String[] args) throws IOException {
         /* Setup database */

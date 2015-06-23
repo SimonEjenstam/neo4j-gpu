@@ -29,4 +29,17 @@ public class QueryUtils {
         }
         return candidateArray;
     }
+
+    public static void printCandidateIndicatorMatrix(Pointer<Boolean> candidateIndicatorsPointer, int dataNodeCount) {
+        StringBuilder builder = new StringBuilder();
+        int j = 1;
+        for(boolean candidate : candidateIndicatorsPointer)  {
+            builder.append(candidate + ", ");
+            if(j % dataNodeCount == 0) {
+                builder.append("\n");
+            }
+            j++;
+        }
+        System.out.println(builder.toString());
+    }
 }

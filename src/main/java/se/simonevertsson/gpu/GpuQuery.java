@@ -454,7 +454,7 @@ public class GpuQuery {
                 this.queryKernels.queue,
                 queryStartNodeId,
                 queryEndNodeId,
-                this.bufferContainer.dataBuffers.dataRelationshipsBuffer,
+                this.bufferContainer.dataBuffers.dataNodeRelationshipsBuffer,
                 this.bufferContainer.dataBuffers.dataRelationshipIndicesBuffer,
                 candidateEdgeEndNodes,
                 candidateEdgeEndNodeIndicies,
@@ -481,7 +481,7 @@ public class GpuQuery {
                 this.queryKernels.queue,
                 queryStartNodeId,
                 queryEndNodeId,
-                this.bufferContainer.dataBuffers.dataRelationshipsBuffer,
+                this.bufferContainer.dataBuffers.dataNodeRelationshipsBuffer,
                 this.bufferContainer.dataBuffers.dataRelationshipIndicesBuffer,
                 candidateEdgeCounts,
                 candidateArray,
@@ -546,7 +546,7 @@ public class GpuQuery {
 
         DataBuffers dataBuffers = new DataBuffers();
 
-        dataBuffers.dataRelationshipsBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
+        dataBuffers.dataNodeRelationshipsBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacenciesBuffer, true);
         dataBuffers.dataRelationshipIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataAdjacencyIndexBuffer, true);
         dataBuffers.dataLabelsBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelsBuffer, true);
         dataBuffers.dataLabelIndicesBuffer = queryKernels.context.createIntBuffer(CLMem.Usage.Input, dataLabelIndexBuffer, true);
@@ -567,8 +567,8 @@ public class GpuQuery {
 
         queryBuffers.queryNodeLabelsBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelsBuffer, true);
         queryBuffers.queryNodeLabelIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeLabelIndiciesBuffer, true);
-        queryBuffers.queryNodeAdjacenciesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacenciesBuffer, true);
-        queryBuffers.queryNodeAdjacencyIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacencyIndiciesBuffer, true);
+        queryBuffers.queryNodeRelationshipsBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacenciesBuffer, true);
+        queryBuffers.queryRelationshipIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, queryNodeAdjacencyIndiciesBuffer, true);
 
         return queryBuffers;
     }
@@ -598,13 +598,13 @@ public class GpuQuery {
         CLEvent refineCandidatesEvent = this.queryKernels.refineCandidatesKernel.refine_candidates(
                 queryKernels.queue,
                 queryNodeId,
-                bufferContainer.queryBuffers.queryNodeAdjacenciesBuffer,
-                bufferContainer.queryBuffers.queryNodeAdjacencyIndicesBuffer,
+                bufferContainer.queryBuffers.queryNodeRelationshipsBuffer,
+                bufferContainer.queryBuffers.queryRelationshipIndicesBuffer,
                 bufferContainer.queryBuffers.queryNodeLabelsBuffer,
                 bufferContainer.queryBuffers.queryNodeLabelIndicesBuffer,
                 queryNodeAdjacencyIndexStart,
                 queryNodeAdjacencyIndexEnd,
-                bufferContainer.dataBuffers.dataRelationshipsBuffer,
+                bufferContainer.dataBuffers.dataNodeRelationshipsBuffer,
                 bufferContainer.dataBuffers.dataRelationshipIndicesBuffer,
                 bufferContainer.dataBuffers.dataLabelsBuffer,
                 bufferContainer.dataBuffers.dataLabelIndicesBuffer,

@@ -26,19 +26,32 @@ public class CandidateInitializer {
             if (!initializedQueryNodes[((int) queryNode.getId())]) {
                 this.candidateChecker.checkCandidates(this.queryContext.gpuQuery, queryNode);
             }
-            int[] candidateArray = QueryUtils.gatherCandidateArray(
-                    this.queryBuffers.candidateIndicatorsPointer,
-                    this.queryContext.dataNodeCount,
-                    (int) queryNode.getId());
 
-            if (candidateArray.length > 0) {
-                this.candidateExplorer.exploreCandidates((int) queryNode.getId(), candidateArray);
-                for (Relationship adjacency : queryNode.getRelationships()) {
-                    initializedQueryNodes[((int) adjacency.getEndNode().getId())] = true;
+            int queryNodeRelationshipStartIndex = this.queryContext.gpuQuery.getRelationshipIndices()[((int) queryNode.getId())];
+            if(this.queryContext.gpuQuery.getNodeRelationships()[queryNodeRelationshipStartIndex] != -1) {
+
+                /* The current query node has relationships, hence we explore the neighborhood */
+
+                int[] candidateArray = QueryUtils.gatherCandidateArray(
+                        this.queryBuffers.candidateIndicatorsPointer,
+                        this.queryContext.dataNodeCount,
+                        (int) queryNode.getId());
+
+                if (candidateArray.length > 0) {
+                    this.candidateExplorer.exploreCandidates((int) queryNode.getId(), candidateArray);
+
+                    /* We have explored the neighborhood, mark query nodes related to the current query node as intialized */
+                    for (Relationship adjacency : queryNode.getRelationships()) {
+                        initializedQueryNodes[((int) adjacency.getEndNode().getId())] = true;
+                    }
+                } else {
+                    throw new IllegalStateException("No candidates for query node " + queryNode.getId() + " were found.");
                 }
-            } else {
-                throw new IllegalStateException("No candidates for query node " + queryNode.getId() + " were found.");
             }
+
+            initializedQueryNodes[((int) queryNode.getId())] = true;
+
+
         }
     }
 }

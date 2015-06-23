@@ -8,8 +8,8 @@ import se.simonevertsson.*;
 import java.io.IOException;
 
 public class QueryKernels {
-    CLContext context;
-    CLQueue queue;
+    public CLContext context;
+    public CLQueue queue;
     CheckCandidates checkCandidatesKernel;
     ExploreCandidates exploreCandidatesKernel;
     RefineCandidates refineCandidatesKernel;

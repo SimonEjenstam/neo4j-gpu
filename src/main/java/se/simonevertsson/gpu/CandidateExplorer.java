@@ -21,7 +21,7 @@ public class CandidateExplorer {
         this.queryContext = queryContext;
     }
 
-    void exploreCandidates(int queryNodeId, int[] candidateArray) throws IOException {
+    public void exploreCandidates(int queryNodeId, int[] candidateArray) throws IOException {
         int queryNodeAdjacencyIndexStart = this.queryContext.gpuQuery.getRelationshipIndices()[queryNodeId];
         int queryNodeAdjacencyIndexEnd =this.queryContext.gpuQuery.getRelationshipIndices()[queryNodeId + 1];
 
@@ -32,13 +32,15 @@ public class CandidateExplorer {
         CLEvent exploreCandidatesEvent = this.queryKernels.exploreCandidatesKernel.explore_candidates(
                 this.queryKernels.queue,
                 queryNodeId,
-                this.queryBuffers.queryNodeAdjacenciesBuffer,
-                this.queryBuffers.queryNodeAdjacencyIndicesBuffer,
+                this.queryBuffers.queryNodeRelationshipsBuffer,
+                this.queryBuffers.queryRelationshipTypesBuffer,
+                this.queryBuffers.queryRelationshipIndicesBuffer,
                 this.queryBuffers.queryNodeLabelsBuffer,
                 this.queryBuffers.queryNodeLabelIndicesBuffer,
                 queryNodeAdjacencyIndexStart,
                 queryNodeAdjacencyIndexEnd,
-                this.dataBuffers.dataRelationshipsBuffer,
+                this.dataBuffers.dataNodeRelationshipsBuffer,
+                this.dataBuffers.dataRelationshipTypesBuffer,
                 this.dataBuffers.dataRelationshipIndicesBuffer,
                 this.dataBuffers.dataLabelsBuffer,
                 this.dataBuffers.dataLabelIndicesBuffer,
