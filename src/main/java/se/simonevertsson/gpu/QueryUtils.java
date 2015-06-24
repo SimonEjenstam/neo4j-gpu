@@ -42,4 +42,14 @@ public class QueryUtils {
         }
         System.out.println(builder.toString());
     }
+
+    public static boolean[] pointerToArray(Pointer<Boolean> pointer, int size) {
+        boolean[] result = new boolean[size];
+        int i = 0;
+        for(boolean element : pointer) {
+            result[i] = element;
+            i++;
+        }
+        return result;
+    }
 }

@@ -13,8 +13,8 @@ import java.io.IOException;
 public class Main {
 
     public static final String TEST_DB_PATH = "target/foo";
-    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon\\Documents\\Neo4j\\drwho";
-    public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon\\Documents\\Neo4j";
+    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
+    public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j";
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH (a1),(b2),(a3),(c4)" +
 //            "WHERE (a3)<--(a1)-->(b2) AND (a3)<--(b2)-->(c4)<--(a3)" +
