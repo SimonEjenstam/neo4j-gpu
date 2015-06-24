@@ -13,7 +13,7 @@ public class QueryKernels {
     CheckCandidates checkCandidatesKernel;
     ExploreCandidates exploreCandidatesKernel;
     RefineCandidates refineCandidatesKernel;
-    CountEdgeCandidates countEdgeCandidatesKernel;
+    CountCandidateRelationships countCandidateRelationshipsKernel;
     SearchEdgeCandidates searchEdgeCandidatesKernel;
     CountSolutionCombinations countSolutionCombinationsKernel;
     GenerateSolutionCombinations generateSolutionCombinationsKernel;
@@ -30,7 +30,7 @@ public class QueryKernels {
         this.checkCandidatesKernel = new CheckCandidates(this.context);
         this.exploreCandidatesKernel = new ExploreCandidates(this.context);
         this.refineCandidatesKernel = new RefineCandidates(this.context);
-        this.countEdgeCandidatesKernel = new CountEdgeCandidates(this.context);
+        this.countCandidateRelationshipsKernel = new CountCandidateRelationships(this.context);
         this.searchEdgeCandidatesKernel = new SearchEdgeCandidates(this.context);
         this.countSolutionCombinationsKernel = new CountSolutionCombinations(this.context);
         this.generateSolutionCombinationsKernel = new GenerateSolutionCombinations(this.context);

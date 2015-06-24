@@ -52,4 +52,15 @@ public class QueryUtils {
         }
         return result;
     }
+
+    public static int[] generatePrefixScanArray(Pointer<Integer> bufferPointer, int bufferSize) {
+        int totalElementCount = 0;
+        int[] prefixScanArray = new int[bufferSize +1];
+        for(int i = 0; i < bufferSize; i++) {
+            prefixScanArray[i] = totalElementCount;
+            totalElementCount += bufferPointer.get(i);
+        }
+        prefixScanArray[bufferSize] = totalElementCount;
+        return prefixScanArray;
+    }
 }

@@ -30,8 +30,8 @@ public class MockHelper {
     //  KNOWS      /   |
     //    |      /   LOVES
     //    |    /       |
-    //    V  y         V
-    //    O -------> C4
+    //    V  V         V
+    //    O ---------> C4
     public static QueryGraph generateMockQueryGraph() {
 
         QueryGraph queryGraph = new QueryGraph();
@@ -67,6 +67,43 @@ public class MockHelper {
         queryGraph.relationships.add(B2_unlabeled);
         queryGraph.relationships.add(B2_C4);
         queryGraph.relationships.add(unlabeled_C4);
+
+        return queryGraph;
+    }
+
+    //                 (N1)
+    //                  O
+    //                /  \
+    //              /     \
+    //            /        \
+    //          /           \
+    //        v              v
+    // (N3) O <-------------- O (N2)
+    public static QueryGraph generateTriangleMockQueryGraph() {
+
+        QueryGraph queryGraph = new QueryGraph();
+
+        queryGraph.nodes = new ArrayList<Node>();
+
+        QueryNode N1 = new QueryNode(0);
+
+        QueryNode N2 = new QueryNode(1);
+
+        QueryNode N3 = new QueryNode(2);
+
+        queryGraph.nodes.add(N1);
+        queryGraph.nodes.add(N2);
+        queryGraph.nodes.add(N3);
+
+        queryGraph.relationships = new ArrayList<Relationship>();
+
+        Relationship N1_N2 = N1.createRelationshipTo(N2, 0, null);
+        Relationship N1_N3 = N1.createRelationshipTo(N3, 1, null);
+        Relationship N2_N3 = N2.createRelationshipTo(N3, 2, null);
+
+        queryGraph.relationships.add(N1_N2);
+        queryGraph.relationships.add(N1_N3);
+        queryGraph.relationships.add(N2_N3);
 
         return queryGraph;
     }
@@ -173,6 +210,25 @@ public class MockHelper {
 
     public static MockQuery generateMockQuery() throws IOException {
         QueryGraph queryGraph = generateMockQueryGraph();
+        QueryGraph dataGraph = generateMockQueryGraph();
+        LabelDictionary labelDictionary = new LabelDictionary();
+        TypeDictionary typeDictionary = new TypeDictionary();
+
+        GraphModelConverter queryGraphConverter = new GraphModelConverter(queryGraph.nodes, labelDictionary, typeDictionary);
+        GpuGraphModel query = queryGraphConverter.convert();
+        GraphModelConverter dataGraphConverter = new GraphModelConverter(dataGraph.nodes, labelDictionary, typeDictionary);
+        GpuGraphModel data = dataGraphConverter.convert();
+
+        QueryContext queryContext = new QueryContext(data, query, queryGraph, labelDictionary, typeDictionary);
+        QueryKernels queryKernels = new QueryKernels();
+        BufferContainer bufferContainer = BufferContainerGenerator.generateBufferContainer(queryContext, queryKernels);
+
+        MockQuery mockQuery = new MockQuery(queryContext, queryKernels, bufferContainer);
+        return mockQuery;
+    }
+
+    public static MockQuery generateTriangleMockQuery() throws IOException {
+        QueryGraph queryGraph = generateTriangleMockQueryGraph();
         QueryGraph dataGraph = generateMockQueryGraph();
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
