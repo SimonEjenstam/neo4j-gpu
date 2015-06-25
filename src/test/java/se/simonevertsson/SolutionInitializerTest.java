@@ -207,6 +207,12 @@ public class SolutionInitializerTest extends TestCase{
         Pointer<Integer> resultPointer = result.read(this.mockQuery.queryKernels.queue);
 
         // Then
+        assertEquals(1, visitedRelationships.size());
+        assertEquals(2, visitedNodes.size());
+        assertTrue(visitedRelationships.contains(2));
+        assertTrue(visitedNodes.contains(1));
+        assertTrue(visitedNodes.contains(2));
+
         int[] expectedInitialPossibleSolutions = {
                 -1,1,2, -1,1,3, -1,2,3
         };
