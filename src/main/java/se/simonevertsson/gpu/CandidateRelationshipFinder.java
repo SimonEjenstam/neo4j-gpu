@@ -20,30 +20,34 @@ public class CandidateRelationshipFinder {
         this.dataNodeCount = dataNodeCount;
     }
 
-    public CLBuffer<Integer> findCandidateRelationships(RelationshipCandidates relationshipCandidates) throws IOException {
+    public CLBuffer<Integer> findCandidateRelationships(CandidateRelationships candidateRelationships) throws IOException {
 
-        CLBuffer candidateEdgeEndNodes = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, relationshipCandidates.getTotalCount());
+        CLBuffer candidateRelationshipEndNodes = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, candidateRelationships.getTotalCount());
 
 
-        int[] globalSizes = new int[]{(int) relationshipCandidates.getCandidateStartNodes().getElementCount()};
+        int[] globalSizes = new int[]{(int) candidateRelationships.getStartNodeCount()};
 
-        CLEvent searchEdgeCandidatesEvent = this.queryKernels.searchEdgeCandidatesKernel.count_edge_candidates(
+        CLEvent findCandidateRelationshipsEvent = this.queryKernels.findCandidateRelationshipsKernel.find_candidate_relationships(
                 this.queryKernels.queue,
-                relationshipCandidates.getQueryStartNodeId(),
-                relationshipCandidates.getQueryEndNodeId(),
+
+                candidateRelationships.getQueryStartNodeId(),
+                candidateRelationships.getQueryEndNodeId(),
                 this.dataBuffers.dataNodeRelationshipsBuffer,
                 this.dataBuffers.dataRelationshipIndicesBuffer,
-                candidateEdgeEndNodes,
-                relationshipCandidates.getCandidateEndNodeIndices(),
-                relationshipCandidates.getCandidateStartNodes(),
+
+                candidateRelationshipEndNodes,
+                candidateRelationships.getCandidateEndNodeIndices(),
+
+                candidateRelationships.getCandidateStartNodes(),
                 this.queryBuffers.candidateIndicatorsBuffer,
                 this.dataNodeCount,
+
                 globalSizes,
                 null
         );
 
-        searchEdgeCandidatesEvent.waitFor();
-        relationshipCandidates.setCandidateEndNodes(candidateEdgeEndNodes);
-        return candidateEdgeEndNodes;
+        findCandidateRelationshipsEvent.waitFor();
+        candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodes);
+        return candidateRelationshipEndNodes;
     }
 }

@@ -40,13 +40,13 @@ public class GpuQuery {
         /****** Candidate edge searching step ******/
         CandidateRelationshipSearcher candidateRelationshipSearcher =
                 new CandidateRelationshipSearcher(this.queryContext, this.queryKernels, this.bufferContainer);
-        HashMap<Integer, RelationshipCandidates> relationshipCandidatesHashMap = candidateRelationshipSearcher.searchCandidateRelationships();
+        HashMap<Integer, CandidateRelationships> relationshipCandidatesHashMap = candidateRelationshipSearcher.searchCandidateRelationships();
 
 //        System.out.println("--------------JOINING CANDIDATE EDGES-------------");
         candidateEdgeJoin(relationshipCandidatesHashMap);
     }
 
-    private void candidateEdgeJoin(HashMap<Integer, RelationshipCandidates> edgeCandidatesHashMap) throws IOException {
+    private void candidateEdgeJoin(HashMap<Integer, CandidateRelationships> edgeCandidatesHashMap) throws IOException {
         ArrayList<Integer> visitedQueryEdges = new ArrayList<Integer>();
         ArrayList<Integer> visitedQueryVertices = new ArrayList<Integer>();
 
@@ -54,9 +54,9 @@ public class GpuQuery {
 
         for(int relationshipId : edgeCandidatesHashMap.keySet()) {
             if(!visitedQueryEdges.contains(relationshipId)) {
-                RelationshipCandidates relationshipCandidates = edgeCandidatesHashMap.get(relationshipId);
-                int startNodeId = relationshipCandidates.getQueryStartNodeId();
-                int endNodeId = relationshipCandidates.getQueryEndNodeId();
+                CandidateRelationships candidateRelationships = edgeCandidatesHashMap.get(relationshipId);
+                int startNodeId = candidateRelationships.getQueryStartNodeId();
+                int endNodeId = candidateRelationships.getQueryEndNodeId();
                 boolean startNodeVisisted = visitedQueryVertices.contains(startNodeId);
                 boolean endNodeVisisted = visitedQueryVertices.contains(endNodeId);
 
@@ -67,11 +67,11 @@ public class GpuQuery {
 
                 if(startNodeVisisted && endNodeVisisted) {
                     /* Prune existing possible solutions */
-                    CLBuffer<Boolean> validationIndicators = validateSolutions(possibleSolutions, possibleSolutionCount, startNodeId, endNodeId, relationshipCandidates);
+                    CLBuffer<Boolean> validationIndicators = validateSolutions(possibleSolutions, possibleSolutionCount, startNodeId, endNodeId, candidateRelationships);
 
                     Pointer<Boolean> validationIndicatorsPointer = validationIndicators.read(this.queryKernels.queue);
 //                    System.out.println("Result after validation:");
-//                    System.out.println(Arrays.toString(pointerToArray(validationIndicatorsPointer, possibleSolutionCount)));
+//                    System.out.println(Arrays.toString(pointerBooleanToArray(validationIndicatorsPointer, possibleSolutionCount)));
 
                     int[] outputIndexArray = new int[possibleSolutionCount+1];
                     int validSolutionCount = 0;
@@ -116,7 +116,7 @@ public class GpuQuery {
                     /* Combine candidate edges with existing possible solutions */
                     Pointer<Integer> combinationCountsPointer = countSolutionCombinations(
                             possibleSolutions,
-                            relationshipCandidates, startNodeId,
+                            candidateRelationships, startNodeId,
                             endNodeId, startNodeVisisted,
                             possibleSolutionCount,
                             combinationCounts);
@@ -126,7 +126,7 @@ public class GpuQuery {
                     CLBuffer<Integer> newPossibleSolutions = generateSolutionCombinations(
                             possibleSolutions,
                             possibleSolutionCount,
-                            relationshipCandidates,
+                            candidateRelationships,
                             startNodeId,
                             endNodeId,
                             startNodeVisisted,
@@ -212,7 +212,7 @@ public class GpuQuery {
         return prunedPossibleSolutions;
     }
 
-    private CLBuffer<Boolean> validateSolutions(CLBuffer<Integer> possibleSolutions, int possibleSolutionCount, int startNodeId, int endNodeId, RelationshipCandidates relationshipCandidates) throws IOException {
+    private CLBuffer<Boolean> validateSolutions(CLBuffer<Integer> possibleSolutions, int possibleSolutionCount, int startNodeId, int endNodeId, CandidateRelationships candidateRelationships) throws IOException {
         CLBuffer<Boolean> validationIndicators = this.queryKernels.context.createBuffer(
                 CLMem.Usage.Output,
                 Pointer.pointerToBooleans(new boolean[possibleSolutionCount]));
@@ -224,10 +224,10 @@ public class GpuQuery {
                 startNodeId,
                 endNodeId,
                 possibleSolutions,
-                relationshipCandidates.getCandidateStartNodes(),
-                relationshipCandidates.getCandidateEndNodeIndices(),
-                relationshipCandidates.getCandidateEndNodes(),
-                relationshipCandidates.getStartNodeCount(),
+                candidateRelationships.getCandidateStartNodes(),
+                candidateRelationships.getCandidateEndNodeIndices(),
+                candidateRelationships.getCandidateEndNodes(),
+                candidateRelationships.getStartNodeCount(),
                 validationIndicators,
                 globalSizes,
                 null
@@ -238,7 +238,7 @@ public class GpuQuery {
         return validationIndicators;
     }
 
-    private CLBuffer<Integer> generateSolutionCombinations(CLBuffer<Integer> oldPossibleSolutions, int oldPossibleSolutionCount, RelationshipCandidates relationshipCandidates, int startNodeId, int endNodeId, boolean startNodeVisisted, int[] combinationIndicies) throws IOException {
+    private CLBuffer<Integer> generateSolutionCombinations(CLBuffer<Integer> oldPossibleSolutions, int oldPossibleSolutionCount, CandidateRelationships candidateRelationships, int startNodeId, int endNodeId, boolean startNodeVisisted, int[] combinationIndicies) throws IOException {
         int totalCombinationCount = combinationIndicies[combinationIndicies.length-1];
 
         int[] globalSizes = new int[] { oldPossibleSolutionCount };
@@ -253,11 +253,11 @@ public class GpuQuery {
                 this.queryContext.queryNodeCount,
                 oldPossibleSolutions,
                 combinationIndicesBuffer,
-                relationshipCandidates.getCandidateStartNodes(),
-                relationshipCandidates.getCandidateEndNodeIndices(),
-                relationshipCandidates.getCandidateEndNodes(),
+                candidateRelationships.getCandidateStartNodes(),
+                candidateRelationships.getCandidateEndNodeIndices(),
+                candidateRelationships.getCandidateEndNodes(),
                 startNodeVisisted,
-                relationshipCandidates.getStartNodeCount(),
+                candidateRelationships.getStartNodeCount(),
                 possibleSolutions,
                 globalSizes,
                 null
@@ -267,18 +267,18 @@ public class GpuQuery {
         return possibleSolutions;
     }
 
-    private Pointer<Integer> countSolutionCombinations(CLBuffer<Integer> possiblePartialSolutions, RelationshipCandidates relationshipCandidates, int startNodeId, int endNodeId, boolean startNodeVisisted, int combinationCountsLength, CLBuffer<Integer> combinationCounts) throws IOException {
+    private Pointer<Integer> countSolutionCombinations(CLBuffer<Integer> possiblePartialSolutions, CandidateRelationships candidateRelationships, int startNodeId, int endNodeId, boolean startNodeVisisted, int combinationCountsLength, CLBuffer<Integer> combinationCounts) throws IOException {
         int[] globalSizes = new int[] { combinationCountsLength };
         CLEvent countSolutionCombinationsEvent = this.queryKernels.countSolutionCombinationsKernel.count_solution_combinations(
                 this.queryKernels.queue,
                 startNodeId,
                 endNodeId,
                 possiblePartialSolutions,
-                relationshipCandidates.getCandidateStartNodes(),
-                relationshipCandidates.getCandidateEndNodeIndices(),
-                relationshipCandidates.getCandidateEndNodes(),
+                candidateRelationships.getCandidateStartNodes(),
+                candidateRelationships.getCandidateEndNodeIndices(),
+                candidateRelationships.getCandidateEndNodes(),
                 startNodeVisisted,
-                relationshipCandidates.getStartNodeCount(),
+                candidateRelationships.getStartNodeCount(),
                 combinationCounts,
                 globalSizes,
                 null
@@ -287,13 +287,13 @@ public class GpuQuery {
         return combinationCounts.read(this.queryKernels.queue, countSolutionCombinationsEvent);
     }
 
-    private CLBuffer<Integer> initializePossiblePartialSolutions(HashMap<Integer, RelationshipCandidates> edgeCandidatesHashMap, ArrayList<Integer> visitedQueryEdges, ArrayList<Integer> visitedQueryVertices) {
+    private CLBuffer<Integer> initializePossiblePartialSolutions(HashMap<Integer, CandidateRelationships> edgeCandidatesHashMap, ArrayList<Integer> visitedQueryEdges, ArrayList<Integer> visitedQueryVertices) {
         int minCandidatesQueryEdgeId = findUnvisitedQueryEdgeId(edgeCandidatesHashMap, visitedQueryEdges);
-        RelationshipCandidates initialRelationshipCandidates = edgeCandidatesHashMap.get(minCandidatesQueryEdgeId);
+        CandidateRelationships initialCandidateRelationships = edgeCandidatesHashMap.get(minCandidatesQueryEdgeId);
 
         int solutionSize = this.queryContext.queryGraph.nodes.size();
-        int initalPartialSolutionCount = initialRelationshipCandidates.getTotalCount();
-        int[] possiblePartialSolutionsArray = fillCandidateEdges(initialRelationshipCandidates);
+        int initalPartialSolutionCount = initialCandidateRelationships.getTotalCount();
+        int[] possiblePartialSolutionsArray = fillCandidateEdges(initialCandidateRelationships);
 
 //        System.out.println("Initial partial solutions:");
 //        System.out.println(Arrays.toString(possiblePartialSolutionsArray));
@@ -302,35 +302,35 @@ public class GpuQuery {
                 possiblePartialSolutions = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(possiblePartialSolutionsArray), true);
 
         visitedQueryEdges.add(minCandidatesQueryEdgeId);
-        visitedQueryVertices.add(initialRelationshipCandidates.getQueryStartNodeId());
-        visitedQueryVertices.add(initialRelationshipCandidates.getQueryEndNodeId());
+        visitedQueryVertices.add(initialCandidateRelationships.getQueryStartNodeId());
+        visitedQueryVertices.add(initialCandidateRelationships.getQueryEndNodeId());
 
         return possiblePartialSolutions;
     }
 
-    private int[] fillCandidateEdges(RelationshipCandidates relationshipCandidates) {
+    private int[] fillCandidateEdges(CandidateRelationships candidateRelationships) {
         int solutionNodeCount = this.queryContext.queryGraph.nodes.size();
-        int partialSolutionCount = relationshipCandidates.getTotalCount();
+        int partialSolutionCount = candidateRelationships.getTotalCount();
         int[] possiblePartialSolutionsArray = new int[solutionNodeCount*partialSolutionCount];
         Arrays.fill(possiblePartialSolutionsArray, -1);
 
-        Pointer<Integer> candidateStartNodes = relationshipCandidates.getCandidateStartNodes().read(this.queryKernels.queue);
-        Pointer<Integer> candidateEndNodes = relationshipCandidates.getCandidateEndNodes().read(this.queryKernels.queue);
-        Pointer<Integer> candidateEndNodeIndicies = relationshipCandidates.getCandidateEndNodeIndices().read(this.queryKernels.queue);
+        Pointer<Integer> candidateStartNodes = candidateRelationships.getCandidateStartNodes().read(this.queryKernels.queue);
+        Pointer<Integer> candidateEndNodes = candidateRelationships.getCandidateEndNodes().read(this.queryKernels.queue);
+        Pointer<Integer> candidateEndNodeIndicies = candidateRelationships.getCandidateEndNodeIndices().read(this.queryKernels.queue);
         int addedPartialSolutions = 0;
         int indexOffset = 0;
-        while(addedPartialSolutions < relationshipCandidates.getTotalCount()) {
+        while(addedPartialSolutions < candidateRelationships.getTotalCount()) {
 
 
-            for(int i = 0; i < relationshipCandidates.getCandidateStartNodes().getElementCount(); i++) {
+            for(int i = 0; i < candidateRelationships.getCandidateStartNodes().getElementCount(); i++) {
 
                 int startNode = candidateStartNodes.get(i);
                 int maxIndex = candidateEndNodeIndicies.get(i+1);
 
                 for(int j = candidateEndNodeIndicies.get(i); j < maxIndex; j++){
                     int endNode = candidateEndNodes.get(j);
-                    int solutionStartNodeIndex = indexOffset + relationshipCandidates.getQueryStartNodeId();
-                    int solutionEndNodeIndex = indexOffset + relationshipCandidates.getQueryEndNodeId();
+                    int solutionStartNodeIndex = indexOffset + candidateRelationships.getQueryStartNodeId();
+                    int solutionEndNodeIndex = indexOffset + candidateRelationships.getQueryEndNodeId();
                     possiblePartialSolutionsArray[solutionStartNodeIndex] = startNode;
                     possiblePartialSolutionsArray[solutionEndNodeIndex] = endNode;
 
@@ -342,12 +342,12 @@ public class GpuQuery {
         return possiblePartialSolutionsArray;
     }
 
-    private int findUnvisitedQueryEdgeId(HashMap<Integer, RelationshipCandidates> edgeCandidatesHashMap, ArrayList<Integer> visitedQueryEdges) {
+    private int findUnvisitedQueryEdgeId(HashMap<Integer, CandidateRelationships> edgeCandidatesHashMap, ArrayList<Integer> visitedQueryEdges) {
         int minimumId = -1;
         int minimumCandidateCount = Integer.MAX_VALUE;
         for(int relationshipId : edgeCandidatesHashMap.keySet()) {
-            RelationshipCandidates relationshipCandidates = edgeCandidatesHashMap.get(relationshipId);
-            int candidateCount = relationshipCandidates.getTotalCount();
+            CandidateRelationships candidateRelationships = edgeCandidatesHashMap.get(relationshipId);
+            int candidateCount = candidateRelationships.getTotalCount();
             if(candidateCount <= minimumCandidateCount) {
                 minimumCandidateCount = candidateCount;
                 minimumId = relationshipId;
@@ -358,7 +358,7 @@ public class GpuQuery {
 
 
 
-//    private void printEdgeCandidate(RelationshipCandidates edgeCandidates) {
+//    private void printEdgeCandidate(CandidateRelationships edgeCandidates) {
 //        StringBuilder builder = new StringBuilder();
 //        builder.append("-----Edge candidates for query edge (");
 //        builder.append(edgeCandidates.getQueryStartNodeId());

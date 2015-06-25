@@ -23,12 +23,12 @@ public class CandidateRelationshipCounter {
         this.dataNodeCount = dataNodeCount;
     }
 
-    public Pointer<Integer> countCandidateRelationships(RelationshipCandidates relationshipCandidates) throws IOException {
+    public Pointer<Integer> countCandidateRelationships(CandidateRelationships candidateRelationships) throws IOException {
 
         int[] candidateStartNodes = QueryUtils.gatherCandidateArray(
                 this.queryBuffers.candidateIndicatorsPointer,
                 this.dataNodeCount,
-                (int) relationshipCandidates.getQueryStartNodeId());
+                (int) candidateRelationships.getQueryStartNodeId());
 
         CLBuffer<Integer>
                 candidateStartNodesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
@@ -40,8 +40,8 @@ public class CandidateRelationshipCounter {
 
         CLEvent countRelationshipCandidatesEvent = this.queryKernels.countCandidateRelationshipsKernel.count_candidate_relationships(
                 this.queryKernels.queue,
-                relationshipCandidates.getQueryStartNodeId(),
-                relationshipCandidates.getQueryEndNodeId(),
+                candidateRelationships.getQueryStartNodeId(),
+                candidateRelationships.getQueryEndNodeId(),
                 this.dataBuffers.dataNodeRelationshipsBuffer,
                 this.dataBuffers.dataRelationshipIndicesBuffer,
                 candidateRelationshipCounts,
@@ -52,7 +52,7 @@ public class CandidateRelationshipCounter {
                 null
         );
 
-        relationshipCandidates.setCandidateStartNodes(candidateStartNodesBuffer);
+        candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
 
 
         return candidateRelationshipCounts.read(this.queryKernels.queue, countRelationshipCandidatesEvent);

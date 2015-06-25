@@ -21,7 +21,7 @@ public class CandidateRefinement {
     }
 
     public void refine(ArrayList<Node> visitOrder) throws IOException {
-        boolean[] oldCandidateIndicators = QueryUtils.pointerToArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
+        boolean[] oldCandidateIndicators = QueryUtils.pointerBooleanToArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
         boolean candidateIndicatorsHasChanged = true;
         while (candidateIndicatorsHasChanged) {
             for (Node queryNode : visitOrder) {
@@ -33,7 +33,7 @@ public class CandidateRefinement {
                 }
             }
 
-            boolean[] newCandidateIndicators = QueryUtils.pointerToArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
+            boolean[] newCandidateIndicators = QueryUtils.pointerBooleanToArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
             candidateIndicatorsHasChanged = !Arrays.equals(oldCandidateIndicators, newCandidateIndicators);
             oldCandidateIndicators = newCandidateIndicators;
         }

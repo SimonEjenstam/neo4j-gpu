@@ -3,7 +3,6 @@ package se.simonevertsson;
 import com.nativelibs4java.opencl.CLMem;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import se.simonevertsson.gpu.*;
 
@@ -41,10 +40,10 @@ public class CandidateRelationshipCounterTest extends TestCase {
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
 
-        RelationshipCandidates relationshipCandidates = new RelationshipCandidates(queryRelationship);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship);
 
         // When
-        Pointer<Integer> result =  candidateRelationshipCounter.countCandidateRelationships(relationshipCandidates);
+        Pointer<Integer> result =  candidateRelationshipCounter.countCandidateRelationships(candidateRelationships);
 
         // Then
         int[] expectedCandidateRelationshipCounts = {
@@ -83,10 +82,10 @@ public class CandidateRelationshipCounterTest extends TestCase {
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
 
-        RelationshipCandidates relationshipCandidates = new RelationshipCandidates(queryRelationship);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship);
 
         // When
-        Pointer<Integer> result =  candidateRelationshipCounter.countCandidateRelationships(relationshipCandidates);
+        Pointer<Integer> result =  candidateRelationshipCounter.countCandidateRelationships(candidateRelationships);
 
         // Then
         int[] expectedCandidateRelationshipCounts = {
@@ -125,10 +124,10 @@ public class CandidateRelationshipCounterTest extends TestCase {
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
 
-        RelationshipCandidates relationshipCandidates = new RelationshipCandidates(queryRelationship);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship);
 
         // When
-        Pointer<Integer> result =  candidateRelationshipCounter.countCandidateRelationships(relationshipCandidates);
+        Pointer<Integer> result =  candidateRelationshipCounter.countCandidateRelationships(candidateRelationships);
 
         // Then
         int[] expectedCandidateRelationshipCounts = {

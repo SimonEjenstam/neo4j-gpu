@@ -7,7 +7,7 @@ import org.neo4j.graphdb.Relationship;
 /**
  * Created by simon on 2015-06-09.
  */
-public class RelationshipCandidates {
+public class CandidateRelationships {
 
 
     private final Relationship relationship;
@@ -18,7 +18,7 @@ public class RelationshipCandidates {
     private int startNodeCount;
 
 
-    public RelationshipCandidates(Relationship relationship) {
+    public CandidateRelationships(Relationship relationship) {
         this.relationship = relationship;
     }
 
@@ -41,7 +41,6 @@ public class RelationshipCandidates {
 
     public void setCandidateEndNodeIndicies(CLBuffer<Integer> candidateEndNodeIndicies) {
         this.candidateEndNodeIndicies = candidateEndNodeIndicies;
-        this.totalCount = (int) this.candidateEndNodeIndicies.getElementCount()-1;
     }
 
     public void setCandidateEndNodes(CLBuffer<Integer> candidateEndNodes) {
@@ -66,5 +65,9 @@ public class RelationshipCandidates {
 
     public Relationship getRelationship() {
         return this.relationship;
+    }
+
+    public void setTotalNodeCount(int totalCount) {
+        this.totalCount = totalCount;
     }
 }

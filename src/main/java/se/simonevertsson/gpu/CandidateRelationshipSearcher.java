@@ -28,26 +28,28 @@ public class CandidateRelationshipSearcher {
         this.candidateRelationshipFinder = new CandidateRelationshipFinder(queryKernels, bufferContainer, this.dataNodeCount);
     }
 
-    HashMap<Integer, RelationshipCandidates> searchCandidateRelationships() throws IOException {
+    HashMap<Integer, CandidateRelationships> searchCandidateRelationships() throws IOException {
         ArrayList<Relationship> relationships = this.queryContext.queryGraph.relationships;
-        HashMap<Integer, RelationshipCandidates> edgeCandidatesHashMap = new HashMap<Integer, RelationshipCandidates>();
+        HashMap<Integer, CandidateRelationships> candidateRelationshipsHashMap = new HashMap<Integer, CandidateRelationships>();
 
         for (Relationship relationship : relationships) {
-            RelationshipCandidates relationshipCandidates = new RelationshipCandidates(relationship);
+            CandidateRelationships candidateRelationships = new CandidateRelationships(relationship);
 
-            Pointer<Integer> candidateRelationshipCountsPointer = this.candidateRelationshipCounter.countCandidateRelationships(relationshipCandidates);
+            Pointer<Integer> candidateRelationshipCountsPointer = this.candidateRelationshipCounter.countCandidateRelationships(candidateRelationships);
 
-            int[] candidateRelationshipEndNodeIndices = QueryUtils.generatePrefixScanArray(candidateRelationshipCountsPointer, relationshipCandidates.getStartNodeCount());
+            int[] candidateRelationshipEndNodeIndices = QueryUtils.generatePrefixScanArray(candidateRelationshipCountsPointer, candidateRelationships.getStartNodeCount());
             CLBuffer<Integer>
                     candidateRelationshipEndNodeIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
-            relationshipCandidates.setCandidateEndNodeIndicies(candidateRelationshipEndNodeIndicesBuffer);
 
-            this.candidateRelationshipFinder.findCandidateRelationships(relationshipCandidates);
-            edgeCandidatesHashMap.put((int) relationship.getId(), relationshipCandidates);
+            candidateRelationships.setCandidateEndNodeIndicies(candidateRelationshipEndNodeIndicesBuffer);
+            candidateRelationships.setTotalNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
+
+            this.candidateRelationshipFinder.findCandidateRelationships(candidateRelationships);
+            candidateRelationshipsHashMap.put((int) relationship.getId(), candidateRelationships);
 
         }
 
-        return edgeCandidatesHashMap;
+        return candidateRelationshipsHashMap;
     }
 
 }
