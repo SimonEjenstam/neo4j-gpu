@@ -24,7 +24,7 @@ public class CandidateRelationshipJoiner {
         this.solutionInitializer = new SolutionInitializer(queryContext, queryKernels);
         this.solutionValidator = new SolutionValidator(queryKernels);
         this.solutionPruner = new SolutionPruner(queryKernels, queryContext);
-        this.solutionCombinationCounter = new SolutionCombinationCounter(queryKernels);
+        this.solutionCombinationCounter = new SolutionCombinationCounter(queryKernels, queryContext);
         this.solutionCombinationGenerator = new SolutionCombinationGenerator(queryKernels,queryContext);
     }
 
@@ -43,9 +43,6 @@ public class CandidateRelationshipJoiner {
                 boolean endNodeVisisted = visitedQueryNodes.contains(endNodeId);
 
                 int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
-
-                CLBuffer<Integer>
-                        combinationCountsBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, possibleSolutionCount);
 
                 if (startNodeVisisted && endNodeVisisted) {
                     /* Prune existing possible solutions */
@@ -84,10 +81,8 @@ public class CandidateRelationshipJoiner {
                     /* Combine candidate edges with existing possible solutions */
                     Pointer<Integer> combinationCountsPointer = this.solutionCombinationCounter.countSolutionCombinations(
                             possibleSolutions,
-                            candidateRelationships, startNodeId,
-                            endNodeId, startNodeVisisted,
-                            possibleSolutionCount,
-                            combinationCountsBuffer);
+                            candidateRelationships,
+                            startNodeVisisted);
 
                     int[] combinationIndicies = QueryUtils.generatePrefixScanArray(combinationCountsPointer, possibleSolutionCount);
 

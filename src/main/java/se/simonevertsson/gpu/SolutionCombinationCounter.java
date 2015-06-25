@@ -9,33 +9,41 @@ import java.io.IOException;
 
 public class SolutionCombinationCounter {
     private final QueryKernels queryKernels;
+    private final QueryContext queryContext;
 
-    public SolutionCombinationCounter(QueryKernels queryKernels) {
+    public SolutionCombinationCounter(QueryKernels queryKernels, QueryContext queryContext) {
         this.queryKernels = queryKernels;
+        this.queryContext = queryContext;
     }
 
-    Pointer<Integer> countSolutionCombinations(CLBuffer<Integer> possiblePartialSolutions, CandidateRelationships candidateRelationships, int startNodeId, int endNodeId, boolean startNodeVisited, int combinationCountsLength, CLBuffer<Integer> combinationCounts) throws IOException {
-        int[] globalSizes = new int[]{combinationCountsLength};
+    public Pointer<Integer> countSolutionCombinations(CLBuffer<Integer> possibleSolutions, CandidateRelationships candidateRelationships, boolean startNodeVisited) throws IOException {
+        int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+
+        CLBuffer<Integer>
+                combinationCountsBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, possibleSolutionCount);
+
+        int[] globalSizes = new int[]{(int) possibleSolutionCount};
 
         CLBuffer<Boolean> startNodeVisitedBuffer = this.queryKernels.context.createBuffer(
                 CLMem.Usage.Input,
-                Pointer.pointerToBooleans(new boolean[] {startNodeVisited}), true);
+                Pointer.pointerToBooleans(startNodeVisited), true);
 
         CLEvent countSolutionCombinationsEvent = this.queryKernels.countSolutionCombinationsKernel.count_solution_combinations(
                 this.queryKernels.queue,
-                startNodeId,
-                endNodeId,
-                possiblePartialSolutions,
+                candidateRelationships.getQueryStartNodeId(),
+                candidateRelationships.getQueryEndNodeId(),
+                this.queryContext.queryNodeCount,
+                possibleSolutions,
                 candidateRelationships.getCandidateStartNodes(),
                 candidateRelationships.getCandidateEndNodeIndices(),
                 candidateRelationships.getCandidateEndNodes(),
                 startNodeVisitedBuffer,
                 candidateRelationships.getStartNodeCount(),
-                combinationCounts,
+                combinationCountsBuffer,
                 globalSizes,
                 null
         );
 
-        return combinationCounts.read(this.queryKernels.queue, countSolutionCombinationsEvent);
+        return combinationCountsBuffer.read(this.queryKernels.queue, countSolutionCombinationsEvent);
     }
 }

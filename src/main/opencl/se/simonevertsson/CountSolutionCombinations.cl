@@ -1,6 +1,7 @@
 __kernel void count_solution_combinations(
     int q_start_node,
     int q_end_node,
+    int query_node_count,
     __global int* possible_solutions,
 
     __global int* c_start_nodes,
@@ -19,8 +20,8 @@ __kernel void count_solution_combinations(
     /* The START node of the query edge is the visited node */
     if(start_node_visited[0]) {
         for(int i = 0; i < start_node_count; i++) {
-            if(c_start_nodes[i] == possible_solutions[possible_solution_index + q_start_node]) {
-                combination_counts[possible_solution_index] = c_end_node_indices[i+1];
+            if(c_start_nodes[i] == possible_solutions[possible_solution_index*query_node_count + q_start_node]) {
+                combination_counts[possible_solution_index] = c_end_node_indices[i+1]-c_end_node_indices[i];
                 return;
             }
         }
@@ -32,7 +33,7 @@ __kernel void count_solution_combinations(
         int end_node_index_start = c_end_node_indices[i];
         int end_node_index_end = c_end_node_indices[i+1];
         for(int j = end_node_index_start; j < end_node_index_end; j++) {
-            count += (c_end_nodes[j] == possible_solutions[possible_solution_index + q_end_node]);
+            count += (c_end_nodes[j] == possible_solutions[possible_solution_index*query_node_count + q_end_node]) ? 1 : 0;
         }
     }
     combination_counts[possible_solution_index] = count;
