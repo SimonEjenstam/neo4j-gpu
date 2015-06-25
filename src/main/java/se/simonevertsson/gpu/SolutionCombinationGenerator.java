@@ -17,23 +17,25 @@ public class SolutionCombinationGenerator {
         this.queryContext = queryContext;
     }
 
-    CLBuffer<Integer> generateSolutionCombinations(CLBuffer<Integer> oldPossibleSolutions, int oldPossibleSolutionCount, CandidateRelationships candidateRelationships, int startNodeId, int endNodeId, boolean startNodeVisited, int[] combinationIndicies) throws IOException {
-        int totalCombinationCount = combinationIndicies[combinationIndicies.length - 1];
+    public CLBuffer<Integer> generateSolutionCombinations(CLBuffer<Integer> oldPossibleSolutions, CandidateRelationships candidateRelationships, boolean startNodeVisited, int[] combinationIndices) throws IOException {
+        int oldPossibleSolutionCount = (int) oldPossibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+
+        int totalCombinationCount = combinationIndices[combinationIndices.length - 1];
 
         int[] globalSizes = new int[]{oldPossibleSolutionCount};
 
         CLBuffer<Boolean> startNodeVisitedBuffer = this.queryKernels.context.createBuffer(
                 CLMem.Usage.Input,
-                Pointer.pointerToBooleans(new boolean[]{startNodeVisited}), true);
+                Pointer.pointerToBooleans(startNodeVisited), true);
 
         CLBuffer<Integer>
-                combinationIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(combinationIndicies), true),
+                combinationIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(combinationIndices), true),
                 possibleSolutions = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryContext.queryNodeCount);
 
         CLEvent generateSolutionCombinationsEvent = this.queryKernels.generateSolutionCombinationsKernel.generate_solution_combinations(
                 this.queryKernels.queue,
-                startNodeId,
-                endNodeId,
+                candidateRelationships.getQueryStartNodeId(),
+                candidateRelationships.getQueryEndNodeId(),
                 this.queryContext.queryNodeCount,
                 oldPossibleSolutions,
                 combinationIndicesBuffer,

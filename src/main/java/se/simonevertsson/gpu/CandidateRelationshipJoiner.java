@@ -84,16 +84,13 @@ public class CandidateRelationshipJoiner {
                             candidateRelationships,
                             startNodeVisisted);
 
-                    int[] combinationIndicies = QueryUtils.generatePrefixScanArray(combinationCountsPointer, possibleSolutionCount);
+                    int[] combinationIndices = QueryUtils.generatePrefixScanArray(combinationCountsPointer, possibleSolutionCount);
 
                     CLBuffer<Integer> newPossibleSolutions = solutionCombinationGenerator.generateSolutionCombinations(
                             possibleSolutions,
-                            possibleSolutionCount,
                             candidateRelationships,
-                            startNodeId,
-                            endNodeId,
                             startNodeVisisted,
-                            combinationIndicies);
+                            combinationIndices);
 
                     possibleSolutions = newPossibleSolutions;
 

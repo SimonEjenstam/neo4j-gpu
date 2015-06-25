@@ -1,7 +1,7 @@
 __kernel void generate_solution_combinations(
     int q_start_node,
     int q_end_node,
-    int q_node_count,
+    int query_node_count,
     __global int* old_possible_solutions,
     __global int* combination_indices,
 
@@ -23,15 +23,15 @@ __kernel void generate_solution_combinations(
     /* The START node of the query edge is the visited node */
     if(start_node_visited[0]) {
         for(int i = 0; i < start_node_count; i++) {
-            if(c_start_nodes[i] == old_possible_solutions[possible_solution_index + q_start_node]) {
+            if(c_start_nodes[i] == old_possible_solutions[possible_solution_index*query_node_count + q_start_node]) {
                 int end_node_index_start = c_end_node_indices[i];
                 int end_node_index_end = c_end_node_indices[i+1];
                 for(int j = end_node_index_start; j < end_node_index_end; j++) {
 
                     /* Copy old combination */
-                    int old_combo_index = (possible_solution_index+offset)*q_node_count;
-                    int new_combo_index = (output_start_index+offset)*q_node_count;
-                    for(int k = 0; k < q_node_count; k++ ) {
+                    int old_combo_index = possible_solution_index*query_node_count;
+                    int new_combo_index = (output_start_index+offset)*query_node_count;
+                    for(int k = 0; k < query_node_count; k++ ) {
                         possible_solutions[new_combo_index + k] = old_possible_solutions[old_combo_index + k];
                     }
 
@@ -56,12 +56,12 @@ __kernel void generate_solution_combinations(
         int end_node_index_end = c_end_node_indices[i+1];
         for(int j = end_node_index_start; j < end_node_index_end; j++) {
 
-            if(c_end_nodes[j] == old_possible_solutions[possible_solution_index + q_end_node]) {
+            if(c_end_nodes[j] == old_possible_solutions[possible_solution_index*query_node_count + q_end_node]) {
 
                 /* Copy old combination */
-                int old_combo_index = (possible_solution_index+offset)*q_node_count;
-                int new_combo_index = (output_start_index+offset)*q_node_count;
-                for(int k = 0; k < q_node_count; k++ ) {
+                int old_combo_index = possible_solution_index*query_node_count;
+                int new_combo_index = (output_start_index+offset)*query_node_count;
+                for(int k = 0; k < query_node_count; k++ ) {
                     possible_solutions[new_combo_index + k] = old_possible_solutions[old_combo_index + k];
                 }
 
