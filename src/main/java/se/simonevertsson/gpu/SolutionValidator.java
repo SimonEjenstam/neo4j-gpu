@@ -9,12 +9,16 @@ import java.io.IOException;
 
 public class SolutionValidator {
     private final QueryKernels queryKernels;
+    private final QueryContext queryContext;
 
-    public SolutionValidator(QueryKernels queryKernels) {
+    public SolutionValidator(QueryKernels queryKernels, QueryContext queryContext) {
         this.queryKernels = queryKernels;
+        this.queryContext = queryContext;
     }
 
-    CLBuffer<Boolean> validateSolutions(CLBuffer<Integer> possibleSolutions, int possibleSolutionCount, int startNodeId, int endNodeId, CandidateRelationships candidateRelationships) throws IOException {
+    public CLBuffer<Boolean> validateSolutions(CLBuffer<Integer> possibleSolutions, CandidateRelationships candidateRelationships) throws IOException {
+        int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+
         CLBuffer<Boolean> validationIndicators = this.queryKernels.context.createBuffer(
                 CLMem.Usage.Output,
                 Pointer.pointerToBooleans(new boolean[possibleSolutionCount]));
@@ -23,8 +27,9 @@ public class SolutionValidator {
 
         CLEvent validateSolutionsEvent = this.queryKernels.validateSolutionsKernel.validate_solutions(
                 this.queryKernels.queue,
-                startNodeId,
-                endNodeId,
+                candidateRelationships.getQueryStartNodeId(),
+                candidateRelationships.getQueryEndNodeId(),
+                this.queryContext.queryNodeCount,
                 possibleSolutions,
                 candidateRelationships.getCandidateStartNodes(),
                 candidateRelationships.getCandidateEndNodeIndices(),

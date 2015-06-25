@@ -22,7 +22,7 @@ public class CandidateRelationshipJoiner {
         this.queryContext = queryContext;
         this.queryKernels = queryKernels;
         this.solutionInitializer = new SolutionInitializer(queryContext, queryKernels);
-        this.solutionValidator = new SolutionValidator(queryKernels);
+        this.solutionValidator = new SolutionValidator(queryKernels, queryContext);
         this.solutionPruner = new SolutionPruner(queryKernels, queryContext);
         this.solutionCombinationCounter = new SolutionCombinationCounter(queryKernels, queryContext);
         this.solutionCombinationGenerator = new SolutionCombinationGenerator(queryKernels,queryContext);
@@ -46,7 +46,7 @@ public class CandidateRelationshipJoiner {
 
                 if (startNodeVisisted && endNodeVisisted) {
                     /* Prune existing possible solutions */
-                    CLBuffer<Boolean> validationIndicators = solutionValidator.validateSolutions(possibleSolutions, possibleSolutionCount, startNodeId, endNodeId, candidateRelationships);
+                    CLBuffer<Boolean> validationIndicators = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
 
                     Pointer<Boolean> validationIndicatorsPointer = validationIndicators.read(this.queryKernels.queue);
 
