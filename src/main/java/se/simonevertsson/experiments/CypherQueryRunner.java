@@ -22,8 +22,10 @@ public class CypherQueryRunner {
 
     private String handleResult(Result result) {
         StringBuilder builder  = new StringBuilder();
+        int resultCount = 0;
         while ( result.hasNext() )
         {
+            resultCount++;
             Map<String,Object> row = result.next();
             for ( Map.Entry<String,Object> column : row.entrySet() )
             {
@@ -31,6 +33,7 @@ public class CypherQueryRunner {
             }
             builder.append("\n");
         }
+        builder.append("Solution count: " + resultCount + "\n");
        return builder.toString();
     }
 }

@@ -1,5 +1,6 @@
 package se.simonevertsson.experiments;
 
+import com.nativelibs4java.opencl.CLBuffer;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterable;
 import se.simonevertsson.db.DatabaseService;
@@ -37,10 +38,11 @@ public class GpuQueryRunner {
         QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph, labelDictionary, typeDictionary);
         GpuQuery gpuGraphQuery = new GpuQuery(queryContext);
         tick = System.currentTimeMillis();
-        gpuGraphQuery.executeQuery(queryGraph.visitOrder);
+        CLBuffer<Integer> result = gpuGraphQuery.executeQuery(queryGraph.visitOrder);
         tock = System.currentTimeMillis();
 
         System.out.println("GPU Query runtime: " + (tock - tick) + "ms");
+        System.out.println("Solution count: " + result.getElementCount()/queryGraph.nodes.size());
     }
 
     private GpuGraphModel convertQuery(LabelDictionary labelDictionary, TypeDictionary typeDictionary, QueryGraph queryGraph) {

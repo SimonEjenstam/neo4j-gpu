@@ -1,5 +1,6 @@
 package se.simonevertsson.gpu;
 
+import com.nativelibs4java.opencl.CLBuffer;
 import org.bridj.Pointer;
 
 public class QueryUtils {
@@ -72,5 +73,28 @@ public class QueryUtils {
         }
         prefixScanArray[bufferSize] = totalElementCount;
         return prefixScanArray;
+    }
+
+    private void printFinalSolutions(QueryKernels queryKernels, QueryContext queryContext, CLBuffer<Integer> solutionsBuffer) {
+        Pointer<Integer> solutionsPointer = solutionsBuffer.read(queryKernels.queue);
+        int solutionCount = (int) (solutionsBuffer.getElementCount()/ queryContext.queryNodeCount);
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("Final solutions:\n");
+
+        for(int i = 0; i < solutionCount* queryContext.queryNodeCount; i++) {
+            if(i % queryContext.queryNodeCount == 0) {
+                builder.append("(");
+                builder.append(solutionsPointer.get(i));
+            } else {
+                builder.append(", ");
+                builder.append(solutionsPointer.get(i));
+                if (i % queryContext.queryNodeCount == queryContext.queryNodeCount - 1) {
+                    builder.append(")\n");
+                }
+            }
+        }
+
+        System.out.println(builder.toString());
     }
 }

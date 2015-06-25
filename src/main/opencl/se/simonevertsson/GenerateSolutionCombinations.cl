@@ -9,7 +9,7 @@ __kernel void generate_solution_combinations(
     __global int* c_end_node_indices,
     __global int* c_end_nodes,
 
-    bool start_node_visited,
+    __global bool* start_node_visited,
     int start_node_count,
 
     __global int* possible_solutions
@@ -21,7 +21,7 @@ __kernel void generate_solution_combinations(
     int offset = 0;
 
     /* The START node of the query edge is the visited node */
-    if(start_node_visited) {
+    if(start_node_visited[0]) {
         for(int i = 0; i < start_node_count; i++) {
             if(c_start_nodes[i] == old_possible_solutions[possible_solution_index + q_start_node]) {
                 int end_node_index_start = c_end_node_indices[i];
