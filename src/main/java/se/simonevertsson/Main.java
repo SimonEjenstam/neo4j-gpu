@@ -21,14 +21,22 @@ public class Main {
 //            "RETURN a1, b2, a3, c4";
 
 
+//    public static final String EXPERIMENT_QUERY =
+//            "MATCH " +
+//                    "(a1)-->(b2)," +
+//                    "(a1)-->(a3)," +
+//                    "(b2)-->(a3)," +
+//                    "(b2)-->(c4)," +
+//                    "(a3)-->(c4)" +
+//                    "RETURN a1, b2, a3, c4";
+
+
     public static final String EXPERIMENT_QUERY =
             "MATCH " +
-                    "(a1)-->(b2)," +
-                    "(a1)-->(a3)," +
-                    "(b2)-->(a3)," +
-                    "(b2)-->(c4)," +
-                    "(a3)-->(c4)" +
-                    "RETURN a1, b2, a3, c4";
+                    "(a)-->(b)," +
+                    "(a)-->(c)," +
+                    "(b)-->(c)" +
+                    "RETURN a,b,c";
 
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH " +
@@ -37,11 +45,11 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         /* Setup database */
-//        DatabaseService databaseService = new DatabaseService(TEST_DB_PATH);
-//        ExperimentSetup experimentSetup = new ExperimentSetup();
-//        experimentSetup.fillDatabaseWithTestData(databaseService.getGraphDatabase());
+        DatabaseService databaseService = new DatabaseService(TEST_DB_PATH);
+        ExperimentSetup experimentSetup = new ExperimentSetup();
+        experimentSetup.fillDatabaseWithMatrixTestData(databaseService.getGraphDatabase());
 
-        DatabaseService databaseService = new DatabaseService(DR_WHO_DB_PATH, DR_WHO_DB_CONFIG_PATH);
+//        DatabaseService databaseService = new DatabaseService(DR_WHO_DB_PATH, DR_WHO_DB_CONFIG_PATH);
 
 
 

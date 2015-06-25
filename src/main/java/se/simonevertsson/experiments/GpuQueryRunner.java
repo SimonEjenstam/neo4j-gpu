@@ -8,6 +8,7 @@ import se.simonevertsson.gpu.*;
 import se.simonevertsson.query.QueryGraph;
 import se.simonevertsson.query.QueryGraphGenerator;
 
+import javax.management.Query;
 import java.io.IOException;
 
 /**
@@ -22,7 +23,8 @@ public class GpuQueryRunner {
         tick = System.currentTimeMillis();
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
-        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
+//        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
+        QueryGraph queryGraph = QueryGraphGenerator.generateTriangleMockQueryGraph();
 
         GpuGraphModel gpuData = convertData(databaseService, labelDictionary, typeDictionary);
         GpuGraphModel gpuQuery = convertQuery(labelDictionary, typeDictionary, queryGraph);
@@ -40,6 +42,8 @@ public class GpuQueryRunner {
         tick = System.currentTimeMillis();
         CLBuffer<Integer> result = gpuGraphQuery.executeQuery(queryGraph.visitOrder);
         tock = System.currentTimeMillis();
+
+
 
         System.out.println("GPU Query runtime: " + (tock - tick) + "ms");
         System.out.println("Solution count: " + result.getElementCount()/queryGraph.nodes.size());

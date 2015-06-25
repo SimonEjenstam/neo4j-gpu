@@ -7,6 +7,11 @@ import org.neo4j.graphdb.*;
  */
 public class ExperimentSetup {
 
+    private static final String MATRIX_INSERT_QUERY =
+            "create (Neo:Crew {name:'Neo'}), (Morpheus:Crew {name: 'Morpheus'}), (Trinity:Crew {name: 'Trinity'}), (Cypher:Crew:Matrix {name: 'Cypher'}), (Smith:Matrix {name: 'Agent Smith'}), (Architect:Matrix {name:'The Architect'}),\n" +
+            "(Neo)-[:KNOWS]->(Morpheus), (Neo)-[:LOVES]->(Trinity), (Morpheus)-[:KNOWS]->(Trinity),\n" +
+            "(Morpheus)-[:KNOWS]->(Cypher), (Cypher)-[:KNOWS]->(Smith), (Smith)-[:CODED_BY]->(Architect)";
+
 
     public void fillDatabaseWithTestData(GraphDatabaseService graphDatabase) {
         try
@@ -33,6 +38,19 @@ public class ExperimentSetup {
             B2.createRelationshipTo(A3, RelationshipTypes.KNOWS);
             B2.createRelationshipTo(C4, RelationshipTypes.KNOWS);
             A3.createRelationshipTo(C4, RelationshipTypes.KNOWS);
+
+            tx.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void fillDatabaseWithMatrixTestData(GraphDatabaseService graphDatabase) {
+        try
+        {
+            Transaction tx = graphDatabase.beginTx();
+
+            graphDatabase.execute(MATRIX_INSERT_QUERY);
 
             tx.success();
         } catch (Exception e) {

@@ -75,9 +75,9 @@ public class QueryUtils {
         return prefixScanArray;
     }
 
-    private void printFinalSolutions(QueryKernels queryKernels, QueryContext queryContext, CLBuffer<Integer> solutionsBuffer) {
+    public static void printFinalSolutions(QueryKernels queryKernels, QueryContext queryContext, CLBuffer<Integer> solutionsBuffer) {
         Pointer<Integer> solutionsPointer = solutionsBuffer.read(queryKernels.queue);
-        int solutionCount = (int) (solutionsBuffer.getElementCount()/ queryContext.queryNodeCount);
+        int solutionCount = (int) (solutionsBuffer.getElementCount() / queryContext.queryNodeCount);
 
         StringBuilder builder = new StringBuilder();
         builder.append("Final solutions:\n");

@@ -96,4 +96,41 @@ public class QueryGraphGenerator {
 
         return queryGraph;
     }
+
+    //                 (N1)
+    //                  O
+    //                /  \
+    //              /     \
+    //            /        \
+    //          /           \
+    //        v              v
+    // (N3) O <-------------- O (N2)
+    public static QueryGraph generateTriangleMockQueryGraph() {
+
+        QueryGraph queryGraph = new QueryGraph();
+
+        queryGraph.nodes = new ArrayList<Node>();
+
+        QueryNode N1 = new QueryNode(0);
+
+        QueryNode N2 = new QueryNode(1);
+
+        QueryNode N3 = new QueryNode(2);
+
+        queryGraph.nodes.add(N1);
+        queryGraph.nodes.add(N2);
+        queryGraph.nodes.add(N3);
+
+        queryGraph.relationships = new ArrayList<Relationship>();
+
+        Relationship N1_N2 = N1.createRelationshipTo(N2, 0, null);
+        Relationship N1_N3 = N1.createRelationshipTo(N3, 1, null);
+        Relationship N2_N3 = N2.createRelationshipTo(N3, 2, null);
+
+        queryGraph.relationships.add(N1_N2);
+        queryGraph.relationships.add(N1_N3);
+        queryGraph.relationships.add(N2_N3);
+
+        return queryGraph;
+    }
 }

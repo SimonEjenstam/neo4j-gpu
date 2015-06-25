@@ -17,7 +17,9 @@ public class SolutionPruner {
         this.queryContext = queryContext;
     }
 
-    CLBuffer<Integer> prunePossibleSolutions(CLBuffer<Integer> oldPossibleSolutions, int possibleSolutionCount, CLBuffer<Boolean> validationIndicators, int[] outputIndexArray) throws IOException {
+    public CLBuffer<Integer> prunePossibleSolutions(CLBuffer<Integer> oldPossibleSolutions, CLBuffer<Boolean> validationIndicators, int[] outputIndexArray) throws IOException {
+        int possibleSolutionCount = (int) oldPossibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+
         CLBuffer<Integer> outputIndices = this.queryKernels.context.createIntBuffer(
                 CLMem.Usage.Input,
                 IntBuffer.wrap(outputIndexArray),
