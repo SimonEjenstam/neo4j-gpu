@@ -33,7 +33,7 @@ public class CandidateRelationshipSearcher {
         HashMap<Integer, CandidateRelationships> candidateRelationshipsHashMap = new HashMap<Integer, CandidateRelationships>();
 
         for (Relationship relationship : relationships) {
-            CandidateRelationships candidateRelationships = new CandidateRelationships(relationship);
+            CandidateRelationships candidateRelationships = new CandidateRelationships(relationship, this.queryKernels);
 
             Pointer<Integer> candidateRelationshipCountsPointer = this.candidateRelationshipCounter.countCandidateRelationships(candidateRelationships);
 
@@ -41,10 +41,12 @@ public class CandidateRelationshipSearcher {
             CLBuffer<Integer>
                     candidateRelationshipEndNodeIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
 
-            candidateRelationships.setCandidateEndNodeIndicies(candidateRelationshipEndNodeIndicesBuffer);
-            candidateRelationships.setTotalNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
+            candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
+            candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
 
             this.candidateRelationshipFinder.findCandidateRelationships(candidateRelationships);
+//            System.out.println(candidateRelationships.toString());
+
             candidateRelationshipsHashMap.put((int) relationship.getId(), candidateRelationships);
 
         }

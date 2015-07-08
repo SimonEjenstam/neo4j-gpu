@@ -25,6 +25,8 @@ public class CandidateInitializer {
         for (Node queryNode : visitOrder) {
             if (!initializedQueryNodes[((int) queryNode.getId())]) {
                 this.candidateChecker.checkCandidates(this.queryContext.gpuQuery, queryNode);
+//                System.out.println("Candidate indicators after candidate checking of query node " + queryNode.getId());
+//                QueryUtils.printCandidateIndicatorMatrix(this.queryBuffers.candidateIndicatorsPointer, queryContext.dataNodeCount);
             }
 
             int queryNodeRelationshipStartIndex = this.queryContext.gpuQuery.getRelationshipIndices()[((int) queryNode.getId())];
@@ -40,10 +42,12 @@ public class CandidateInitializer {
                 if (candidateArray.length > 0) {
                     this.candidateExplorer.exploreCandidates((int) queryNode.getId(), candidateArray);
 
-                    /* We have explored the neighborhood, mark query nodes related to the current query node as intialized */
+                    /* We have explored the neighborhood, mark query nodes related to the current query node as initialized */
                     for (Relationship adjacency : queryNode.getRelationships()) {
                         initializedQueryNodes[((int) adjacency.getEndNode().getId())] = true;
                     }
+//                    System.out.println("Candidate indicators after candidate neighborhood exploration of query node " + queryNode.getId());
+//                    QueryUtils.printCandidateIndicatorMatrix(this.queryBuffers.candidateIndicatorsPointer, queryContext.dataNodeCount);
                 } else {
                     throw new IllegalStateException("No candidates for query node " + queryNode.getId() + " were found.");
                 }

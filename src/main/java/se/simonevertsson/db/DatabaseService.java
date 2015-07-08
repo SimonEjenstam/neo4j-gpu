@@ -106,7 +106,7 @@ public class DatabaseService {
         return this.graphDatabase;
     }
 
-    public Result excuteCypherQuery(String query) {
+    public Result excuteCypherQueryWithinTransaction(String query) {
         Transaction transaction = this.graphDatabase.beginTx();
         Result result = this.graphDatabase.execute(
                 query);
@@ -114,7 +114,17 @@ public class DatabaseService {
         return result;
     }
 
+    public Result excuteCypherQuery(String query) {
+        Result result = this.graphDatabase.execute(
+                query);
+        return result;
+    }
+
     public void shutdown() {
         this.graphDatabase.shutdown();
+    }
+
+    public Transaction beginTx() {
+        return this.graphDatabase.beginTx();
     }
 }

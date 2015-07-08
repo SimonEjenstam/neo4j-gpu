@@ -22,7 +22,7 @@ public class CandidateRelationshipFinder {
 
     public CLBuffer<Integer> findCandidateRelationships(CandidateRelationships candidateRelationships) throws IOException {
 
-        CLBuffer candidateRelationshipEndNodes = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, candidateRelationships.getTotalCount());
+        CLBuffer candidateRelationshipEndNodes = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, candidateRelationships.getEndNodeCount());
 
 
         int[] globalSizes = new int[]{(int) candidateRelationships.getStartNodeCount()};

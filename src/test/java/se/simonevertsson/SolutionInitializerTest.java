@@ -5,8 +5,6 @@ import com.nativelibs4java.opencl.CLMem;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
-import se.simonevertsson.gpu.CandidateRelationshipCounter;
-import se.simonevertsson.gpu.CandidateRelationshipFinder;
 import se.simonevertsson.gpu.CandidateRelationships;
 import se.simonevertsson.gpu.SolutionInitializer;
 
@@ -46,7 +44,7 @@ public class SolutionInitializerTest extends TestCase{
         /******* Relationship candidates 1 *********/
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, this.mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -66,8 +64,8 @@ public class SolutionInitializerTest extends TestCase{
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
-        candidateRelationships.setCandidateEndNodeIndicies(candidateRelationshipEndNodeIndicesBuffer);
-        candidateRelationships.setTotalNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
+        candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
+        candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
@@ -75,7 +73,7 @@ public class SolutionInitializerTest extends TestCase{
         /******* Relationship candidates 2 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
-        candidateRelationships = new CandidateRelationships(queryRelationship);
+        candidateRelationships = new CandidateRelationships(queryRelationship, this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 0,1
@@ -96,8 +94,8 @@ public class SolutionInitializerTest extends TestCase{
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
-        candidateRelationships.setCandidateEndNodeIndicies(candidateRelationshipEndNodeIndicesBuffer);
-        candidateRelationships.setTotalNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
+        candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
+        candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
@@ -105,7 +103,7 @@ public class SolutionInitializerTest extends TestCase{
         /******* Relationship candidates 3 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
-        candidateRelationships = new CandidateRelationships(queryRelationship);
+        candidateRelationships = new CandidateRelationships(queryRelationship, this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 1,2
@@ -126,8 +124,8 @@ public class SolutionInitializerTest extends TestCase{
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
-        candidateRelationships.setCandidateEndNodeIndicies(candidateRelationshipEndNodeIndicesBuffer);
-        candidateRelationships.setTotalNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
+        candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
+        candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);

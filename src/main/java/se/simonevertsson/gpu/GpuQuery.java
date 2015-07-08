@@ -6,6 +6,7 @@ import org.neo4j.graphdb.Node;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by simon.evertsson on 2015-05-19.
@@ -21,7 +22,7 @@ public class GpuQuery {
         this.bufferContainer = BufferContainerGenerator.generateBufferContainer(this.queryContext, this.queryKernels);
     }
 
-    public CLBuffer<Integer> executeQuery(ArrayList<Node> visitOrder) throws IOException {
+    public List<String> executeQuery(ArrayList<Node> visitOrder) throws IOException {
 
         /****** Candidate initialization step ******/
         CandidateInitializer candidateInitializer =
@@ -43,8 +44,6 @@ public class GpuQuery {
                 new CandidateRelationshipJoiner(this.queryContext, this.queryKernels, this.bufferContainer);
         CLBuffer<Integer> solutions = candidateRelationshipJoiner.joinCandidateRelationships(relationshipCandidatesHashMap);
 
-        QueryUtils.printFinalSolutions(this.queryKernels, this.queryContext, solutions);
-
-        return solutions;
+        return QueryUtils.generateCypherQueriesFromFinalSolutions(this.queryKernels, this.queryContext, solutions);
     }
 }

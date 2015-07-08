@@ -39,6 +39,11 @@ public class QueryGraphGenerator {
         queryGraph.nodes.add(A3);
         queryGraph.nodes.add(C4);
 
+        queryGraph.aliasDictionary.insertAlias(A1, "A1");
+        queryGraph.aliasDictionary.insertAlias(B2, "B2");
+        queryGraph.aliasDictionary.insertAlias(A3, "A3");
+        queryGraph.aliasDictionary.insertAlias(C4, "C4");
+
         queryGraph.relationships = new ArrayList<Relationship>();
 
         Relationship A1_B2 = A1.createRelationshipTo(B2, 0, RelationshipTypes.KNOWS);
@@ -52,6 +57,8 @@ public class QueryGraphGenerator {
         queryGraph.relationships.add(B2_A3);
         queryGraph.relationships.add(B2_C4);
         queryGraph.relationships.add(A3_C4);
+
+
 
         return queryGraph;
     }
@@ -80,6 +87,11 @@ public class QueryGraphGenerator {
         queryGraph.nodes.add(A3);
         queryGraph.nodes.add(C4);
 
+        queryGraph.aliasDictionary.insertAlias(A1, "A1");
+        queryGraph.aliasDictionary.insertAlias(B2, "B2");
+        queryGraph.aliasDictionary.insertAlias(A3, "A3");
+        queryGraph.aliasDictionary.insertAlias(C4, "C4");
+
         queryGraph.relationships = new ArrayList<Relationship>();
 
         Relationship A1_B2 = A1.createRelationshipTo(B2, 0, null);
@@ -97,39 +109,43 @@ public class QueryGraphGenerator {
         return queryGraph;
     }
 
-    //                 (N1)
+    //                 (A)
     //                  O
     //                /  \
     //              /     \
     //            /        \
     //          /           \
     //        v              v
-    // (N3) O <-------------- O (N2)
+    // (C) O <-------------- O (B)
     public static QueryGraph generateTriangleMockQueryGraph() {
 
         QueryGraph queryGraph = new QueryGraph();
 
         queryGraph.nodes = new ArrayList<Node>();
 
-        QueryNode N1 = new QueryNode(0);
+        QueryNode A = new QueryNode(0);
 
-        QueryNode N2 = new QueryNode(1);
+        QueryNode B = new QueryNode(1);
 
-        QueryNode N3 = new QueryNode(2);
+        QueryNode C = new QueryNode(2);
 
-        queryGraph.nodes.add(N1);
-        queryGraph.nodes.add(N2);
-        queryGraph.nodes.add(N3);
+        queryGraph.nodes.add(A);
+        queryGraph.nodes.add(B);
+        queryGraph.nodes.add(C);
+
+        queryGraph.aliasDictionary.insertAlias(A, "A");
+        queryGraph.aliasDictionary.insertAlias(B, "B");
+        queryGraph.aliasDictionary.insertAlias(C, "C");
 
         queryGraph.relationships = new ArrayList<Relationship>();
 
-        Relationship N1_N2 = N1.createRelationshipTo(N2, 0, null);
-        Relationship N1_N3 = N1.createRelationshipTo(N3, 1, null);
-        Relationship N2_N3 = N2.createRelationshipTo(N3, 2, null);
+        Relationship A_B = A.createRelationshipTo(B, 0, null);
+        Relationship A_C = A.createRelationshipTo(C, 1, null);
+        Relationship B_C = B.createRelationshipTo(C, 2, null);
 
-        queryGraph.relationships.add(N1_N2);
-        queryGraph.relationships.add(N1_N3);
-        queryGraph.relationships.add(N2_N3);
+        queryGraph.relationships.add(A_B);
+        queryGraph.relationships.add(A_C);
+        queryGraph.relationships.add(B_C);
 
         return queryGraph;
     }

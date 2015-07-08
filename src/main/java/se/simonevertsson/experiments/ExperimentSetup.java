@@ -13,6 +13,19 @@ public class ExperimentSetup {
             "(Morpheus)-[:KNOWS]->(Cypher), (Cypher)-[:KNOWS]->(Smith), (Smith)-[:CODED_BY]->(Architect)";
 
 
+    private static final String SMALL_DR_WHO_INSERT_QUERY =
+            "create \n" +
+                    "(Rose {character:'Rose Tyler'}), \n" +
+                    "(Doctor {character:'Doctor'}), \n" +
+                    "(Susan {character:'Susan Foreman'}), \n" +
+                    "(Timelord {species:'Timelord'}), \n" +
+                    "(Rose)-[:LOVES]->(Doctor), \n" +
+                    "(Rose)-[:COMPANION_OF]->(Doctor), \n" +
+                    "(Doctor)-[:LOVES]->(Rose),\n" +
+                    "(Doctor)-[:IS_A]->(Timelord),\n" +
+                    "(Susan)-[:COMPANION_OF]->(Doctor), \n" +
+                    "(Susan)-[:IS_A]->(Timelord)";
+
     public void fillDatabaseWithTestData(GraphDatabaseService graphDatabase) {
         try
         {
@@ -51,6 +64,19 @@ public class ExperimentSetup {
             Transaction tx = graphDatabase.beginTx();
 
             graphDatabase.execute(MATRIX_INSERT_QUERY);
+
+            tx.success();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void fillDatabaseWithSmallDrWhoTestData(GraphDatabaseService graphDatabase) {
+        try
+        {
+            Transaction tx = graphDatabase.beginTx();
+
+            graphDatabase.execute(SMALL_DR_WHO_INSERT_QUERY);
 
             tx.success();
         } catch (Exception e) {

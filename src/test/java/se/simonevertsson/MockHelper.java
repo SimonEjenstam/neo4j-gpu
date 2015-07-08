@@ -4,10 +4,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import se.simonevertsson.gpu.*;
-import se.simonevertsson.query.QueryGraph;
-import se.simonevertsson.query.QueryGraphGenerator;
-import se.simonevertsson.query.QueryLabel;
-import se.simonevertsson.query.QueryNode;
+import se.simonevertsson.query.*;
 
 import java.awt.image.Kernel;
 import java.io.IOException;
@@ -153,61 +150,6 @@ public class MockHelper {
         return queryGraph;
     }
 
-    int[] queryRelationships = {
-            1, 2, 2, 3, 3, -1
-    };
-
-    int[] queryRelationshipTypes = {
-            -1, 1, -1, 2, -1, -1
-    };
-
-    int[] queryRelationshipIndices = {
-            0, 2, 4, 5, 6,
-    };
-
-    int[] queryLabels = {
-            1,
-            2,
-            1,
-            3
-    };
-
-    int[] queryLabelIndicies = {
-            0,
-            1,
-            2,
-            3,
-            4
-    };
-
-    int[] dataRelationships = {
-            1, 2, 2, 3, 3, -1
-    };
-
-    int[] dataRelationshipTypes = {
-            -1, 1, -1, 2, -1, -1
-    };
-
-    int[] dataRelationshipIndices = {
-            0, 2, 4, 5, 6,
-    };
-
-    int[] dataLabels = {
-            1,
-            2,
-            1,
-            3
-    };
-
-    int[] dataLabelIndicies = {
-            0,
-            1,
-            2,
-            3,
-            4
-    };
-
-
     public static MockQuery generateMockQuery() throws IOException {
         QueryGraph queryGraph = generateMockQueryGraph();
         QueryGraph dataGraph = generateMockQueryGraph();
@@ -218,6 +160,8 @@ public class MockHelper {
         GpuGraphModel query = queryGraphConverter.convert();
         GraphModelConverter dataGraphConverter = new GraphModelConverter(dataGraph.nodes, labelDictionary, typeDictionary);
         GpuGraphModel data = dataGraphConverter.convert();
+
+
 
         QueryContext queryContext = new QueryContext(data, query, queryGraph, labelDictionary, typeDictionary);
         QueryKernels queryKernels = new QueryKernels();

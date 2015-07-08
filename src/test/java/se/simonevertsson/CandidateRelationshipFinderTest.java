@@ -7,11 +7,9 @@ import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
 import se.simonevertsson.gpu.CandidateRelationshipFinder;
 import se.simonevertsson.gpu.CandidateRelationships;
-import se.simonevertsson.gpu.QueryUtils;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 
 /**
  * Created by simon on 2015-06-25.
@@ -41,7 +39,7 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(mockQuery.queryKernels.queue);
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -62,8 +60,8 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
-        candidateRelationships.setCandidateEndNodeIndicies(candidateRelationshipEndNodeIndicesBuffer);
-        candidateRelationships.setTotalNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
+        candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
+        candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
 
 
 
@@ -110,7 +108,7 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(mockQuery.queryKernels.queue);
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -131,8 +129,8 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
-        candidateRelationships.setCandidateEndNodeIndicies(candidateRelationshipEndNodeIndicesBuffer);
-        candidateRelationships.setTotalNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
+        candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
+        candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
 
 
 
@@ -179,7 +177,7 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(mockQuery.queryKernels.queue);
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 1,2
@@ -200,8 +198,8 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
-        candidateRelationships.setCandidateEndNodeIndicies(candidateRelationshipEndNodeIndicesBuffer);
-        candidateRelationships.setTotalNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
+        candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
+        candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
 
 
 

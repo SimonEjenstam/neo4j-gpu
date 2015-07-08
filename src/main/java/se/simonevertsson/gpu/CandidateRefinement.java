@@ -34,6 +34,9 @@ public class CandidateRefinement {
             }
 
             boolean[] newCandidateIndicators = QueryUtils.pointerBooleanToArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
+//            System.out.println("Candidate indicators after refinement");
+//            QueryUtils.printCandidateIndicatorMatrix(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount);
+
             candidateIndicatorsHasChanged = !Arrays.equals(oldCandidateIndicators, newCandidateIndicators);
             oldCandidateIndicators = newCandidateIndicators;
         }

@@ -1,5 +1,6 @@
 package se.simonevertsson.gpu;
 
+import se.simonevertsson.query.AliasDictionary;
 import se.simonevertsson.query.QueryGraph;
 
 public class QueryContext {

@@ -25,6 +25,7 @@ public class LabelDictionary {
         } else {
             int currentId = nextId;
             labelToIds.put(label, currentId);
+            idToLabels.put(currentId, label);
             nextId++;
             return currentId;
         }
@@ -33,6 +34,8 @@ public class LabelDictionary {
     public int getIdForLabel(String label) {
         return labelToIds.get(label);
     }
+
+    public String getLabelForId(int id) { return idToLabels.get(id);}
 
     @Override
     public String toString() {

@@ -4,8 +4,10 @@ import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLMem;
 import org.bridj.Pointer;
 
+import javax.management.Query;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class CandidateRelationshipJoiner {
@@ -34,58 +36,81 @@ public class CandidateRelationshipJoiner {
 
         CLBuffer<Integer> possibleSolutions = solutionInitializer.initializePossibleSolutions(candidateRelationshipsHashMap, visitedQueryRelationships, visitedQueryNodes);
 
-        for (int relationshipId : candidateRelationshipsHashMap.keySet()) {
-            if (!visitedQueryRelationships.contains(relationshipId)) {
-                CandidateRelationships candidateRelationships = candidateRelationshipsHashMap.get(relationshipId);
-                int startNodeId = candidateRelationships.getQueryStartNodeId();
-                int endNodeId = candidateRelationships.getQueryEndNodeId();
-                boolean startNodeVisisted = visitedQueryNodes.contains(startNodeId);
-                boolean endNodeVisisted = visitedQueryNodes.contains(endNodeId);
 
-                int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+        while( visitedQueryRelationships.size() < candidateRelationshipsHashMap.size()) {
+            for (int relationshipId : candidateRelationshipsHashMap.keySet()) {
+                if (!visitedQueryRelationships.contains(relationshipId)) {
+                    CandidateRelationships candidateRelationships = candidateRelationshipsHashMap.get(relationshipId);
+                    int startNodeId = candidateRelationships.getQueryStartNodeId();
+                    int endNodeId = candidateRelationships.getQueryEndNodeId();
+                    boolean startNodeVisisted = visitedQueryNodes.contains(startNodeId);
+                    boolean endNodeVisisted = visitedQueryNodes.contains(endNodeId);
 
-                if (startNodeVisisted && endNodeVisisted) {
-                    /* Prune existing possible solutions */
-                    CLBuffer<Boolean> validationIndicators = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
+                    int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
 
-                    Pointer<Boolean> validationIndicatorsPointer = validationIndicators.read(this.queryKernels.queue);
+                    if (startNodeVisisted && endNodeVisisted) {
+                        System.out.println("Pruning with relationship " + candidateRelationships.getRelationship().getStartNode().getId() + " --> " +
+                                candidateRelationships.getRelationship().getEndNode().getId());
+                        /* Prune existing possible solutions */
+                        CLBuffer<Boolean> validationIndicators = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
 
-                    int[] outputIndexArray = generateOutputIndexArray(validationIndicatorsPointer, possibleSolutionCount);
+                        Pointer<Boolean> validationIndicatorsPointer = validationIndicators.read(this.queryKernels.queue);
 
-                    CLBuffer<Integer> prunedPossibleSolutions = solutionPruner.prunePossibleSolutions(
-                            possibleSolutions,
-                            validationIndicators,
-                            outputIndexArray);
+                        int[] outputIndexArray = generateOutputIndexArray(validationIndicatorsPointer, possibleSolutionCount);
 
-                    possibleSolutions = prunedPossibleSolutions;
+                        if (outputIndexArray[outputIndexArray.length - 1] == 0) {
+                            return null;
+                        }
 
-                    visitedQueryRelationships.add(relationshipId);
+                        CLBuffer<Integer> prunedPossibleSolutions = solutionPruner.prunePossibleSolutions(
+                                possibleSolutions,
+                                validationIndicators,
+                                outputIndexArray);
 
-                } else if (startNodeVisisted || endNodeVisisted) {
-                    /* Combine candidate edges with existing possible solutions */
-                    Pointer<Integer> combinationCountsPointer = this.solutionCombinationCounter.countSolutionCombinations(
-                            possibleSolutions,
-                            candidateRelationships,
-                            startNodeVisisted);
+                        possibleSolutions = prunedPossibleSolutions;
 
-                    int[] combinationIndices = QueryUtils.generatePrefixScanArray(combinationCountsPointer, possibleSolutionCount);
+//                        System.out.println("Possible solutions after pruning step");
+//                        QueryUtils.printPossibleSolutionsMatrix(possibleSolutions.read(this.queryKernels.queue), this.queryContext.queryNodeCount);
 
-                    CLBuffer<Integer> newPossibleSolutions = solutionCombinationGenerator.generateSolutionCombinations(
-                            possibleSolutions,
-                            candidateRelationships,
-                            startNodeVisisted,
-                            combinationIndices);
+                        visitedQueryRelationships.add(relationshipId);
 
-                    possibleSolutions = newPossibleSolutions;
+                    } else if (startNodeVisisted || endNodeVisisted) {
+                        System.out.println("Combining with relationship " + candidateRelationships.getRelationship().getStartNode().getId() + " --> " +
+                                candidateRelationships.getRelationship().getEndNode().getId());
 
-                    visitedQueryRelationships.add(relationshipId);
-                    if (startNodeVisisted) {
-                        visitedQueryNodes.add(endNodeId);
-                    } else {
-                        visitedQueryNodes.add(startNodeId);
+                        /* Combine candidate edges with existing possible solutions */
+                        Pointer<Integer> combinationCountsPointer = this.solutionCombinationCounter.countSolutionCombinations(
+                                possibleSolutions,
+                                candidateRelationships,
+                                startNodeVisisted);
+
+                        int[] combinationIndices = QueryUtils.generatePrefixScanArray(combinationCountsPointer, possibleSolutionCount);
+
+                        CLBuffer<Integer> newPossibleSolutions = solutionCombinationGenerator.generateSolutionCombinations(
+                                possibleSolutions,
+                                candidateRelationships,
+                                startNodeVisisted,
+                                combinationIndices);
+
+//                        System.out.println("Combination indices");
+//                        System.out.println(Arrays.toString(combinationIndices));
+
+                        possibleSolutions = newPossibleSolutions;
+//
+//                        System.out.println("Possible solutions after combination step");
+//                        QueryUtils.printPossibleSolutionsMatrix(possibleSolutions.read(this.queryKernels.queue), this.queryContext.queryNodeCount);
+
+
+                        visitedQueryRelationships.add(relationshipId);
+                        if (startNodeVisisted) {
+                            visitedQueryNodes.add(endNodeId);
+                        } else {
+                            visitedQueryNodes.add(startNodeId);
+                        }
                     }
                 }
             }
+            System.out.println("Retruwgwe");
         }
 
         return possibleSolutions;

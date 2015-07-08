@@ -31,12 +31,15 @@ public class SolutionInitializer {
         visitedQueryNodes.add(initialCandidateRelationships.getQueryStartNodeId());
         visitedQueryNodes.add(initialCandidateRelationships.getQueryEndNodeId());
 
+        System.out.println("Initial possible solutions");
+        System.out.println(Arrays.toString(initialPossibleSolutionsArray));
+
         return possiblePartialSolutions;
     }
 
     public int[] createInitialPossibleSolutions(CandidateRelationships candidateRelationships) {
         int solutionNodeCount = this.queryContext.queryGraph.nodes.size();
-        int partialSolutionCount = candidateRelationships.getTotalCount();
+        int partialSolutionCount = candidateRelationships.getEndNodeCount();
         int[] initialPossibleSolutionsArray = new int[solutionNodeCount * partialSolutionCount];
 
         /* Initially mark all nodes in all possible solutions as unknown (-1) */
@@ -47,7 +50,7 @@ public class SolutionInitializer {
         Pointer<Integer> candidateEndNodeIndicies = candidateRelationships.getCandidateEndNodeIndices().read(this.queryKernels.queue);
         int addedPossibleSolutions = 0;
         int indexOffset = 0;
-        while (addedPossibleSolutions < candidateRelationships.getTotalCount()) {
+        while (addedPossibleSolutions < candidateRelationships.getEndNodeCount()) {
 
             for (int i = 0; i < candidateRelationships.getCandidateStartNodes().getElementCount(); i++) {
 
@@ -74,7 +77,7 @@ public class SolutionInitializer {
         int minimumCandidateCount = Integer.MAX_VALUE;
         for (int relationshipId : edgeCandidatesHashMap.keySet()) {
             CandidateRelationships candidateRelationships = edgeCandidatesHashMap.get(relationshipId);
-            int candidateCount = candidateRelationships.getTotalCount();
+            int candidateCount = candidateRelationships.getEndNodeCount();
             if (candidateCount <= minimumCandidateCount) {
                 minimumCandidateCount = candidateCount;
                 minimumId = relationshipId;

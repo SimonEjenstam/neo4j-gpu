@@ -1,8 +1,9 @@
 package se.simonevertsson.gpu;
 
 import com.nativelibs4java.opencl.CLBuffer;
-import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.Relationship;
+
+import java.util.Arrays;
 
 /**
  * Created by simon on 2015-06-09.
@@ -11,19 +12,21 @@ public class CandidateRelationships {
 
 
     private final Relationship relationship;
-    private CLBuffer<Integer> candidateEndNodeIndicies;
+    private final QueryKernels queryKernels;
+    private CLBuffer<Integer> candidateEndNodeIndices;
     private CLBuffer<Integer> candidateEndNodes;
     private CLBuffer<Integer> candidateStartNodes;
-    private int totalCount;
+    private int endNodeCount;
     private int startNodeCount;
 
 
-    public CandidateRelationships(Relationship relationship) {
+    public CandidateRelationships(Relationship relationship, QueryKernels queryKernels) {
         this.relationship = relationship;
+        this.queryKernels = queryKernels;
     }
 
     public CLBuffer<Integer> getCandidateEndNodeIndices() {
-        return candidateEndNodeIndicies;
+        return candidateEndNodeIndices;
     }
 
     public CLBuffer<Integer> getCandidateEndNodes() {
@@ -39,8 +42,8 @@ public class CandidateRelationships {
         this.startNodeCount = (int) this.candidateStartNodes.getElementCount();
     }
 
-    public void setCandidateEndNodeIndicies(CLBuffer<Integer> candidateEndNodeIndicies) {
-        this.candidateEndNodeIndicies = candidateEndNodeIndicies;
+    public void setCandidateEndNodeIndices(CLBuffer<Integer> candidateEndNodeIndices) {
+        this.candidateEndNodeIndices = candidateEndNodeIndices;
     }
 
     public void setCandidateEndNodes(CLBuffer<Integer> candidateEndNodes) {
@@ -55,8 +58,8 @@ public class CandidateRelationships {
         return (int) this.relationship.getEndNode().getId();
     }
 
-    public int getTotalCount() {
-        return totalCount;
+    public int getEndNodeCount() {
+        return endNodeCount;
     }
 
     public int getStartNodeCount() {
@@ -67,7 +70,35 @@ public class CandidateRelationships {
         return this.relationship;
     }
 
-    public void setTotalNodeCount(int totalCount) {
-        this.totalCount = totalCount;
+    public void setEndNodeCount(int endNodeCount) {
+        this.endNodeCount = endNodeCount;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Candidate relationships for query relationship ");
+        builder.append(this.relationship.getId());
+        builder.append(" ( ");
+        builder.append(this.relationship.getStartNode().getId());
+        builder.append(" --> ");
+        builder.append(this.relationship.getEndNode().getId());
+        builder.append(" )\n");
+
+        builder.append("Start nodes: ");
+        builder.append(Arrays.toString(QueryUtils.pointerIntegerToArray(this.candidateStartNodes.read(this.queryKernels.queue), startNodeCount)));
+        builder.append('\n');
+
+        builder.append("End node indices: ");
+        builder.append(Arrays.toString(QueryUtils.pointerIntegerToArray(this.candidateEndNodeIndices.read(this.queryKernels.queue), this.startNodeCount + 1)));
+        builder.append('\n');
+
+        builder.append("End nodes: ");
+        builder.append(Arrays.toString(QueryUtils.pointerIntegerToArray(this.candidateEndNodes.read(this.queryKernels.queue), this.endNodeCount)));
+        builder.append('\n');
+
+        return builder.toString();
+    }
+
+
 }
