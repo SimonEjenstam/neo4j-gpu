@@ -22,7 +22,7 @@ public class GpuQuery {
         this.bufferContainer = BufferContainerGenerator.generateBufferContainer(this.queryContext, this.queryKernels);
     }
 
-    public List<String> executeQuery(ArrayList<Node> visitOrder) throws IOException {
+    public List<QuerySolution> executeQuery(ArrayList<Node> visitOrder) throws IOException {
 
         /****** Candidate initialization step ******/
         CandidateInitializer candidateInitializer =
@@ -44,6 +44,7 @@ public class GpuQuery {
                 new CandidateRelationshipJoiner(this.queryContext, this.queryKernels, this.bufferContainer);
         CLBuffer<Integer> solutions = candidateRelationshipJoiner.joinCandidateRelationships(relationshipCandidatesHashMap);
 
-        return QueryUtils.generateCypherQueriesFromFinalSolutions(this.queryKernels, this.queryContext, solutions);
+//        return QueryUtils.generateCypherQueriesFromFinalSolutions(this.queryKernels, this.queryContext, solutions);
+        return QueryUtils.generateQuerySolutions(this.queryKernels, this.queryContext, solutions);
     }
 }

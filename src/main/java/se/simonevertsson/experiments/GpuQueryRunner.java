@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class GpuQueryRunner {
 
-    public List<String> runGpuQuery(DatabaseService databaseService) throws IOException {
+    public List<QuerySolution> runGpuQuery(DatabaseService databaseService) throws IOException {
         long tick, tock;
 
         /* Convert database data and query data to fit the GPU */
@@ -32,22 +32,22 @@ public class GpuQueryRunner {
         tock = System.currentTimeMillis();
 
         System.out.println("GPU Data conversion runtime: " + (tock-tick) + "ms");
-        System.out.println("------Query-----");
-        System.out.println(gpuQuery.toString());
-        System.out.println("------Data-----");
-        System.out.println(gpuData.toString());
+//        System.out.println("------Query-----");
+//        System.out.println(gpuQuery.toString());
+//        System.out.println("------Data-----");
+//        System.out.println(gpuData.toString());
 
         /* Execute the query */
         QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph, labelDictionary, typeDictionary);
         GpuQuery gpuGraphQuery = new GpuQuery(queryContext);
         tick = System.currentTimeMillis();
-        List<String> results = gpuGraphQuery.executeQuery(queryGraph.visitOrder);
+        List<QuerySolution> results = gpuGraphQuery.executeQuery(queryGraph.visitOrder);
         tock = System.currentTimeMillis();
 
-        for(String result : results) {
-            System.out.println(result);
-        }
-        System.out.println("Number of solution: " + results.size());
+//        for(String result : results) {
+//            System.out.println(result);
+//        }
+//        System.out.println("Number of solutions: " + results.size());
 
         System.out.println("GPU Query runtime: " + (tock - tick) + "ms");
 

@@ -1,5 +1,7 @@
 package se.simonevertsson.gpu;
 
+import org.neo4j.graphdb.Node;
+import se.simonevertsson.Main;
 import se.simonevertsson.query.AliasDictionary;
 
 import java.util.ArrayList;
@@ -26,9 +28,29 @@ public class QuerySolution {
         }
     }
 
-    public void print() {
+
+    @Override
+    public String toString() {
         StringBuilder builder = new StringBuilder();
-        for()
-        builder.append()
+//        for(Map.Entry<String, Node> solutionElement : solution) {
+//            builder.append(solutionElement.getKey() + ":");
+//            builder.append(solutionElement.getValue().getId());
+//            builder.append(", ");
+//        }
+
+        builder.append(Main.EXPERIMENT_QUERY_PREFIX);
+        builder.append(" WHERE ");
+        boolean firstReturnNode = true;
+        for ( Map.Entry<String, Integer> solutionElement : this.solution )
+        {
+            if(!firstReturnNode) {
+                builder.append(" AND ");
+            } else {
+                firstReturnNode = false;
+            }
+            builder.append("id(" + solutionElement.getKey() + ")=" + solutionElement.getValue());
+        }
+        builder.append(Main.EXPERIMENT_QUERY_SUFFIX);
+        return builder.toString();
     }
 }

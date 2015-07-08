@@ -2,10 +2,13 @@ package se.simonevertsson.gpu;
 
 import com.nativelibs4java.opencl.CLBuffer;
 import org.bridj.Pointer;
+import org.neo4j.graphdb.Node;
 import se.simonevertsson.Main;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class QueryUtils {
 
@@ -235,5 +238,31 @@ public class QueryUtils {
         }
 
         return validationQueries;
+    }
+
+    public static List<QuerySolution> generateQuerySolutions(QueryKernels queryKernels, QueryContext queryContext, CLBuffer<Integer> solutionsBuffer) {
+        ArrayList<QuerySolution> results = new ArrayList<QuerySolution>();
+        List<Map.Entry<String, Integer>> solutionElements = null;
+
+        if(solutionsBuffer != null) {
+            Pointer<Integer> solutionsPointer = solutionsBuffer.read(queryKernels.queue);
+            int solutionCount = (int) (solutionsBuffer.getElementCount() / queryContext.queryNodeCount);
+
+
+            for (int i = 0; i < solutionCount * queryContext.queryNodeCount; i++) {
+                if (i % queryContext.queryNodeCount == 0) {
+                    solutionElements = new ArrayList<Map.Entry<String, Integer>>();
+                }
+
+                String alias = queryContext.queryGraph.aliasDictionary.getAliasForId(i % queryContext.queryNodeCount);
+                int nodeId = solutionsPointer.get(i);
+                solutionElements.add(new AbstractMap.SimpleEntry<String, Integer>(alias, nodeId));
+                if (i % queryContext.queryNodeCount == queryContext.queryNodeCount - 1) {
+                    results.add(new QuerySolution(solutionElements));
+                }
+            }
+        }
+
+        return results;
     }
 }

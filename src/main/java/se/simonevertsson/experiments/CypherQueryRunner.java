@@ -1,7 +1,8 @@
 package se.simonevertsson.experiments;
 
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
-import se.simonevertsson.Main;
+import org.neo4j.graphdb.Transaction;
 import se.simonevertsson.db.DatabaseService;
 import se.simonevertsson.gpu.QuerySolution;
 
@@ -12,16 +13,26 @@ import java.util.*;
  */
 public class CypherQueryRunner {
 
-    public List<QuerySolution> runCypherQuery(DatabaseService dbService, String query) {
+    public List<QuerySolution> runCypherQueryForSolutions(DatabaseService dbService, String query) {
         System.out.println("Starting CypherQueryRunner");
         long tick = System.currentTimeMillis();
-        Result result = dbService.excuteCypherQueryWithinTransaction(query);
-        long tock = System.currentTimeMillis();
+
+        Transaction tx = dbService.beginTx();
+        List<QuerySolution> querySolutions;
+        try {
+            Result result = dbService.excuteCypherQuery(query);
+
+            long tock = System.currentTimeMillis();
+            System.out.println("CypherQueryRunner runtime: " + (tock - tick) + "ms");
+
+            querySolutions = handleResult(result);
+            tx.success();
+        } finally {
+            tx.close();
+        }
 
 
-
-        System.out.println("CypherQueryRunner runtime: " + (tock-tick) + "ms");
-        return handleResult(result);
+        return querySolutions;
     }
 
     private List<QuerySolution> handleResult(Result result) {
@@ -34,9 +45,10 @@ public class CypherQueryRunner {
             solutionElements = new ArrayList<Map.Entry<String, Integer>>();
 
             Map<String,Object> row = result.next();
-            for ( Map.Entry<String,Object> column : row.entrySet() )
+            for ( String key : result.columns() )
             {
-                Map.Entry<String, Integer> solutionElement = new AbstractMap.SimpleEntry<String, Integer>(column.getKey(), (Integer) column.getValue());
+                Node resultNode = ((Node) row.get(key));
+                Map.Entry<String, Integer> solutionElement = new AbstractMap.SimpleEntry<String, Integer>(key, (int) resultNode.getId());
                 solutionElements.add(solutionElement);
             }
             QuerySolution querySolution = new QuerySolution(solutionElements);
@@ -59,6 +71,7 @@ public class CypherQueryRunner {
 //            builder.append(Main.EXPERIMENT_QUERY_SUFFIX);
 //            results.add(builder.toString());
         }
+        result.close();
        return results;
     }
 }

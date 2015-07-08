@@ -49,8 +49,8 @@ public class CandidateRelationshipJoiner {
                     int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
 
                     if (startNodeVisisted && endNodeVisisted) {
-                        System.out.println("Pruning with relationship " + candidateRelationships.getRelationship().getStartNode().getId() + " --> " +
-                                candidateRelationships.getRelationship().getEndNode().getId());
+//                        System.out.println("Pruning with relationship " + candidateRelationships.getRelationship().getStartNode().getId() + " --> " +
+//                                candidateRelationships.getRelationship().getEndNode().getId());
                         /* Prune existing possible solutions */
                         CLBuffer<Boolean> validationIndicators = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
 
@@ -75,8 +75,8 @@ public class CandidateRelationshipJoiner {
                         visitedQueryRelationships.add(relationshipId);
 
                     } else if (startNodeVisisted || endNodeVisisted) {
-                        System.out.println("Combining with relationship " + candidateRelationships.getRelationship().getStartNode().getId() + " --> " +
-                                candidateRelationships.getRelationship().getEndNode().getId());
+//                        System.out.println("Combining with relationship " + candidateRelationships.getRelationship().getStartNode().getId() + " --> " +
+//                                candidateRelationships.getRelationship().getEndNode().getId());
 
                         /* Combine candidate edges with existing possible solutions */
                         Pointer<Integer> combinationCountsPointer = this.solutionCombinationCounter.countSolutionCombinations(
@@ -110,7 +110,7 @@ public class CandidateRelationshipJoiner {
                     }
                 }
             }
-            System.out.println("Retruwgwe");
+//            System.out.println("Retruwgwe");
         }
 
         return possibleSolutions;

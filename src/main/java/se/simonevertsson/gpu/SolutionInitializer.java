@@ -31,8 +31,8 @@ public class SolutionInitializer {
         visitedQueryNodes.add(initialCandidateRelationships.getQueryStartNodeId());
         visitedQueryNodes.add(initialCandidateRelationships.getQueryEndNodeId());
 
-        System.out.println("Initial possible solutions");
-        System.out.println(Arrays.toString(initialPossibleSolutionsArray));
+//        System.out.println("Initial possible solutions");
+//        System.out.println(Arrays.toString(initialPossibleSolutionsArray));
 
         return possiblePartialSolutions;
     }
