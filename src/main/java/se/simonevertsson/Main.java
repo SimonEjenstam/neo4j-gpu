@@ -111,6 +111,9 @@ public class Main {
 
         /* Validate solutions */
         validateQuerySolutions(databaseService, results);
+
+
+        compareQuerySolutions(cypherQueryResult, results);
 //
 //        Set<String> newResults = new HashSet<String>(uniqueResults);
 //
@@ -122,6 +125,29 @@ public class Main {
 //        databaseService.deleteData();
         databaseService.shutdown();
         System.out.println("foo");
+    }
+
+    private static void compareQuerySolutions(List<QuerySolution> cypherQueryResult, List<QuerySolution> gpuQueryResult) {
+        int missingCypherSolutions = 0;
+        for(QuerySolution gpuSolution : gpuQueryResult) {
+            if(!cypherQueryResult.contains(gpuSolution)) {
+                missingCypherSolutions++;
+                System.out.println("Cypher result does not contain GPU solution below");
+                System.out.println(gpuSolution);
+            }
+        }
+
+        int missingGpuSolutions = 0;
+        for(QuerySolution cypherSolution : cypherQueryResult) {
+            if(!gpuQueryResult.contains(cypherSolution)) {
+                missingGpuSolutions++;
+                System.out.println("GPU result does not contain Cypher solution below");
+                System.out.println(cypherSolution);
+            }
+        }
+
+        System.out.println("Missing Cypher solution count: " + missingCypherSolutions);
+        System.out.println("Missing GPU solution count: " + missingGpuSolutions);
     }
 
 

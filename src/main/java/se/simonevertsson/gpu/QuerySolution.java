@@ -53,4 +53,28 @@ public class QuerySolution {
         builder.append(Main.EXPERIMENT_QUERY_SUFFIX);
         return builder.toString();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof QuerySolution) {
+            QuerySolution that = (QuerySolution) obj;
+            if(this.solution.size() != that.solution.size()) {
+                return false;
+            }
+
+            for(Map.Entry<String, Integer> thisSolutionElement : this.solution) {
+
+                boolean matchFound = false;
+                for(Map.Entry<String, Integer> thatSolutionElement : that.solution) {
+                    if(thisSolutionElement.getKey().compareTo(thatSolutionElement.getKey()) == 0) {
+                        if(thisSolutionElement.getValue() != thatSolutionElement.getValue()) {
+                            return false;
+                        }
+                    }
+                }
+
+            }
+        }
+        return true;
+    }
 }
