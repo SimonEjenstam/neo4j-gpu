@@ -24,8 +24,8 @@ public class GpuQueryRunner {
         tick = System.currentTimeMillis();
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
-        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
-//        QueryGraph queryGraph = QueryGraphGenerator.generateTriangleMockQueryGraph();
+//        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
+        QueryGraph queryGraph = QueryGraphGenerator.generateTriangleMockQueryGraph();
 
         GpuGraphModel gpuData = convertData(databaseService, labelDictionary, typeDictionary);
         GpuGraphModel gpuQuery = convertQuery(labelDictionary, typeDictionary, queryGraph);

@@ -56,25 +56,27 @@ public class QuerySolution {
 
     @Override
     public boolean equals(Object obj) {
+        boolean result = false;
         if(obj instanceof QuerySolution) {
             QuerySolution that = (QuerySolution) obj;
-            if(this.solution.size() != that.solution.size()) {
-                return false;
-            }
-
-            for(Map.Entry<String, Integer> thisSolutionElement : this.solution) {
-
-                boolean matchFound = false;
-                for(Map.Entry<String, Integer> thatSolutionElement : that.solution) {
-                    if(thisSolutionElement.getKey().compareTo(thatSolutionElement.getKey()) == 0) {
-                        if(thisSolutionElement.getValue() != thatSolutionElement.getValue()) {
-                            return false;
+            if(this.solution.size() == that.solution.size()) {
+                for (Map.Entry<String, Integer> thisSolutionElement : this.solution) {
+                    boolean matchFound = false;
+                    for (Map.Entry<String, Integer> thatSolutionElement : that.solution) {
+                        if (thisSolutionElement.getKey().compareTo(thatSolutionElement.getKey()) == 0) {
+                            if (thisSolutionElement.getValue().intValue() == thatSolutionElement.getValue().intValue()) {
+                                matchFound = true;
+                                break;
+                            }
                         }
                     }
+                    if(!matchFound) {
+                        return false;
+                    }
                 }
-
+                result = true;
             }
         }
-        return true;
+        return result;
     }
 }

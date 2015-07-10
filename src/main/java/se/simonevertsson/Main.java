@@ -18,8 +18,9 @@ import java.util.Set;
 public class Main {
 
     public static final String TEST_DB_PATH = "target/foo";
-    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon\\Documents\\Neo4j\\drwho";
-    public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon\\Documents\\Neo4j";
+//    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
+public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
+    public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j";
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH (a1),(b2),(a3),(c4)" +
 //            "WHERE (a3)<--(a1)-->(b2) AND (a3)<--(b2)-->(c4)<--(a3)" +
@@ -44,29 +45,29 @@ public class Main {
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH (A1)-->(B2), (A1)-->(A3), (B2)-->(A3), (B2)-->(C4), (A3)-->(C4) RETURN A1, B2, A3, C4;";
 
-    public static final String EXPERIMENT_QUERY_PREFIX =
-            "MATCH (A1)-->(B2), (A1)-->(A3), (B2)-->(A3), (B2)-->(C4), (A3)-->(C4)";
-
-    public static final String EXPERIMENT_QUERY_SUFFIX =
-            " RETURN A1, B2, A3, C4;";
-
-
 //    public static final String EXPERIMENT_QUERY_PREFIX =
-//            "MATCH " +
-//                    "(A)-->(B)," +
-//                    "(A)-->(C)," +
-//                    "(B)-->(C)";
+//            "MATCH (A1)-->(B2), (A1)-->(A3), (B2)-->(A3), (B2)-->(C4), (A3)-->(C4)";
 //
 //    public static final String EXPERIMENT_QUERY_SUFFIX =
-//            " RETURN A,B,C";
-//
-//
-//    public static final String EXPERIMENT_QUERY =
-//            "MATCH " +
-//                    "(A)-->(B)," +
-//                    "(A)-->(C)," +
-//                    "(B)-->(C)" +
-//                    "RETURN A,B,C";
+//            " RETURN A1, B2, A3, C4;";
+
+
+    public static final String EXPERIMENT_QUERY_PREFIX =
+            "MATCH " +
+                    "(A)-->(B)," +
+                    "(A)-->(C)," +
+                    "(B)-->(C)";
+
+    public static final String EXPERIMENT_QUERY_SUFFIX =
+            " RETURN A,B,C";
+
+
+    public static final String EXPERIMENT_QUERY =
+            "MATCH " +
+                    "(A)-->(B)," +
+                    "(A)-->(C)," +
+                    "(B)-->(C)" +
+                    "RETURN A,B,C";
 
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH " +
@@ -83,9 +84,12 @@ public class Main {
 
 
 
+
+
+
         /* Cypher query run */
         CypherQueryRunner cypherQueryRunner = new CypherQueryRunner();
-        List<QuerySolution> cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService,EXPERIMENT_QUERY_PREFIX + EXPERIMENT_QUERY_SUFFIX);
+        List<QuerySolution> cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService, EXPERIMENT_QUERY_PREFIX + EXPERIMENT_QUERY_SUFFIX);
         Set<String> uniqueCypherResults = new HashSet<String>();
         for(QuerySolution solution : cypherQueryResult) {
 //            System.out.println(solution);
@@ -97,17 +101,17 @@ public class Main {
         validateQuerySolutions(databaseService, cypherQueryResult);
 //        System.out.println(cypherQueryResult);
 
-        /* GPU query run */
-        GpuQueryRunner gpuQueryRunner = new GpuQueryRunner();
-        List<QuerySolution> results = gpuQueryRunner.runGpuQuery(databaseService);
+     /* GPU query run */
+            GpuQueryRunner gpuQueryRunner = new GpuQueryRunner();
+            List<QuerySolution> results = gpuQueryRunner.runGpuQuery(databaseService);
 
         Set<String> uniqueResults = new HashSet<String>();
-        for(QuerySolution solution : results) {
-//            System.out.println(solution);
-            uniqueResults.add(solution.toString());
-        }
-        System.out.println("Number of solutions: " + results.size());
-        System.out.println("Unique results count: " + uniqueResults.size());
+            for(QuerySolution solution : results) {
+    //            System.out.println(solution);
+                uniqueResults.add(solution.toString());
+            }
+            System.out.println("Number of solutions: " + results.size());
+            System.out.println("Unique results count: " + uniqueResults.size());
 
         /* Validate solutions */
         validateQuerySolutions(databaseService, results);
@@ -152,8 +156,7 @@ public class Main {
 
 
     private static void validateSolutions(DatabaseService databaseService, List<String> results) {
-//        Transaction tx = databaseService.beginTx();
-        try {
+        try(Transaction tx = databaseService.beginTx()) {
             int invalidSolutions = 0;
             for (String result : results) {
                 Result queryResult = databaseService.excuteCypherQuery(result);
@@ -164,20 +167,18 @@ public class Main {
                 }
                 queryResult.close();
             }
-//            tx.success();
+
             if (invalidSolutions == 0) {
                 System.out.println("All solutions were valid");
             } else {
                 System.out.println(invalidSolutions + " solutions were invalid");
             }
-        } finally {
-//            tx.close();
+            tx.success();
         }
     }
 
     private static void validateQuerySolutions(DatabaseService databaseService, List<QuerySolution> results) {
-//        Transaction tx = databaseService.beginTx();
-        try {
+        try(Transaction tx = databaseService.beginTx()) {
             int invalidSolutions = 0;
             for (QuerySolution querySolution : results) {
                 Result queryResult = databaseService.excuteCypherQuery(querySolution.toString());
@@ -188,14 +189,13 @@ public class Main {
                 }
                 queryResult.close();
             }
-//            tx.success()
+
             if (invalidSolutions == 0) {
                 System.out.println("All solutions were valid");
             } else {
                 System.out.println(invalidSolutions + " solutions were invalid");
             }
-        } finally {
-//            tx.close();
+            tx.success();
         }
     }
 

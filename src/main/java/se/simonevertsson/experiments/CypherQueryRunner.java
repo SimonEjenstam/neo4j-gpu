@@ -17,9 +17,9 @@ public class CypherQueryRunner {
         System.out.println("Starting CypherQueryRunner");
         long tick = System.currentTimeMillis();
 
-        Transaction tx = dbService.beginTx();
+
         List<QuerySolution> querySolutions;
-        try {
+        try(Transaction tx = dbService.beginTx()) {
             Result result = dbService.excuteCypherQuery(query);
 
             long tock = System.currentTimeMillis();
@@ -27,8 +27,6 @@ public class CypherQueryRunner {
 
             querySolutions = handleResult(result);
             tx.success();
-        } finally {
-            tx.close();
         }
 
 
