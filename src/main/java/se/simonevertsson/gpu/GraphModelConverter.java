@@ -17,27 +17,33 @@ public class GraphModelConverter {
     private ArrayList<Integer> relationshipIndices;
     private ArrayList<Integer> nodeRelationships;
     private ArrayList<Integer> relationshipTypes;
+    private QueryIdDictionary queryIdDictionary;
 
 
     public GraphModelConverter(Iterable<Node> nodes, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
         this.nodes = nodes;
         this.labelDictionary = labelDictionary;
         this.typeDictionary = typeDictionary;
+        this.queryIdDictionary = new QueryIdDictionary();
     }
 
     public GpuGraphModel convert() {
         initializeLists();
+        for(Node node : nodes) {
+            queryIdDictionary.add(node.getId());
+        }
+
 
         int currentLabelIndex = 0;
         int currentRelationshipIndex = 0;
-        for(Node sourceNode : nodes) {
-            currentLabelIndex = addLabels(currentLabelIndex, sourceNode);
-            currentRelationshipIndex = addRelationships(currentRelationshipIndex, sourceNode);
+        for(Node startNode : nodes) {
+            currentLabelIndex = addLabels(currentLabelIndex, startNode);
+            currentRelationshipIndex = addRelationships(currentRelationshipIndex, startNode);
         }
 
         appendLastIndexIfNotEmpty(labelIndices, currentLabelIndex);
         appendLastIndexIfNotEmpty(relationshipIndices, currentRelationshipIndex);
-        return new GpuGraphModel(labelIndices, nodeLabels, relationshipIndices, nodeRelationships, relationshipTypes);
+        return new GpuGraphModel(labelIndices, nodeLabels, relationshipIndices, nodeRelationships, relationshipTypes, queryIdDictionary);
     }
 
     private int addRelationships(int currentRelationshipIndex, Node sourceNode) {
@@ -67,7 +73,8 @@ public class GraphModelConverter {
     private int addRelationships(Iterable<Relationship> nodeRelationships) {
         int relationshipCount = 0;
         for(Relationship nodeRelationship : nodeRelationships) {
-            this.nodeRelationships.add((int)nodeRelationship.getEndNode().getId());
+            int endNodeQueryId = this.queryIdDictionary.getQueryId(nodeRelationship.getEndNode().getId());
+            this.nodeRelationships.add(endNodeQueryId);
             if(nodeRelationship.getType() != null) {
                 int relationshipTypeId = this.typeDictionary.insertType(nodeRelationship.getType().name());
                 this.relationshipTypes.add(relationshipTypeId);

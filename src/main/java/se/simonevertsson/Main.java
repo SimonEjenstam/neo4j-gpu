@@ -18,9 +18,9 @@ import java.util.Set;
 public class Main {
 
     public static final String TEST_DB_PATH = "target/foo";
-//    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
-public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
-    public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j";
+    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
+//    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon\\Documents\\Neo4j\\drwho";
+    public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon\\Documents\\Neo4j";
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH (a1),(b2),(a3),(c4)" +
 //            "WHERE (a3)<--(a1)-->(b2) AND (a3)<--(b2)-->(c4)<--(a3)" +
@@ -42,32 +42,32 @@ public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documen
 //                    "RETURN id(a1), id(b2), id(a3), id(c4);";
 
 
-//    public static final String EXPERIMENT_QUERY =
-//            "MATCH (A1)-->(B2), (A1)-->(A3), (B2)-->(A3), (B2)-->(C4), (A3)-->(C4) RETURN A1, B2, A3, C4;";
-
-//    public static final String EXPERIMENT_QUERY_PREFIX =
-//            "MATCH (A1)-->(B2), (A1)-->(A3), (B2)-->(A3), (B2)-->(C4), (A3)-->(C4)";
-//
-//    public static final String EXPERIMENT_QUERY_SUFFIX =
-//            " RETURN A1, B2, A3, C4;";
-
+    public static final String EXPERIMENT_QUERY =
+            "MATCH (A1)-->(B2), (A1)-->(A3), (B2)-->(A3), (B2)-->(C4), (A3)-->(C4) RETURN A1, B2, A3, C4;";
 
     public static final String EXPERIMENT_QUERY_PREFIX =
-            "MATCH " +
-                    "(A)-->(B)," +
-                    "(A)-->(C)," +
-                    "(B)-->(C)";
+            "MATCH (A1)-->(B2), (A1)-->(A3), (B2)-->(A3), (B2)-->(C4), (A3)-->(C4)";
 
     public static final String EXPERIMENT_QUERY_SUFFIX =
-            " RETURN A,B,C";
+            " RETURN A1, B2, A3, C4;";
 
 
-    public static final String EXPERIMENT_QUERY =
-            "MATCH " +
-                    "(A)-->(B)," +
-                    "(A)-->(C)," +
-                    "(B)-->(C)" +
-                    "RETURN A,B,C";
+//    public static final String EXPERIMENT_QUERY_PREFIX =
+//            "MATCH " +
+//                    "(A)-->(B)," +
+//                    "(A)-->(C)," +
+//                    "(B)-->(C)";
+//
+//    public static final String EXPERIMENT_QUERY_SUFFIX =
+//            " RETURN A,B,C";
+//
+//
+//    public static final String EXPERIMENT_QUERY =
+//            "MATCH " +
+//                    "(A)-->(B)," +
+//                    "(A)-->(C)," +
+//                    "(B)-->(C)" +
+//                    "RETURN A,B,C";
 
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH " +
@@ -92,41 +92,31 @@ public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documen
         List<QuerySolution> cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService, EXPERIMENT_QUERY_PREFIX + EXPERIMENT_QUERY_SUFFIX);
         Set<String> uniqueCypherResults = new HashSet<String>();
         for(QuerySolution solution : cypherQueryResult) {
-//            System.out.println(solution);
             uniqueCypherResults.add(solution.toString());
         }
         System.out.println("Cypher solution count: " + cypherQueryResult.size());
         System.out.println("Number of unique rows: " + uniqueCypherResults.size());
 
         validateQuerySolutions(databaseService, cypherQueryResult);
-//        System.out.println(cypherQueryResult);
 
      /* GPU query run */
             GpuQueryRunner gpuQueryRunner = new GpuQueryRunner();
             List<QuerySolution> results = gpuQueryRunner.runGpuQuery(databaseService);
 
         Set<String> uniqueResults = new HashSet<String>();
-            for(QuerySolution solution : results) {
-    //            System.out.println(solution);
-                uniqueResults.add(solution.toString());
-            }
-            System.out.println("Number of solutions: " + results.size());
-            System.out.println("Unique results count: " + uniqueResults.size());
+        for(QuerySolution solution : results) {
+            uniqueResults.add(solution.toString());
+        }
+        System.out.println("Number of solutions: " + results.size());
+        System.out.println("Unique results count: " + uniqueResults.size());
 
         /* Validate solutions */
         validateQuerySolutions(databaseService, results);
 
 
         compareQuerySolutions(cypherQueryResult, results);
-//
-//        Set<String> newResults = new HashSet<String>(uniqueResults);
-//
-//        newResults.removeAll(uniqueCypherResults);
-//        System.out.println(newResults);
-//        System.out.println("New results count: " + newResults.size());
 
         /* Tear down database */
-//        databaseService.deleteData();
         databaseService.shutdown();
         System.out.println("foo");
     }
@@ -154,37 +144,12 @@ public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documen
         System.out.println("Missing GPU solution count: " + missingGpuSolutions);
     }
 
-
-    private static void validateSolutions(DatabaseService databaseService, List<String> results) {
-        try(Transaction tx = databaseService.beginTx()) {
-            int invalidSolutions = 0;
-            for (String result : results) {
-                Result queryResult = databaseService.excuteCypherQuery(result);
-                if (!queryResult.hasNext()) {
-                    System.out.println("Solution below yielded no results (invalid)");
-                    System.out.println(result);
-                    invalidSolutions++;
-                }
-                queryResult.close();
-            }
-
-            if (invalidSolutions == 0) {
-                System.out.println("All solutions were valid");
-            } else {
-                System.out.println(invalidSolutions + " solutions were invalid");
-            }
-            tx.success();
-        }
-    }
-
     private static void validateQuerySolutions(DatabaseService databaseService, List<QuerySolution> results) {
         try(Transaction tx = databaseService.beginTx()) {
             int invalidSolutions = 0;
             for (QuerySolution querySolution : results) {
                 Result queryResult = databaseService.excuteCypherQuery(querySolution.toString());
                 if (!queryResult.hasNext()) {
-                    //                System.out.println("Solution below yielded no results (invalid)");
-                    //                System.out.println(querySolution);
                     invalidSolutions++;
                 }
                 queryResult.close();

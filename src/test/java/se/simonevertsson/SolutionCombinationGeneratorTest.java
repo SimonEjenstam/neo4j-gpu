@@ -44,7 +44,7 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         /******* Relationship candidates 1 *********/
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, this.mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), this.mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -73,7 +73,7 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         /******* Relationship candidates 2 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
-        candidateRelationships = new CandidateRelationships(queryRelationship, this.mockQuery.queryKernels);
+        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 0,1
@@ -103,7 +103,7 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         /******* Relationship candidates 3 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
-        candidateRelationships = new CandidateRelationships(queryRelationship, this.mockQuery.queryKernels);
+        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 1,2

@@ -12,8 +12,10 @@ public class CandidateChecker {
     private final QueryBuffers queryBuffers;
     private final DataBuffers dataBuffers;
     private final int dataNodeCount;
+    private final QueryContext queryContext;
 
-    public CandidateChecker(QueryKernels queryKernels, BufferContainer bufferContainer, int dataNodeCount) {
+    public CandidateChecker(QueryContext queryContext, QueryKernels queryKernels, BufferContainer bufferContainer, int dataNodeCount) {
+        this.queryContext = queryContext;
         this.queryKernels = queryKernels;
         this.queryBuffers = bufferContainer.queryBuffers;
         this.dataBuffers = bufferContainer.dataBuffers;
@@ -21,8 +23,10 @@ public class CandidateChecker {
     }
 
     public void checkCandidates(GpuGraphModel gpuQuery, Node queryNode) throws IOException {
-        int queryLabelStartIndex = gpuQuery.getLabelIndices()[((int) queryNode.getId())];
-        int queryLabelEndIndex = gpuQuery.getLabelIndices()[((int) queryNode.getId()) + 1];
+        int queryNodeId = this.queryContext.gpuQuery.getQueryIdDictionary().getQueryId(queryNode.getId());
+
+        int queryLabelStartIndex = gpuQuery.getLabelIndices()[queryNodeId];
+        int queryLabelEndIndex = gpuQuery.getLabelIndices()[queryNodeId + 1];
         int queryNodeDegree = queryNode.getDegree(Direction.OUTGOING);
         int[] globalSizes = new int[]{ this.dataNodeCount };
 
@@ -30,7 +34,7 @@ public class CandidateChecker {
         CLEvent checkCandidatesEvent = this.queryKernels.checkCandidatesKernel.check_candidates(
                 this.queryKernels.queue,
                 this.queryBuffers.queryNodeLabelsBuffer,
-                (int) queryNode.getId(),
+                queryNodeId,
                 queryLabelStartIndex,
                 queryLabelEndIndex,
                 queryNodeDegree,

@@ -49,8 +49,6 @@ public class CandidateRelationshipJoiner {
                     int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
 
                     if (startNodeVisisted && endNodeVisisted) {
-//                        System.out.println("Pruning with relationship " + candidateRelationships.getRelationship().getStartNode().getId() + " --> " +
-//                                candidateRelationships.getRelationship().getEndNode().getId());
                         /* Prune existing possible solutions */
                         CLBuffer<Boolean> validationIndicators = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
 
@@ -68,16 +66,9 @@ public class CandidateRelationshipJoiner {
                                 outputIndexArray);
 
                         possibleSolutions = prunedPossibleSolutions;
-
-//                        System.out.println("Possible solutions after pruning step");
-//                        QueryUtils.printPossibleSolutionsMatrix(possibleSolutions.read(this.queryKernels.queue), this.queryContext.queryNodeCount);
-
                         visitedQueryRelationships.add(relationshipId);
 
                     } else if (startNodeVisisted || endNodeVisisted) {
-//                        System.out.println("Combining with relationship " + candidateRelationships.getRelationship().getStartNode().getId() + " --> " +
-//                                candidateRelationships.getRelationship().getEndNode().getId());
-
                         /* Combine candidate edges with existing possible solutions */
                         Pointer<Integer> combinationCountsPointer = this.solutionCombinationCounter.countSolutionCombinations(
                                 possibleSolutions,
@@ -92,14 +83,7 @@ public class CandidateRelationshipJoiner {
                                 startNodeVisisted,
                                 combinationIndices);
 
-//                        System.out.println("Combination indices");
-//                        System.out.println(Arrays.toString(combinationIndices));
-
                         possibleSolutions = newPossibleSolutions;
-//
-//                        System.out.println("Possible solutions after combination step");
-//                        QueryUtils.printPossibleSolutionsMatrix(possibleSolutions.read(this.queryKernels.queue), this.queryContext.queryNodeCount);
-
 
                         visitedQueryRelationships.add(relationshipId);
                         if (startNodeVisisted) {
@@ -110,7 +94,6 @@ public class CandidateRelationshipJoiner {
                     }
                 }
             }
-//            System.out.println("Retruwgwe");
         }
 
         return possibleSolutions;

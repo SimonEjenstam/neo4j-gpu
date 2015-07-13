@@ -255,7 +255,8 @@ public class QueryUtils {
                 }
 
                 String alias = queryContext.queryGraph.aliasDictionary.getAliasForId(i % queryContext.queryNodeCount);
-                int nodeId = solutionsPointer.get(i);
+                int queryNodeId = solutionsPointer.get(i);
+                int nodeId = (int) queryContext.gpuData.getQueryIdDictionary().getId(queryNodeId);
                 solutionElements.add(new AbstractMap.SimpleEntry<String, Integer>(alias, nodeId));
                 if (i % queryContext.queryNodeCount == queryContext.queryNodeCount - 1) {
                     results.add(new QuerySolution(solutionElements));

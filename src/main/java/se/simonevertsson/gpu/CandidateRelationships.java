@@ -13,6 +13,7 @@ public class CandidateRelationships {
 
     private final Relationship relationship;
     private final QueryKernels queryKernels;
+    private final QueryIdDictionary queryIdDictionary;
     private CLBuffer<Integer> candidateEndNodeIndices;
     private CLBuffer<Integer> candidateEndNodes;
     private CLBuffer<Integer> candidateStartNodes;
@@ -20,8 +21,9 @@ public class CandidateRelationships {
     private int startNodeCount;
 
 
-    public CandidateRelationships(Relationship relationship, QueryKernels queryKernels) {
+    public CandidateRelationships(Relationship relationship, QueryIdDictionary queryIdDictionary, QueryKernels queryKernels) {
         this.relationship = relationship;
+        this.queryIdDictionary = queryIdDictionary;
         this.queryKernels = queryKernels;
     }
 
@@ -51,11 +53,11 @@ public class CandidateRelationships {
     }
 
     public int getQueryStartNodeId() {
-        return (int) this.relationship.getStartNode().getId();
+        return this.queryIdDictionary.getQueryId(this.relationship.getStartNode().getId());
     }
 
     public int getQueryEndNodeId() {
-        return (int) this.relationship.getEndNode().getId();
+        return this.queryIdDictionary.getQueryId(this.relationship.getEndNode().getId());
     }
 
     public int getEndNodeCount() {
@@ -80,9 +82,9 @@ public class CandidateRelationships {
         builder.append("Candidate relationships for query relationship ");
         builder.append(this.relationship.getId());
         builder.append(" ( ");
-        builder.append(this.relationship.getStartNode().getId());
+        builder.append(this.queryIdDictionary.getQueryId(this.relationship.getStartNode().getId()));
         builder.append(" --> ");
-        builder.append(this.relationship.getEndNode().getId());
+        builder.append(this.queryIdDictionary.getQueryId(this.relationship.getEndNode().getId()));
         builder.append(" )\n");
 
         builder.append("Start nodes: ");

@@ -12,8 +12,10 @@ public class CandidateRefinement {
     private final int queryNodeCount;
     private final int dataNodeCount;
     private final CandidateRefinery candidateRefinery;
+    private final QueryContext queryContext;
 
     public CandidateRefinement(QueryContext queryContext, QueryKernels queryKernels, BufferContainer bufferContainer) {
+        this.queryContext = queryContext;
         this.queryBuffers = bufferContainer.queryBuffers;
         this.queryNodeCount = queryContext.queryNodeCount;
         this.dataNodeCount = queryContext.dataNodeCount;
@@ -25,17 +27,16 @@ public class CandidateRefinement {
         boolean candidateIndicatorsHasChanged = true;
         while (candidateIndicatorsHasChanged) {
             for (Node queryNode : visitOrder) {
-                int[] candidateArray = QueryUtils.gatherCandidateArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount, (int) queryNode.getId());
+                int queryNodeId = this.queryContext.gpuQuery.getQueryIdDictionary().getQueryId(queryNode.getId());
+                int[] candidateArray = QueryUtils.gatherCandidateArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount, queryNodeId);
                 if (candidateArray.length > 0) {
-                    this.candidateRefinery.refineCandidates((int) queryNode.getId(), candidateArray);
+                    this.candidateRefinery.refineCandidates(queryNodeId, candidateArray);
                 } else {
-                    throw new IllegalStateException("Candidate refinement yielded no candidates for query node " + queryNode.getId());
+                    throw new IllegalStateException("Candidate refinement yielded no candidates for query node " + queryNodeId);
                 }
             }
 
             boolean[] newCandidateIndicators = QueryUtils.pointerBooleanToArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
-//            System.out.println("Candidate indicators after refinement");
-//            QueryUtils.printCandidateIndicatorMatrix(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount);
 
             candidateIndicatorsHasChanged = !Arrays.equals(oldCandidateIndicators, newCandidateIndicators);
             oldCandidateIndicators = newCandidateIndicators;

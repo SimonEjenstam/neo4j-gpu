@@ -24,18 +24,14 @@ public class GpuQueryRunner {
         tick = System.currentTimeMillis();
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
-//        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
-        QueryGraph queryGraph = QueryGraphGenerator.generateTriangleMockQueryGraph();
+        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
+//        QueryGraph queryGraph = QueryGraphGenerator.generateTriangleMockQueryGraph();
 
         GpuGraphModel gpuData = convertData(databaseService, labelDictionary, typeDictionary);
         GpuGraphModel gpuQuery = convertQuery(labelDictionary, typeDictionary, queryGraph);
         tock = System.currentTimeMillis();
 
         System.out.println("GPU Data conversion runtime: " + (tock-tick) + "ms");
-//        System.out.println("------Query-----");
-//        System.out.println(gpuQuery.toString());
-//        System.out.println("------Data-----");
-//        System.out.println(gpuData.toString());
 
         /* Execute the query */
         QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph, labelDictionary, typeDictionary);
@@ -43,11 +39,6 @@ public class GpuQueryRunner {
         tick = System.currentTimeMillis();
         List<QuerySolution> results = gpuGraphQuery.executeQuery(queryGraph.visitOrder);
         tock = System.currentTimeMillis();
-
-//        for(String result : results) {
-//            System.out.println(result);
-//        }
-//        System.out.println("Number of solutions: " + results.size());
 
         System.out.println("GPU Query runtime: " + (tock - tick) + "ms");
 

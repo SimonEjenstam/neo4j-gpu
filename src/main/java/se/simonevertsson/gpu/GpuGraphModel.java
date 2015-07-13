@@ -4,12 +4,13 @@ import org.apache.lucene.util.ArrayUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 
 /**
  * Created by simon on 2015-05-12.
  */
 public class GpuGraphModel {
+
+    private QueryIdDictionary queryIdDictionary;
 
     private int[] labelIndices;
 
@@ -21,12 +22,13 @@ public class GpuGraphModel {
 
     private int[] relationshipTypes;
 
-    public GpuGraphModel(ArrayList<Integer> labelIndices, ArrayList<Integer> nodeLabels, ArrayList<Integer> relationshipIndices, ArrayList<Integer> nodeRelationships, ArrayList<Integer> relationshipTypes) {
+    public GpuGraphModel(ArrayList<Integer> labelIndices, ArrayList<Integer> nodeLabels, ArrayList<Integer> relationshipIndices, ArrayList<Integer> nodeRelationships, ArrayList<Integer> relationshipTypes, QueryIdDictionary queryIdDictionary) {
         this.labelIndices = ArrayUtil.toIntArray(labelIndices);
         this.nodeLabels = ArrayUtil.toIntArray(nodeLabels);
         this.relationshipIndices = ArrayUtil.toIntArray(relationshipIndices);
         this.nodeRelationships = ArrayUtil.toIntArray(nodeRelationships);
         this.relationshipTypes = ArrayUtil.toIntArray(relationshipTypes);
+        this.queryIdDictionary = queryIdDictionary;
     }
 
     public int[] getNodeLabels() {
@@ -58,5 +60,9 @@ public class GpuGraphModel {
 
     public int[] getRelationshipTypes() {
         return relationshipTypes;
+    }
+
+    public QueryIdDictionary getQueryIdDictionary() {
+        return queryIdDictionary;
     }
 }

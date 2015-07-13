@@ -20,7 +20,7 @@ public class CandidateCheckerTest extends TestCase {
 
         int dataNodeCount = mockQuery.queryContext.dataNodeCount;
         int queryNodeCount = mockQuery.queryContext.queryNodeCount;
-        CandidateChecker candidateChecker = new CandidateChecker(mockQuery.queryKernels, mockQuery.bufferContainer, dataNodeCount);
+        CandidateChecker candidateChecker = new CandidateChecker(mockQuery.queryContext, mockQuery.queryKernels, mockQuery.bufferContainer, dataNodeCount);
         GpuGraphModel query = mockQuery.queryContext.gpuQuery;
 
         Node queryNode = mockQuery.queryContext.queryGraph.nodes.get(0);
@@ -48,7 +48,7 @@ public class CandidateCheckerTest extends TestCase {
 
         int dataNodeCount = mockQuery.queryContext.dataNodeCount;
         int queryNodeCount = mockQuery.queryContext.queryNodeCount;
-        CandidateChecker candidateChecker = new CandidateChecker(mockQuery.queryKernels, mockQuery.bufferContainer, dataNodeCount);
+        CandidateChecker candidateChecker = new CandidateChecker(mockQuery.queryContext, mockQuery.queryKernels, mockQuery.bufferContainer, dataNodeCount);
         GpuGraphModel query = mockQuery.queryContext.gpuQuery;
 
         Node queryNode = mockQuery.queryContext.queryGraph.nodes.get(1);
@@ -77,7 +77,7 @@ public class CandidateCheckerTest extends TestCase {
 
         int dataNodeCount = mockQuery.queryContext.dataNodeCount;
         int queryNodeCount = mockQuery.queryContext.queryNodeCount;
-        CandidateChecker candidateChecker = new CandidateChecker(mockQuery.queryKernels, mockQuery.bufferContainer, dataNodeCount);
+        CandidateChecker candidateChecker = new CandidateChecker(mockQuery.queryContext, mockQuery.queryKernels, mockQuery.bufferContainer, dataNodeCount);
         GpuGraphModel query = mockQuery.queryContext.gpuQuery;
 
         Node queryNode = mockQuery.queryContext.queryGraph.nodes.get(2);
@@ -106,7 +106,7 @@ public class CandidateCheckerTest extends TestCase {
 
         int dataNodeCount = mockQuery.queryContext.dataNodeCount;
         int queryNodeCount = mockQuery.queryContext.queryNodeCount;
-        CandidateChecker candidateChecker = new CandidateChecker(mockQuery.queryKernels, mockQuery.bufferContainer, dataNodeCount);
+        CandidateChecker candidateChecker = new CandidateChecker(mockQuery.queryContext, mockQuery.queryKernels, mockQuery.bufferContainer, dataNodeCount);
         GpuGraphModel query = mockQuery.queryContext.gpuQuery;
 
         Node queryNode = mockQuery.queryContext.queryGraph.nodes.get(3);
