@@ -18,14 +18,18 @@ import java.util.List;
 public class GpuQueryRunner {
 
     public List<QuerySolution> runGpuQuery(DatabaseService databaseService) throws IOException {
+        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
+//        QueryGraph queryGraph = QueryGraphGenerator.generateTriangleMockQueryGraph();
+        return runGpuQuery(databaseService, queryGraph);
+    }
+
+    public List<QuerySolution> runGpuQuery(DatabaseService databaseService, QueryGraph queryGraph) throws IOException {
         long tick, tock;
 
         /* Convert database data and query data to fit the GPU */
         tick = System.currentTimeMillis();
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
-        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
-//        QueryGraph queryGraph = QueryGraphGenerator.generateTriangleMockQueryGraph();
 
         GpuGraphModel gpuData = convertData(databaseService, labelDictionary, typeDictionary);
         GpuGraphModel gpuQuery = convertQuery(labelDictionary, typeDictionary, queryGraph);
@@ -53,8 +57,10 @@ public class GpuQueryRunner {
     }
 
     private GpuGraphModel convertData(DatabaseService databaseService, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
-        ResourceIterable<Node> allNodes = databaseService.getAllNodes();
+        List<Node> allNodes = databaseService.getAllNodes();
         GraphModelConverter graphModelConverter = new GraphModelConverter(allNodes, labelDictionary, typeDictionary);
         return graphModelConverter.convert();
     }
+
+
 }

@@ -3,13 +3,14 @@ package se.simonevertsson.gpu;
 import org.neo4j.graphdb.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by simon on 2015-05-12.
  */
 public class GraphModelConverter {
 
-    private final Iterable<Node> nodes;
+    private final List<Node> nodes;
     private final LabelDictionary labelDictionary;
     private final TypeDictionary typeDictionary;
     private ArrayList<Integer> labelIndices;
@@ -20,7 +21,7 @@ public class GraphModelConverter {
     private QueryIdDictionary queryIdDictionary;
 
 
-    public GraphModelConverter(Iterable<Node> nodes, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
+    public GraphModelConverter(List<Node> nodes, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
         this.nodes = nodes;
         this.labelDictionary = labelDictionary;
         this.typeDictionary = typeDictionary;

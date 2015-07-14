@@ -16,7 +16,7 @@ public class QuerySolutionTest extends TestCase {
 
     public void testEqualsShouldReturnFalseWhenComparedObjectIsNotAQuerySolution() {
         // Given
-        QuerySolution querySolution = new QuerySolution(null);
+        QuerySolution querySolution = new QuerySolution(null,null);
         Integer dummyObject = new Integer(1337);
 
         // When
@@ -38,7 +38,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution querySolution = new QuerySolution(solutionElements);
+        QuerySolution querySolution = new QuerySolution(null, solutionElements);
 
         solutionElementA = new AbstractMap.SimpleEntry<String, Integer>("A", 1);
         solutionElementB = new AbstractMap.SimpleEntry<String, Integer>("B", 2);
@@ -47,7 +47,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementA);
         solutionElements.add(solutionElementB);
 
-        QuerySolution otherQuerySolution = new QuerySolution(solutionElements);
+        QuerySolution otherQuerySolution = new QuerySolution(null, solutionElements);
 
         // When
         boolean firstResult = querySolution.equals(otherQuerySolution);
@@ -69,7 +69,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution querySolution = new QuerySolution(solutionElements);
+        QuerySolution querySolution = new QuerySolution(null, solutionElements);
 
         solutionElementA = new AbstractMap.SimpleEntry<String, Integer>("A", 1);
         solutionElementB = new AbstractMap.SimpleEntry<String, Integer>("B", 2);
@@ -80,7 +80,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution otherQuerySolution = new QuerySolution(solutionElements);
+        QuerySolution otherQuerySolution = new QuerySolution(null, solutionElements);
 
         // When
         boolean firstResult = querySolution.equals(otherQuerySolution);
@@ -102,7 +102,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution querySolution = new QuerySolution(solutionElements);
+        QuerySolution querySolution = new QuerySolution(null, solutionElements);
 
         solutionElementA = new AbstractMap.SimpleEntry<String, Integer>("A", 1);
         solutionElementB = new AbstractMap.SimpleEntry<String, Integer>("B", 2);
@@ -113,7 +113,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution otherQuerySolution = new QuerySolution(solutionElements);
+        QuerySolution otherQuerySolution = new QuerySolution(null, solutionElements);
 
         // When
         boolean firstResult = querySolution.equals(otherQuerySolution);
@@ -135,7 +135,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution querySolution = new QuerySolution(solutionElements);
+        QuerySolution querySolution = new QuerySolution(null, solutionElements);
 
         solutionElementA = new AbstractMap.SimpleEntry<String, Integer>("A", 1);
         solutionElementB = new AbstractMap.SimpleEntry<String, Integer>("B", 2);
@@ -146,7 +146,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution otherQuerySolution = new QuerySolution(solutionElements);
+        QuerySolution otherQuerySolution = new QuerySolution(null, solutionElements);
 
         // When
         boolean firstResult = querySolution.equals(otherQuerySolution);
@@ -168,7 +168,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution querySolution = new QuerySolution(solutionElements);
+        QuerySolution querySolution = new QuerySolution(null, solutionElements);
 
         // When
         boolean result = querySolution.equals(querySolution);
@@ -188,7 +188,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution querySolution = new QuerySolution(solutionElements);
+        QuerySolution querySolution = new QuerySolution(null, solutionElements);
 
         solutionElementA = new AbstractMap.SimpleEntry<String, Integer>("A", 1337);
         solutionElementB = new AbstractMap.SimpleEntry<String, Integer>("B", Integer.MAX_VALUE);
@@ -199,7 +199,7 @@ public class QuerySolutionTest extends TestCase {
         solutionElements.add(solutionElementB);
         solutionElements.add(solutionElementC);
 
-        QuerySolution otherQuerySolution = new QuerySolution(solutionElements);
+        QuerySolution otherQuerySolution = new QuerySolution(null, solutionElements);
 
         // When
         boolean firstResult = querySolution.equals(otherQuerySolution);

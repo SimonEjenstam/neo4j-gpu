@@ -3,6 +3,7 @@ package se.simonevertsson.gpu;
 import org.neo4j.graphdb.Node;
 import se.simonevertsson.Main;
 import se.simonevertsson.query.AliasDictionary;
+import se.simonevertsson.query.QueryGraph;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +16,10 @@ public class QuerySolution {
 
     private List<Map.Entry<String, Integer>> solution;
 
-    public QuerySolution(List<Map.Entry<String, Integer>> solutionElements) {
+    private QueryGraph queryGraph;
+
+    public QuerySolution(QueryGraph queryGraph, List<Map.Entry<String, Integer>> solutionElements) {
+        this.queryGraph = queryGraph;
         this.solution = solutionElements;
     }
 
@@ -38,7 +42,21 @@ public class QuerySolution {
 //            builder.append(", ");
 //        }
 
-        builder.append(Main.EXPERIMENT_QUERY_PREFIX);
+//        builder.append(Main.EXPERIMENT_QUERY_PREFIX);
+//        builder.append(" WHERE ");
+//        boolean firstReturnNode = true;
+//        for ( Map.Entry<String, Integer> solutionElement : this.solution )
+//        {
+//            if(!firstReturnNode) {
+//                builder.append(" AND ");
+//            } else {
+//                firstReturnNode = false;
+//            }
+//            builder.append("id(" + solutionElement.getKey() + ")=" + solutionElement.getValue());
+//        }
+//        builder.append(Main.EXPERIMENT_QUERY_SUFFIX);
+
+        builder.append(this.queryGraph.toCypherQueryStringPrefix());
         builder.append(" WHERE ");
         boolean firstReturnNode = true;
         for ( Map.Entry<String, Integer> solutionElement : this.solution )
@@ -50,7 +68,7 @@ public class QuerySolution {
             }
             builder.append("id(" + solutionElement.getKey() + ")=" + solutionElement.getValue());
         }
-        builder.append(Main.EXPERIMENT_QUERY_SUFFIX);
+        builder.append(this.queryGraph.toCypherQueryStringSuffix());
         return builder.toString();
     }
 

@@ -5,6 +5,7 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import se.simonevertsson.db.DatabaseService;
 import se.simonevertsson.gpu.QuerySolution;
+import se.simonevertsson.query.QueryGraph;
 
 import java.util.*;
 
@@ -13,19 +14,19 @@ import java.util.*;
  */
 public class CypherQueryRunner {
 
-    public List<QuerySolution> runCypherQueryForSolutions(DatabaseService dbService, String query) {
+    public List<QuerySolution> runCypherQueryForSolutions(DatabaseService dbService, QueryGraph queryGraph) {
         System.out.println("Starting CypherQueryRunner");
         long tick = System.currentTimeMillis();
 
 
         List<QuerySolution> querySolutions;
         try(Transaction tx = dbService.beginTx()) {
-            Result result = dbService.excuteCypherQuery(query);
+            Result result = dbService.excuteCypherQuery(queryGraph.toCypherQueryString());
 
             long tock = System.currentTimeMillis();
             System.out.println("CypherQueryRunner runtime: " + (tock - tick) + "ms");
 
-            querySolutions = handleResult(result);
+            querySolutions = handleResult(result, queryGraph);
             tx.success();
         }
 
@@ -33,7 +34,7 @@ public class CypherQueryRunner {
         return querySolutions;
     }
 
-    private List<QuerySolution> handleResult(Result result) {
+    private List<QuerySolution> handleResult(Result result, QueryGraph queryGraph) {
         List<Map.Entry<String, Integer>> solutionElements;
         int resultCount = 0;
         List<String> columns = result.columns();
@@ -49,7 +50,7 @@ public class CypherQueryRunner {
                 Map.Entry<String, Integer> solutionElement = new AbstractMap.SimpleEntry<String, Integer>(key, (int) resultNode.getId());
                 solutionElements.add(solutionElement);
             }
-            QuerySolution querySolution = new QuerySolution(solutionElements);
+            QuerySolution querySolution = new QuerySolution(queryGraph, solutionElements);
             results.add(querySolution);
 //            builder  = new StringBuilder();
 //            resultCount++;

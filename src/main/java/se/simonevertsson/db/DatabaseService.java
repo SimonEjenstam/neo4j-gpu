@@ -8,6 +8,7 @@ import se.simonevertsson.experiments.RelationshipTypes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -53,8 +54,9 @@ public class DatabaseService {
         registerShutdownHook(this.graphDatabase);
     }
 
-    public ResourceIterable<Node> getAllNodes() {
+    public ArrayList<Node> getAllNodes() {
         ResourceIterable<Node> result = null;
+        ArrayList<Node> allNodes = new ArrayList<>();
         try {
             Transaction tx = this.graphDatabase.beginTx();
             result = this.graphOperations.getAllNodes();
@@ -62,7 +64,10 @@ public class DatabaseService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return result;
+        for(Node node : result) {
+            allNodes.add(node);
+        }
+        return allNodes;
     }
 
     public Iterable<Relationship> getAllRelationships() {

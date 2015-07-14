@@ -76,11 +76,11 @@ public class QueryGraphGenerator {
 
         QueryNode A1 = new QueryNode(0);
 
-        QueryNode B2 = new QueryNode(1);
+        QueryNode B2 = new QueryNode(10);
 
-        QueryNode A3 = new QueryNode(2);
+        QueryNode A3 = new QueryNode(20);
 
-        QueryNode C4 = new QueryNode(3);
+        QueryNode C4 = new QueryNode(30);
 
         queryGraph.nodes.add(A1);
         queryGraph.nodes.add(B2);
@@ -95,10 +95,10 @@ public class QueryGraphGenerator {
         queryGraph.relationships = new ArrayList<Relationship>();
 
         Relationship A1_B2 = A1.createRelationshipTo(B2, 0, null);
-        Relationship A1_A3 = A1.createRelationshipTo(A3, 1, null);
-        Relationship B2_A3 = B2.createRelationshipTo(A3, 2, null);
-        Relationship B2_C4 = B2.createRelationshipTo(C4, 3, null);
-        Relationship A3_C4 = A3.createRelationshipTo(C4, 4, null);
+        Relationship A1_A3 = A1.createRelationshipTo(A3, 10, null);
+        Relationship B2_A3 = B2.createRelationshipTo(A3, 20, null);
+        Relationship B2_C4 = B2.createRelationshipTo(C4, 30, null);
+        Relationship A3_C4 = A3.createRelationshipTo(C4, 40, null);
 
         queryGraph.relationships.add(A1_B2);
         queryGraph.relationships.add(A1_A3);

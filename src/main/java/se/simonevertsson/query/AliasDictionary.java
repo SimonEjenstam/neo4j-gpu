@@ -1,5 +1,7 @@
 package se.simonevertsson.query;
 
+import org.neo4j.graphdb.Node;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -17,7 +19,7 @@ public class AliasDictionary {
         idToAliases = new HashMap<Integer, String>();
     }
 
-    public void insertAlias(QueryNode node, String alias) {
+    public void insertAlias(Node node, String alias) {
         aliasToIds.put(alias, (int) node.getId());
         idToAliases.put((int) node.getId(), alias);
     }
