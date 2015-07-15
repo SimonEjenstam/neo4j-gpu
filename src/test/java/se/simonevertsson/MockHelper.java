@@ -6,7 +6,6 @@ import org.neo4j.graphdb.RelationshipType;
 import se.simonevertsson.gpu.*;
 import se.simonevertsson.query.*;
 
-import java.awt.image.Kernel;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -156,10 +155,10 @@ public class MockHelper {
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
 
-        GraphModelConverter queryGraphConverter = new GraphModelConverter(queryGraph.nodes, labelDictionary, typeDictionary);
-        GpuGraphModel query = queryGraphConverter.convert();
-        GraphModelConverter dataGraphConverter = new GraphModelConverter(dataGraph.nodes, labelDictionary, typeDictionary);
-        GpuGraphModel data = dataGraphConverter.convert();
+        GpuGraphConverter queryGraphConverter = new GpuGraphConverter(queryGraph.nodes, labelDictionary, typeDictionary);
+        GpuGraph query = queryGraphConverter.convert();
+        GpuGraphConverter dataGraphConverter = new GpuGraphConverter(dataGraph.nodes, labelDictionary, typeDictionary);
+        GpuGraph data = dataGraphConverter.convert();
 
 
 
@@ -177,10 +176,10 @@ public class MockHelper {
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
 
-        GraphModelConverter queryGraphConverter = new GraphModelConverter(queryGraph.nodes, labelDictionary, typeDictionary);
-        GpuGraphModel query = queryGraphConverter.convert();
-        GraphModelConverter dataGraphConverter = new GraphModelConverter(dataGraph.nodes, labelDictionary, typeDictionary);
-        GpuGraphModel data = dataGraphConverter.convert();
+        GpuGraphConverter queryGraphConverter = new GpuGraphConverter(queryGraph.nodes, labelDictionary, typeDictionary);
+        GpuGraph query = queryGraphConverter.convert();
+        GpuGraphConverter dataGraphConverter = new GpuGraphConverter(dataGraph.nodes, labelDictionary, typeDictionary);
+        GpuGraph data = dataGraphConverter.convert();
 
         QueryContext queryContext = new QueryContext(data, query, queryGraph, labelDictionary, typeDictionary);
         QueryKernels queryKernels = new QueryKernels();

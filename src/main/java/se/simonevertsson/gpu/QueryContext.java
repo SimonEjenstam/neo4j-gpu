@@ -1,18 +1,17 @@
 package se.simonevertsson.gpu;
 
-import se.simonevertsson.query.AliasDictionary;
 import se.simonevertsson.query.QueryGraph;
 
 public class QueryContext {
     LabelDictionary labelDictionary;
     TypeDictionary typeDictionary;
     public QueryGraph queryGraph;
-    GpuGraphModel gpuData;
-    public GpuGraphModel gpuQuery;
+    GpuGraph gpuData;
+    public GpuGraph gpuQuery;
     public int queryNodeCount;
     public int dataNodeCount;
 
-    public QueryContext(GpuGraphModel gpuData, GpuGraphModel gpuQuery, QueryGraph queryGraph, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
+    public QueryContext(GpuGraph gpuData, GpuGraph gpuQuery, QueryGraph queryGraph, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
         this.gpuData = gpuData;
         this.gpuQuery = gpuQuery;
         this.queryGraph = queryGraph;

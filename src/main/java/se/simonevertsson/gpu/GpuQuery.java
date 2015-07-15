@@ -22,7 +22,7 @@ public class GpuQuery {
         this.bufferContainer = BufferContainerGenerator.generateBufferContainer(this.queryContext, this.queryKernels);
     }
 
-    public List<QuerySolution> executeQuery(ArrayList<Node> visitOrder) throws IOException {
+    public List<QuerySolution> executeQuery(List<Node> visitOrder) throws IOException {
 
         /****** Candidate initialization step ******/
         CandidateInitializer candidateInitializer =

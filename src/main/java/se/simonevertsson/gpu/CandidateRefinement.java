@@ -5,6 +5,7 @@ import org.neo4j.graphdb.Node;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class CandidateRefinement {
 
@@ -22,7 +23,7 @@ public class CandidateRefinement {
         this.candidateRefinery = new CandidateRefinery(queryKernels, bufferContainer, queryContext);
     }
 
-    public void refine(ArrayList<Node> visitOrder) throws IOException {
+    public void refine(List<Node> visitOrder) throws IOException {
         boolean[] oldCandidateIndicators = QueryUtils.pointerBooleanToArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
         boolean candidateIndicatorsHasChanged = true;
         while (candidateIndicatorsHasChanged) {

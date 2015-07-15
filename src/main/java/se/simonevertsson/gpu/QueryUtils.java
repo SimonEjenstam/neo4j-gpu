@@ -4,6 +4,7 @@ import com.nativelibs4java.opencl.CLBuffer;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Node;
 import se.simonevertsson.Main;
+import se.simonevertsson.query.AliasDictionary;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -95,156 +96,15 @@ public class QueryUtils {
         return prefixScanArray;
     }
 
-    public static void printFinalSolutions(QueryKernels queryKernels, QueryContext queryContext, CLBuffer<Integer> solutionsBuffer) {
-        StringBuilder builder = new StringBuilder();
-        if(solutionsBuffer != null) {
-            Pointer<Integer> solutionsPointer = solutionsBuffer.read(queryKernels.queue);
-            int solutionCount = (int) (solutionsBuffer.getElementCount() / queryContext.queryNodeCount);
-
-            builder.append("Final solutions:\n");
-
-            for (int i = 0; i < solutionCount * queryContext.queryNodeCount; i++) {
-
-                if (i % queryContext.queryNodeCount != 0) {
-                    builder.append("; ");
-                }
-                builder.append(queryContext.queryGraph.aliasDictionary.getAliasForId(i % queryContext.queryNodeCount) + ": ");
-                builder.append("Node[" + solutionsPointer.get(i) + "]");
-                if (i % queryContext.queryNodeCount == queryContext.queryNodeCount - 1) {
-                    builder.append(";\n");
-                }
-            }
-            builder.append("Solution count: " + solutionCount);
-        } else {
-            builder.append("No solutions were found");
-        }
-
-
-
-        System.out.println(builder.toString());
-    }
-
-
-
-    public static void printFinalSolutionsAsCypherQueries(QueryKernels queryKernels, QueryContext queryContext, CLBuffer<Integer> solutionsBuffer) {
-        StringBuilder builder = new StringBuilder();
-
-        if(solutionsBuffer != null) {
-            Pointer<Integer> solutionsPointer = solutionsBuffer.read(queryKernels.queue);
-            int solutionCount = (int) (solutionsBuffer.getElementCount() / queryContext.queryNodeCount);
-
-
-            builder.append("Final solutions:\n");
-
-            for (int i = 0; i < solutionCount * queryContext.queryNodeCount; i++) {
-
-                if (i % queryContext.queryNodeCount == 0) {
-//                    builder.append("MATCH ");
-//                    int appendedAliasesCount = 0;
-//                    for (String alias : queryContext.queryGraph.aliasDictionary.getAllAliases()) {
-//                        builder.append(alias);
-//                        appendedAliasesCount++;
-//
-//                        if (appendedAliasesCount < queryContext.queryGraph.aliasDictionary.getAliasCount()) {
-//                            builder.append(", ");
-//                        }
-//                    }
-                    builder.append(Main.EXPERIMENT_QUERY_PREFIX);
-                    builder.append(" WHERE ");
-                }
-
-                builder.append("id(");
-                builder.append(queryContext.queryGraph.aliasDictionary.getAliasForId(i % queryContext.queryNodeCount));
-                builder.append(")=");
-                builder.append(solutionsPointer.get(i));
-                if (i % queryContext.queryNodeCount != queryContext.queryNodeCount - 1) {
-                    builder.append(" AND ");
-                } else {
-                    builder.append(" RETURN ");
-                    int appendedAliasesCount = 0;
-                    for (String alias : queryContext.queryGraph.aliasDictionary.getAllAliases()) {
-                        builder.append(alias);
-                        appendedAliasesCount++;
-
-                        if (appendedAliasesCount < queryContext.queryGraph.aliasDictionary.getAliasCount()) {
-                            builder.append(", ");
-                        } else {
-                            builder.append(";\n");
-                        }
-
-                    }
-                }
-            }
-            builder.append("Solution count: " + solutionCount);
-        } else {
-            builder.append("No solutions were found");
-        }
-
-        System.out.println(builder.toString());
-    }
-
-    public static List<String> generateCypherQueriesFromFinalSolutions(QueryKernels queryKernels, QueryContext queryContext, CLBuffer<Integer> solutionsBuffer) {
-        ArrayList<String> validationQueries = new ArrayList<String>();
-
-
-
-        if(solutionsBuffer != null) {
-            Pointer<Integer> solutionsPointer = solutionsBuffer.read(queryKernels.queue);
-            int solutionCount = (int) (solutionsBuffer.getElementCount() / queryContext.queryNodeCount);
-
-
-            StringBuilder builder = null;
-
-            for (int i = 0; i < solutionCount * queryContext.queryNodeCount; i++) {
-                if (i % queryContext.queryNodeCount == 0) {
-                    builder = new StringBuilder();
-//                    builder.append("MATCH ");
-//                    int appendedAliasesCount = 0;
-//                    for (String alias : queryContext.queryGraph.aliasDictionary.getAllAliases()) {
-//                        builder.append(alias);
-//                        appendedAliasesCount++;
-//
-//                        if (appendedAliasesCount < queryContext.queryGraph.aliasDictionary.getAliasCount()) {
-//                            builder.append(", ");
-//                        }
-//                    }
-                    builder.append(Main.EXPERIMENT_QUERY_PREFIX);
-                    builder.append(" WHERE ");
-                }
-
-                builder.append("id(");
-                builder.append(queryContext.queryGraph.aliasDictionary.getAliasForId(i % queryContext.queryNodeCount));
-                builder.append(")=");
-                builder.append(solutionsPointer.get(i));
-                if (i % queryContext.queryNodeCount != queryContext.queryNodeCount - 1) {
-                    builder.append(" AND ");
-                } else {
-                    builder.append(" RETURN ");
-                    int appendedAliasesCount = 0;
-                    for (String alias : queryContext.queryGraph.aliasDictionary.getAllAliases()) {
-                        builder.append(alias);
-                        appendedAliasesCount++;
-
-                        if (appendedAliasesCount < queryContext.queryGraph.aliasDictionary.getAliasCount()) {
-                            builder.append(", ");
-                        } else {
-                            builder.append(";");
-                            validationQueries.add(builder.toString());
-                        }
-
-                    }
-                }
-            }
-        }
-
-        return validationQueries;
-    }
 
     public static List<QuerySolution> generateQuerySolutions(QueryKernels queryKernels, QueryContext queryContext, CLBuffer<Integer> solutionsBuffer) {
         ArrayList<QuerySolution> results = new ArrayList<QuerySolution>();
         List<Map.Entry<String, Integer>> solutionElements = null;
 
         if(solutionsBuffer != null) {
+            AliasDictionary aliasDictionary = queryContext.queryGraph.aliasDictionary;
+            QueryIdDictionary queryGraphQueryIdDictionary = queryContext.gpuQuery.getQueryIdDictionary();
+            QueryIdDictionary dataGraphQueryIdDictionary = queryContext.gpuData.getQueryIdDictionary();
             Pointer<Integer> solutionsPointer = solutionsBuffer.read(queryKernels.queue);
             int solutionCount = (int) (solutionsBuffer.getElementCount() / queryContext.queryNodeCount);
 
@@ -253,11 +113,14 @@ public class QueryUtils {
                 if (i % queryContext.queryNodeCount == 0) {
                     solutionElements = new ArrayList<Map.Entry<String, Integer>>();
                 }
+                int queryGraphQueryId = i % queryContext.queryNodeCount;
+                int queryGraphId = (int) queryGraphQueryIdDictionary.getId(queryGraphQueryId);
+                int solutionElementQueryId = solutionsPointer.get(i);
+                int solutionElementId = (int) dataGraphQueryIdDictionary.getId(solutionElementQueryId);
 
-                String alias = queryContext.queryGraph.aliasDictionary.getAliasForId(i % queryContext.queryNodeCount);
-                int queryNodeId = solutionsPointer.get(i);
-                int nodeId = (int) queryContext.gpuData.getQueryIdDictionary().getId(queryNodeId);
-                solutionElements.add(new AbstractMap.SimpleEntry<String, Integer>(alias, nodeId));
+                String alias = aliasDictionary.getAliasForId(queryGraphId);
+
+                solutionElements.add(new AbstractMap.SimpleEntry<String, Integer>(alias, solutionElementId));
                 if (i % queryContext.queryNodeCount == queryContext.queryNodeCount - 1) {
                     results.add(new QuerySolution(queryContext.queryGraph, solutionElements));
                 }

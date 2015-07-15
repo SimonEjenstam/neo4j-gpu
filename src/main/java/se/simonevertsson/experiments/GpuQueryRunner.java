@@ -1,14 +1,12 @@
 package se.simonevertsson.experiments;
 
-import com.nativelibs4java.opencl.CLBuffer;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterable;
 import se.simonevertsson.db.DatabaseService;
 import se.simonevertsson.gpu.*;
 import se.simonevertsson.query.QueryGraph;
 import se.simonevertsson.query.QueryGraphGenerator;
 
-import javax.management.Query;
+import java.awt.*;
 import java.io.IOException;
 import java.util.List;
 
@@ -31,8 +29,8 @@ public class GpuQueryRunner {
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
 
-        GpuGraphModel gpuData = convertData(databaseService, labelDictionary, typeDictionary);
-        GpuGraphModel gpuQuery = convertQuery(labelDictionary, typeDictionary, queryGraph);
+        GpuGraph gpuData = convertData(databaseService, labelDictionary, typeDictionary);
+        GpuGraph gpuQuery = convertQuery(queryGraph, labelDictionary, typeDictionary);
         tock = System.currentTimeMillis();
 
         System.out.println("GPU Data conversion runtime: " + (tock-tick) + "ms");
@@ -41,7 +39,7 @@ public class GpuQueryRunner {
         QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph, labelDictionary, typeDictionary);
         GpuQuery gpuGraphQuery = new GpuQuery(queryContext);
         tick = System.currentTimeMillis();
-        List<QuerySolution> results = gpuGraphQuery.executeQuery(queryGraph.visitOrder);
+        List<QuerySolution> results = gpuGraphQuery.executeQuery(queryGraph.getSpanningTree().getVisitOrder());
         tock = System.currentTimeMillis();
 
         System.out.println("GPU Query runtime: " + (tock - tick) + "ms");
@@ -49,17 +47,19 @@ public class GpuQueryRunner {
         return results;
     }
 
-    private GpuGraphModel convertQuery(LabelDictionary labelDictionary, TypeDictionary typeDictionary, QueryGraph queryGraph) {
-        SpanningTreeGenerator spanningTreeGenerator = new SpanningTreeGenerator(queryGraph, labelDictionary, typeDictionary);
-        spanningTreeGenerator.generateQueryGraph();
-        GraphModelConverter graphModelConverter = new GraphModelConverter(queryGraph.nodes, labelDictionary, typeDictionary);
-        return graphModelConverter.convert();
+    private GpuGraph convertQuery(QueryGraph queryGraph, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
+        SpanningTreeGenerator spanningTreeGenerator = new SpanningTreeGenerator();
+        SpanningTree spanningTree = spanningTreeGenerator.generate(queryGraph);
+        queryGraph.setSpanningTree(spanningTree);
+
+        GpuGraphConverter gpuGraphConverter = new GpuGraphConverter(queryGraph.nodes, labelDictionary, typeDictionary);
+        return gpuGraphConverter.convert();
     }
 
-    private GpuGraphModel convertData(DatabaseService databaseService, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
+    private GpuGraph convertData(DatabaseService databaseService, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
         List<Node> allNodes = databaseService.getAllNodes();
-        GraphModelConverter graphModelConverter = new GraphModelConverter(allNodes, labelDictionary, typeDictionary);
-        return graphModelConverter.convert();
+        GpuGraphConverter gpuGraphConverter = new GpuGraphConverter(allNodes, labelDictionary, typeDictionary);
+        return gpuGraphConverter.convert();
     }
 
 

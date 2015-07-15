@@ -1,8 +1,8 @@
 package se.simonevertsson;
 
 import junit.framework.TestCase;
-import se.simonevertsson.gpu.GpuGraphModel;
-import se.simonevertsson.gpu.GraphModelConverter;
+import se.simonevertsson.gpu.GpuGraph;
+import se.simonevertsson.gpu.GpuGraphConverter;
 import se.simonevertsson.gpu.LabelDictionary;
 import se.simonevertsson.gpu.TypeDictionary;
 import se.simonevertsson.query.QueryGraph;
@@ -12,17 +12,17 @@ import java.util.Arrays;
 /**
  * Created by simon on 2015-05-12.
  */
-public class GraphModelConverterTest extends TestCase {
+public class GpuGraphConverterTest extends TestCase {
 
     public void testGeneratesLabels() throws Exception {
         // Given
         QueryGraph queryGraph = MockHelper.generateMockQueryGraph();
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
-        GraphModelConverter graphModelConverter = new GraphModelConverter(queryGraph.nodes, labelDictionary, typeDictionary);
+        GpuGraphConverter gpuGraphConverter = new GpuGraphConverter(queryGraph.nodes, labelDictionary, typeDictionary);
 
         // When
-        GpuGraphModel result = graphModelConverter.convert();
+        GpuGraph result = gpuGraphConverter.convert();
 
         // Then
         assertEquals(Arrays.toString(new int[] {1,2,-1,3}), Arrays.toString(result.getNodeLabels()));

@@ -1,6 +1,7 @@
 package se.simonevertsson.gpu;
 
 import org.neo4j.graphdb.*;
+import se.simonevertsson.query.QueryGraph;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,43 +9,42 @@ import java.util.List;
 /**
  * Created by simon on 2015-05-12.
  */
-public class GraphModelConverter {
+public class GpuGraphConverter {
 
-    private final List<Node> nodes;
-    private final LabelDictionary labelDictionary;
-    private final TypeDictionary typeDictionary;
+    private List<Node> nodes;
+    private LabelDictionary labelDictionary;
+    private TypeDictionary typeDictionary;
+    private QueryIdDictionary queryIdDictionary;
+
     private ArrayList<Integer> labelIndices;
     private ArrayList<Integer> nodeLabels;
     private ArrayList<Integer> relationshipIndices;
     private ArrayList<Integer> nodeRelationships;
     private ArrayList<Integer> relationshipTypes;
-    private QueryIdDictionary queryIdDictionary;
 
-
-    public GraphModelConverter(List<Node> nodes, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
+    public GpuGraphConverter(List<Node> nodes, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
         this.nodes = nodes;
         this.labelDictionary = labelDictionary;
         this.typeDictionary = typeDictionary;
-        this.queryIdDictionary = new QueryIdDictionary();
     }
 
-    public GpuGraphModel convert() {
+    public GpuGraph convert() {
         initializeLists();
-        for(Node node : nodes) {
+        for(Node node : this.nodes) {
             queryIdDictionary.add(node.getId());
         }
 
 
         int currentLabelIndex = 0;
         int currentRelationshipIndex = 0;
-        for(Node startNode : nodes) {
+        for(Node startNode : this.nodes) {
             currentLabelIndex = addLabels(currentLabelIndex, startNode);
             currentRelationshipIndex = addRelationships(currentRelationshipIndex, startNode);
         }
 
         appendLastIndexIfNotEmpty(labelIndices, currentLabelIndex);
         appendLastIndexIfNotEmpty(relationshipIndices, currentRelationshipIndex);
-        return new GpuGraphModel(labelIndices, nodeLabels, relationshipIndices, nodeRelationships, relationshipTypes, queryIdDictionary);
+        return new GpuGraph(labelIndices, nodeLabels, relationshipIndices, nodeRelationships, relationshipTypes, queryIdDictionary);
     }
 
     private int addRelationships(int currentRelationshipIndex, Node sourceNode) {
@@ -111,6 +111,7 @@ public class GraphModelConverter {
     }
 
     private void initializeLists() {
+        this.queryIdDictionary = new QueryIdDictionary();
         this.labelIndices = new ArrayList<Integer>();
         this.nodeLabels = new ArrayList<Integer>();
         this.relationshipIndices = new ArrayList<Integer>();

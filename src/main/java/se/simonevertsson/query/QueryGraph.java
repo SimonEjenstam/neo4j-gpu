@@ -1,7 +1,10 @@
 package se.simonevertsson.query;
 
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import se.simonevertsson.gpu.SpanningTree;
+
 import java.util.ArrayList;
 
 /**
@@ -13,9 +16,7 @@ public class QueryGraph {
 
     public ArrayList<Relationship> relationships = new ArrayList<Relationship>();
 
-    public ArrayList<Relationship> spanningTree = new ArrayList<Relationship>();
-
-    public ArrayList<Node> visitOrder = new ArrayList<Node>();
+    private SpanningTree spanningTree;
 
     public AliasDictionary aliasDictionary = new AliasDictionary();
 
@@ -40,9 +41,21 @@ public class QueryGraph {
             }
             builder.append("(");
             builder.append(startNodeAlias);
-            builder.append(")-->");
+//            for(Label label : relationship.getStartNode().getLabels()) {
+//                builder.append(':');
+//                builder.append(label.name());
+//            }
+            builder.append(")-");
+//            if(relationship.getType() != null) {
+//                builder.append("[:"+relationship.getType().name()+"]");
+//            }
+            builder.append("->");
             builder.append("(");
             builder.append(endNodeAlias);
+//            for(Label label : relationship.getStartNode().getLabels()) {
+//                builder.append(':');
+//                builder.append(label.name());
+//            }
             builder.append(")");
         }
         return builder.toString();
@@ -62,5 +75,13 @@ public class QueryGraph {
         }
         builder.append(";");
         return builder.toString();
+    }
+
+    public SpanningTree getSpanningTree() {
+        return spanningTree;
+    }
+
+    public void setSpanningTree(SpanningTree spanningTree) {
+        this.spanningTree = spanningTree;
     }
 }

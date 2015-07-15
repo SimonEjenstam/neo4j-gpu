@@ -8,7 +8,7 @@ import java.util.Arrays;
 /**
  * Created by simon on 2015-05-12.
  */
-public class GpuGraphModel {
+public class GpuGraph {
 
     private QueryIdDictionary queryIdDictionary;
 
@@ -22,7 +22,7 @@ public class GpuGraphModel {
 
     private int[] relationshipTypes;
 
-    public GpuGraphModel(ArrayList<Integer> labelIndices, ArrayList<Integer> nodeLabels, ArrayList<Integer> relationshipIndices, ArrayList<Integer> nodeRelationships, ArrayList<Integer> relationshipTypes, QueryIdDictionary queryIdDictionary) {
+    public GpuGraph(ArrayList<Integer> labelIndices, ArrayList<Integer> nodeLabels, ArrayList<Integer> relationshipIndices, ArrayList<Integer> nodeRelationships, ArrayList<Integer> relationshipTypes, QueryIdDictionary queryIdDictionary) {
         this.labelIndices = ArrayUtil.toIntArray(labelIndices);
         this.nodeLabels = ArrayUtil.toIntArray(nodeLabels);
         this.relationshipIndices = ArrayUtil.toIntArray(relationshipIndices);

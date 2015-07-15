@@ -5,6 +5,7 @@ import org.neo4j.graphdb.Relationship;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CandidateInitializer {
     private final QueryContext queryContext;
@@ -20,7 +21,7 @@ public class CandidateInitializer {
         this.candidateExplorer = new CandidateExplorer(queryKernels, bufferContainer, this.queryContext);
     }
 
-    void candidateInitialization(ArrayList<Node> visitOrder) throws IOException {
+    void candidateInitialization(List<Node> visitOrder) throws IOException {
         boolean initializedQueryNodes[] = new boolean[this.queryContext.queryNodeCount];
         for (Node queryNode : visitOrder) {
             int queryNodeId = this.queryContext.gpuQuery.getQueryIdDictionary().getQueryId(queryNode.getId());

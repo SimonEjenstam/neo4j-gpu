@@ -1,12 +1,11 @@
 package se.simonevertsson;
 
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterable;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import se.simonevertsson.db.DatabaseService;
 import se.simonevertsson.experiments.CypherQueryRunner;
-import se.simonevertsson.experiments.ExperimentQueryGenerator;
+import se.simonevertsson.experiments.ExperimentQueryGraphGenerator;
 import se.simonevertsson.experiments.GpuQueryRunner;
 import se.simonevertsson.gpu.QuerySolution;
 import se.simonevertsson.query.QueryGraph;
@@ -23,9 +22,9 @@ import java.util.Set;
 public class Main {
 
     public static final String TEST_DB_PATH = "target/foo";
-//    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
-    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon\\Documents\\Neo4j\\drwho";
-    public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon\\Documents\\Neo4j";
+//    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
+    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
+    public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j";
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH (a1),(b2),(a3),(c4)" +
 //            "WHERE (a3)<--(a1)-->(b2) AND (a3)<--(b2)-->(c4)<--(a3)" +
@@ -90,25 +89,12 @@ public class Main {
 
         ArrayList<Node> allNodes = databaseService.getAllNodes();
 
-
-        QueryGraph queryGraph = ExperimentQueryGenerator.generateExperimentQuery(allNodes, 7);
+        ExperimentQueryGraphGenerator experimentQueryGraphGenerator = new ExperimentQueryGraphGenerator(allNodes, 3, 2);
+        QueryGraph queryGraph = experimentQueryGraphGenerator.generate();
         System.out.println("Querying with query:");
         System.out.println(queryGraph.toCypherQueryString());
 
-        /* Cypher query run */
-//        CypherQueryRunner cypherQueryRunner = new CypherQueryRunner();
-////        List<QuerySolution> cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService, EXPERIMENT_QUERY_PREFIX + EXPERIMENT_QUERY_SUFFIX);
-//        List<QuerySolution> cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService, queryGraph);
-//        Set<String> uniqueCypherResults = new HashSet<String>();
-//        for(QuerySolution solution : cypherQueryResult) {
-//            uniqueCypherResults.add(solution.toString());
-//        }
-//        System.out.println("Cypher solution count: " + cypherQueryResult.size());
-//        System.out.println("Number of unique rows: " + uniqueCypherResults.size());
-//
-//        validateQuerySolutions(databaseService, cypherQueryResult);
-
-     /* GPU query run */
+         /* GPU query run */
         GpuQueryRunner gpuQueryRunner = new GpuQueryRunner();
 //      List<QuerySolution> results = gpuQueryRunner.runGpuQuery(databaseService);
         List<QuerySolution> results = gpuQueryRunner.runGpuQuery(databaseService, queryGraph);
@@ -123,8 +109,23 @@ public class Main {
         /* Validate solutions */
         validateQuerySolutions(databaseService, results);
 
+        /* Cypher query run */
+        CypherQueryRunner cypherQueryRunner = new CypherQueryRunner();
+//        List<QuerySolution> cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService, EXPERIMENT_QUERY_PREFIX + EXPERIMENT_QUERY_SUFFIX);
+        List<QuerySolution> cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService, queryGraph);
+        Set<String> uniqueCypherResults = new HashSet<String>();
+        for(QuerySolution solution : cypherQueryResult) {
+            uniqueCypherResults.add(solution.toString());
+        }
+        System.out.println("Cypher solution count: " + cypherQueryResult.size());
+        System.out.println("Number of unique rows: " + uniqueCypherResults.size());
 
-//        compareQuerySolutions(cypherQueryResult, results);
+        validateQuerySolutions(databaseService, cypherQueryResult);
+
+
+
+
+        compareQuerySolutions(cypherQueryResult, results);
 
         /* Tear down database */
         databaseService.shutdown();
@@ -160,6 +161,7 @@ public class Main {
             for (QuerySolution querySolution : results) {
                 Result queryResult = databaseService.excuteCypherQuery(querySolution.toString());
                 if (!queryResult.hasNext()) {
+//                    System.out.println(querySolution.toString());
                     invalidSolutions++;
                 }
                 queryResult.close();

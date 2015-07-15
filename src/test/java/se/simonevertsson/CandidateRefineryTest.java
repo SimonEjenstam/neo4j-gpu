@@ -4,9 +4,8 @@ import com.nativelibs4java.opencl.CLMem;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Node;
-import se.simonevertsson.gpu.CandidateExplorer;
 import se.simonevertsson.gpu.CandidateRefinery;
-import se.simonevertsson.gpu.GpuGraphModel;
+import se.simonevertsson.gpu.GpuGraph;
 import se.simonevertsson.gpu.QueryUtils;
 
 import java.io.IOException;
@@ -41,7 +40,7 @@ public class CandidateRefineryTest extends TestCase {
 
 
         CandidateRefinery candidateRefinery = new CandidateRefinery(mockQuery.queryKernels, mockQuery.bufferContainer, mockQuery.queryContext);
-        GpuGraphModel query = mockQuery.queryContext.gpuQuery;
+        GpuGraph query = mockQuery.queryContext.gpuQuery;
 
         Node queryNode = mockQuery.queryContext.queryGraph.nodes.get(0);
 
@@ -93,7 +92,7 @@ public class CandidateRefineryTest extends TestCase {
 
 
         CandidateRefinery candidateRefinery = new CandidateRefinery(mockQuery.queryKernels, mockQuery.bufferContainer, mockQuery.queryContext);
-        GpuGraphModel query = mockQuery.queryContext.gpuQuery;
+        GpuGraph query = mockQuery.queryContext.gpuQuery;
 
         Node queryNode = mockQuery.queryContext.queryGraph.nodes.get(1);
 
@@ -144,7 +143,7 @@ public class CandidateRefineryTest extends TestCase {
 
 
         CandidateRefinery candidateRefinery = new CandidateRefinery(mockQuery.queryKernels, mockQuery.bufferContainer, mockQuery.queryContext);
-        GpuGraphModel query = mockQuery.queryContext.gpuQuery;
+        GpuGraph query = mockQuery.queryContext.gpuQuery;
 
         Node queryNode = mockQuery.queryContext.queryGraph.nodes.get(2);
 
@@ -195,7 +194,7 @@ public class CandidateRefineryTest extends TestCase {
 
 
         CandidateRefinery candidateRefinery = new CandidateRefinery(mockQuery.queryKernels, mockQuery.bufferContainer, mockQuery.queryContext);
-        GpuGraphModel query = mockQuery.queryContext.gpuQuery;
+        GpuGraph query = mockQuery.queryContext.gpuQuery;
 
         Node queryNode = mockQuery.queryContext.queryGraph.nodes.get(3);
 

@@ -22,7 +22,7 @@ public class CandidateChecker {
         this.dataNodeCount = dataNodeCount;
     }
 
-    public void checkCandidates(GpuGraphModel gpuQuery, Node queryNode) throws IOException {
+    public void checkCandidates(GpuGraph gpuQuery, Node queryNode) throws IOException {
         int queryNodeId = this.queryContext.gpuQuery.getQueryIdDictionary().getQueryId(queryNode.getId());
 
         int queryLabelStartIndex = gpuQuery.getLabelIndices()[queryNodeId];

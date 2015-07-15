@@ -14,7 +14,7 @@ public class BufferContainerGenerator {
     }
 
     private static DataBuffers createDataBuffers(QueryKernels queryKernels, QueryContext queryContext) {
-        GpuGraphModel data = queryContext.gpuData;
+        GpuGraph data = queryContext.gpuData;
         IntBuffer dataRelationshipsBuffer = IntBuffer.wrap(data.getNodeRelationships());
         IntBuffer dataRelationshipTypesBuffer = IntBuffer.wrap(data.getRelationshipTypes());
         IntBuffer dataRelationshipIndicesBuffer = IntBuffer.wrap(data.getRelationshipIndices());
@@ -35,7 +35,7 @@ public class BufferContainerGenerator {
 
 
     private static QueryBuffers createQueryBuffers(QueryKernels queryKernels, QueryContext queryContext) {
-        GpuGraphModel query = queryContext.gpuQuery;
+        GpuGraph query = queryContext.gpuQuery;
 
         IntBuffer queryNodeRelationshipsBuffer = IntBuffer.wrap(query.getNodeRelationships());
         IntBuffer queryRelationshipTypesBuffer = IntBuffer.wrap(query.getRelationshipTypes());

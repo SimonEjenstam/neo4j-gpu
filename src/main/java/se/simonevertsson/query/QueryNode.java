@@ -20,10 +20,13 @@ public class QueryNode implements Node {
         this.labels = new ArrayList<Label>();
     }
 
-    public QueryNode(Node rootNode) {
-        this.id = rootNode.getId();
+    public QueryNode(Node node) {
+        this.id = node.getId();
         this.relationsships = new ArrayList<Relationship>();
         this.labels = new ArrayList<Label>();
+        for(Label label : node.getLabels()) {
+            this.addLabel(label);
+        }
     }
 
     public long getId() {
