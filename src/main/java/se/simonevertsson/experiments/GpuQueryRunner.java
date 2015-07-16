@@ -24,24 +24,26 @@ public class GpuQueryRunner {
     public List<QuerySolution> runGpuQuery(DatabaseService databaseService, QueryGraph queryGraph) throws IOException {
         long tick, tock;
 
-        /* Convert database data and query data to fit the GPU */
+
         tick = System.currentTimeMillis();
+
+        /* Convert database data and query data to fit the GPU */
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
-
         GpuGraph gpuData = convertData(databaseService, labelDictionary, typeDictionary);
         GpuGraph gpuQuery = convertQuery(queryGraph, labelDictionary, typeDictionary);
-        tock = System.currentTimeMillis();
 
+        tock = System.currentTimeMillis();
         System.out.println("GPU Data conversion runtime: " + (tock-tick) + "ms");
+
+        tick = System.currentTimeMillis();
 
         /* Execute the query */
         QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph, labelDictionary, typeDictionary);
         GpuQuery gpuGraphQuery = new GpuQuery(queryContext);
-        tick = System.currentTimeMillis();
         List<QuerySolution> results = gpuGraphQuery.executeQuery(queryGraph.getSpanningTree().getVisitOrder());
-        tock = System.currentTimeMillis();
 
+        tock = System.currentTimeMillis();
         System.out.println("GPU Query runtime: " + (tock - tick) + "ms");
 
         return results;

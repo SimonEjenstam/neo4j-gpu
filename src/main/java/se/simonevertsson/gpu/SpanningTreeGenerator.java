@@ -61,7 +61,7 @@ public class SpanningTreeGenerator {
         for(Relationship relationship : queryGraphRelationships) {
             float startEstimate = calculateNodeRankEstimate(labelCounter, relationship.getStartNode());
             float endEstimate = calculateNodeRankEstimate(labelCounter, relationship.getEndNode());
-            if(startEstimate > endEstimate && (startEstimate + endEstimate) >= maxEstimateSum) {
+            if(startEstimate >= endEstimate && (startEstimate + endEstimate) >= maxEstimateSum) {
                 initialRelationship = relationship;
                 maxEstimateSum = (startEstimate + endEstimate);
             }

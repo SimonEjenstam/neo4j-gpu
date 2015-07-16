@@ -5,7 +5,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import se.simonevertsson.query.QueryGraph;
 import se.simonevertsson.query.QueryNode;
-import se.simonevertsson.query.QueryRelationship;
 
 import java.util.*;
 
@@ -17,15 +16,19 @@ public class ExperimentQueryGraphGenerator {
     private final ArrayList<Node> allNodes;
     private final int relationshipCount;
     private final int maxRelationshipsPerLevel;
+    private final int nodeCount;
+    private final int maxDepth;
     private int currentNodeAlias;
     private HashMap<Long, QueryNode> visitedNodes;
     private HashMap<Long, Relationship>  visitedRelationships;
     private Queue<Relationship> relationshipQueue;
 
-    public ExperimentQueryGraphGenerator(ArrayList<Node> allNodes, int relationshipCount, int maxRelationshipsPerLevel) {
+    public ExperimentQueryGraphGenerator(ArrayList<Node> allNodes, int relationshipCount, int nodeCount, int maxRelationshipsPerLevel, int maxDepth) {
         this.allNodes = allNodes;
         this.relationshipCount = relationshipCount;
+        this.nodeCount = nodeCount;
         this.maxRelationshipsPerLevel = maxRelationshipsPerLevel;
+        this.maxDepth = maxDepth;
     }
 
     public QueryGraph generate() {
@@ -49,62 +52,106 @@ public class ExperimentQueryGraphGenerator {
             Node rootNode = this.allNodes.get(currentNodeIndex);
 
             addNodeToQueryGraph(queryGraph, rootNode);
-            addNodeRelationshipsToQueue(rootNode);
+            List<Relationship> relationshipList = createRelationshipList(rootNode);
 
-            if (tryGenerateWithNewRootNode(queryGraph) != null) {
+            if (generateQueryGraph(queryGraph, rootNode, relationshipList, 0) != null) {
                 return queryGraph;
             }
+
+//            if (tryGenerateWithNewRootNode(queryGraph) != null) {
+//                return queryGraph;
+//            }
 
             rootNodeAttempts++;
         }
         return null;
     }
 
-    private QueryGraph tryGenerateWithNewRootNode(QueryGraph queryGraph) {
-        while(!this.relationshipQueue.isEmpty()) {
-            if(this.visitedRelationships.size() == this.relationshipCount) {
-                return queryGraph;
-            }
+    private QueryGraph generateQueryGraph(QueryGraph queryGraph, Node visitedNode, List<Relationship> relationships, int level) {
+        if(relationships == null || relationships.isEmpty()) {
+            return null;
+        }
+        if(level < this.maxDepth) {
+            for(Relationship relationship : relationships) {
 
-            Relationship currentRelationship = this.relationshipQueue.poll();
-            if(this.visitedRelationships.get(currentRelationship.getId()) == null) {
-                addRelationshipWithNodesToQueryGraph(queryGraph, currentRelationship);
+                if(this.visitedRelationships.get(relationship.getId()) == null) {
+                    addRelationshipAndUnvisitedNodeToQueryGraph(queryGraph, relationship);
+                    if (this.visitedRelationships.size() == this.relationshipCount && this.visitedNodes.size() == this.nodeCount) {
+                        return queryGraph;
+                    }
+                    Node unvisitedNode = null;
+                    if(relationship.getStartNode().getId() == visitedNode.getId()) {
+                        unvisitedNode = relationship.getEndNode();
+                    } else {
+                        unvisitedNode = relationship.getStartNode();
+                    }
+
+                    List<Relationship> relationshipList = createRelationshipList(unvisitedNode);
+                    if(generateQueryGraph(queryGraph, unvisitedNode, relationshipList, level+1) != null) {
+                        return queryGraph;
+                    }
+                }
+
             }
         }
         return null;
     }
 
-    private void addRelationshipWithNodesToQueryGraph(QueryGraph queryGraph, Relationship currentRelationship) {
-        Node unvisitedNode = addUnvisitedNodeToQueryGraph(queryGraph, currentRelationship);
-        addNodeRelationshipsToQueue(unvisitedNode);
+    private List<Relationship> createRelationshipList(Node node) {
+        List<Relationship> relationshipList = new ArrayList<>();
+        if(node != null) {
+            int addedRelationships = 0;
+            for (Relationship relationship : node.getRelationships(Direction.BOTH)) {
+                if(visitedRelationships.get(relationship.getId()) == null) {
+                    relationshipList.add(relationship);
+                    addedRelationships++;
+                }
+            }
+        }
+        return relationshipList;
     }
 
-    private Node addUnvisitedNodeToQueryGraph(QueryGraph queryGraph, Relationship currentRelationship) {
+//    private QueryGraph tryGenerateWithNewRootNode(QueryGraph queryGraph) {
+//        while(!this.relationshipQueue.isEmpty()) {
+//            if(this.visitedRelationships.size() == this.relationshipCount) {
+//                return queryGraph;
+//            }
+//
+//            Relationship currentRelationship = this.relationshipQueue.poll();
+//            if(this.visitedRelationships.get(currentRelationship.getId()) == null) {
+//                addRelationshipWithNodesToQueryGraph(queryGraph, currentRelationship);
+//            }
+//        }
+//        return null;
+//    }
+
+//    private void addRelationshipWithNodesToQueryGraph(QueryGraph queryGraph, Relationship currentRelationship) {
+//        Node unvisitedNode = addRelationshipWithUnvisitedNodeToQueryGraph(queryGraph, currentRelationship);
+//        addNodeRelationshipsToQueue(unvisitedNode);
+//    }
+
+    private void addRelationshipAndUnvisitedNodeToQueryGraph(QueryGraph queryGraph, Relationship currentRelationship) {
         Node startNode = currentRelationship.getStartNode();
         Node endNode = currentRelationship.getEndNode();
-        Node unvisitedNode = null;
-        Relationship queryRelationship = null;
+        QueryNode startQueryNode;
+        QueryNode endQueryNode;
         if (visitedNodes.get(startNode.getId()) == null) {
-            QueryNode startQueryNode = addNodeToQueryGraph(queryGraph, startNode);
-            QueryNode endQueryNode = visitedNodes.get(endNode.getId());
+            startQueryNode = addNodeToQueryGraph(queryGraph, startNode);
+            endQueryNode = visitedNodes.get(endNode.getId());
 
-            queryRelationship = startQueryNode.createRelationshipTo(endQueryNode, currentRelationship.getId(), currentRelationship.getType());
-
-            unvisitedNode = startNode;
         } else if (visitedNodes.get(endNode.getId()) == null) {
-            QueryNode startQueryNode = visitedNodes.get(startNode.getId());
-            QueryNode endQueryNode = addNodeToQueryGraph(queryGraph, endNode);
-
-            queryRelationship = startQueryNode.createRelationshipTo(endQueryNode, currentRelationship.getId(), currentRelationship.getType());
-
-            unvisitedNode = endNode;
-        }
-        if(unvisitedNode != null) {
-            queryGraph.relationships.add(queryRelationship);
-            visitedRelationships.put(currentRelationship.getId(), queryRelationship);
+            startQueryNode = visitedNodes.get(startNode.getId());
+            endQueryNode = addNodeToQueryGraph(queryGraph, endNode);
+        } else {
+            startQueryNode = visitedNodes.get(startNode.getId());
+            endQueryNode = visitedNodes.get(endNode.getId());
         }
 
-        return unvisitedNode;
+
+        Relationship queryRelationship = startQueryNode.createRelationshipTo(endQueryNode, currentRelationship.getId(), currentRelationship.getType());
+
+        queryGraph.relationships.add(queryRelationship);
+        visitedRelationships.put(currentRelationship.getId(), queryRelationship);
     }
 
     private void initializeGenerationAttempt() {
@@ -121,18 +168,6 @@ public class ExperimentQueryGraphGenerator {
         this.currentNodeAlias++;
         visitedNodes.put(queryNode.getId(), queryNode);
         return queryNode;
-    }
-
-    private Node getUnvisitedNode(HashSet<Long> visitedNodes, Relationship currentRelationship) {
-        Node startNode = currentRelationship.getStartNode();
-        Node endNode = currentRelationship.getEndNode();
-        Node unvisitedNode = null;
-        if (!visitedNodes.contains(startNode.getId())) {
-            unvisitedNode = startNode;
-        } else if (!visitedNodes.contains(endNode.getId())) {
-            unvisitedNode = endNode;
-        }
-        return unvisitedNode;
     }
 
     private void addNodeRelationshipsToQueue(Node node) {

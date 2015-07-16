@@ -23,12 +23,14 @@ public class CypherQueryRunner {
         try(Transaction tx = dbService.beginTx()) {
             Result result = dbService.excuteCypherQuery(queryGraph.toCypherQueryString());
 
-            long tock = System.currentTimeMillis();
-            System.out.println("CypherQueryRunner runtime: " + (tock - tick) + "ms");
 
             querySolutions = handleResult(result, queryGraph);
             tx.success();
         }
+
+        long tock = System.currentTimeMillis();
+        System.out.println("CypherQueryRunner runtime: " + (tock - tick) + "ms");
+
 
 
         return querySolutions;

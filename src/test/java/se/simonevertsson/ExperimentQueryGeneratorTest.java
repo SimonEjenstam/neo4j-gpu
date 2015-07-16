@@ -24,8 +24,8 @@ public class ExperimentQueryGeneratorTest extends TestCase {
 
     public void testReturnsNullWhenRelationshipCountLessThan1orGreaterThan26() {
         // Arrange
-        ExperimentQueryGraphGenerator negativeEQG = new ExperimentQueryGraphGenerator(this.allNodes, -1, 2);
-        ExperimentQueryGraphGenerator greaterThan26EQG = new ExperimentQueryGraphGenerator(this.allNodes, -1, 2);
+        ExperimentQueryGraphGenerator negativeEQG = new ExperimentQueryGraphGenerator(this.allNodes, -1, 2,2,2);
+        ExperimentQueryGraphGenerator greaterThan26EQG = new ExperimentQueryGraphGenerator(this.allNodes, 27, 2,2,2);
 
         // Act
         QueryGraph resultNegative = negativeEQG.generate();
@@ -34,6 +34,17 @@ public class ExperimentQueryGeneratorTest extends TestCase {
         // Assert
         assertNull(resultNegative);
         assertNull(resultGreaterThan26);
+    }
+
+    public void testReturnsAValidQueryGraph() {
+        // Arrange
+        ExperimentQueryGraphGenerator experimentQueryGraphGenerator = new ExperimentQueryGraphGenerator(this.allNodes, 5, 4, 2, 2);
+
+        // Act
+        QueryGraph result = experimentQueryGraphGenerator.generate();
+
+        // Assert
+        assertNotNull(result);
     }
 
 }
