@@ -7,6 +7,10 @@ import org.neo4j.graphdb.RelationshipType;
  */
 public enum RelationshipTypes implements RelationshipType
 {
-    KNOWS
+    KNOWS,
+    COMPANION_OF,
+    LOVES,
+    ENEMY_OF,
+    ALLY_OF
 }
 

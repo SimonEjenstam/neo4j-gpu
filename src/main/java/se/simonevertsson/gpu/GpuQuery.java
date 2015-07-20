@@ -33,6 +33,7 @@ public class GpuQuery {
         CandidateRefinement candidateRefinement =
                 new CandidateRefinement(this.queryContext, this.queryKernels, this.bufferContainer);
         candidateRefinement.refine(visitOrder);
+        QueryUtils.printCandidateIndicatorMatrix(this.bufferContainer.queryBuffers.candidateIndicatorsPointer, this.queryContext.dataNodeCount);
 
         /****** Candidate relationship searching step ******/
         CandidateRelationshipSearcher candidateRelationshipSearcher =

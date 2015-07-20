@@ -149,4 +149,96 @@ public class QueryGraphGenerator {
 
         return queryGraph;
     }
+
+
+    public static QueryGraph generateQueryGraphWithManyRelationships() {
+
+        QueryGraph queryGraph = new QueryGraph();
+
+        queryGraph.nodes = new ArrayList<Node>();
+
+        QueryNode A62 = new QueryNode(62);
+        QueryNode B1 = new QueryNode(1);
+        QueryNode C114 = new QueryNode(114);
+        QueryNode D4 = new QueryNode(4);
+
+        queryGraph.nodes.add(A62);
+        queryGraph.nodes.add(B1);
+        queryGraph.nodes.add(C114);
+        queryGraph.nodes.add(D4);
+
+        queryGraph.relationships = new ArrayList<Relationship>();
+
+        Relationship A62_COMPANION_OF_B1 = A62.createRelationshipTo(B1, 130, RelationshipTypes.COMPANION_OF);
+        Relationship A62_LOVES_B1 = A62.createRelationshipTo(B1, 131, RelationshipTypes.LOVES);
+        Relationship A62_ENEMY_OF_C114 = A62.createRelationshipTo(C114, 396, RelationshipTypes.ENEMY_OF);
+
+        Relationship B1_ENEMY_OF_C114 = B1.createRelationshipTo(C114, 394, RelationshipTypes.ENEMY_OF);
+        Relationship B1_ENEMY_OF_D4 = B1.createRelationshipTo(D4, 1985, RelationshipTypes.ENEMY_OF);
+        Relationship B1_LOVES_D4 = B1.createRelationshipTo(D4, 2, RelationshipTypes.LOVES);
+
+        Relationship C114_ENEMY_OF_A62 = C114.createRelationshipTo(A62, 397, RelationshipTypes.ENEMY_OF);
+        Relationship C114_ENEMY_OF_B1 = C114.createRelationshipTo(B1, 395, RelationshipTypes.ENEMY_OF);
+
+        Relationship D4_LOVES_B1 = D4.createRelationshipTo(B1, 296, RelationshipTypes.LOVES);
+        Relationship D4_COMPANION_OF_B1 = D4.createRelationshipTo(B1, 1747, RelationshipTypes.COMPANION_OF);
+        Relationship D4_ENEMY_OF_B1 = D4.createRelationshipTo(B1, 1984, RelationshipTypes.ENEMY_OF);
+        Relationship D4_ALLY_OF_B1 = D4.createRelationshipTo(B1, 295, RelationshipTypes.ALLY_OF);
+
+
+        queryGraph.relationships.add(A62_COMPANION_OF_B1);
+        queryGraph.relationships.add(A62_LOVES_B1);
+        queryGraph.relationships.add(A62_ENEMY_OF_C114);
+        queryGraph.relationships.add(B1_ENEMY_OF_C114);
+        queryGraph.relationships.add(B1_ENEMY_OF_D4);
+        queryGraph.relationships.add(B1_LOVES_D4);
+        queryGraph.relationships.add(C114_ENEMY_OF_A62);
+        queryGraph.relationships.add(C114_ENEMY_OF_B1);
+        queryGraph.relationships.add(D4_LOVES_B1);
+        queryGraph.relationships.add(D4_COMPANION_OF_B1);
+        queryGraph.relationships.add(D4_ENEMY_OF_B1);
+        queryGraph.relationships.add(D4_ALLY_OF_B1);
+
+        return queryGraph;
+    }
+
+    public static QueryGraph generateQueryGraphWithLoop() {
+        QueryGraph queryGraph = new QueryGraph();
+
+        queryGraph.nodes = new ArrayList<Node>();
+
+        QueryNode A = new QueryNode(52);
+
+        QueryNode B = new QueryNode(12);
+
+        QueryNode C = new QueryNode(900);
+
+        QueryNode D = new QueryNode(30);
+
+        queryGraph.nodes.add(A);
+        queryGraph.nodes.add(B);
+        queryGraph.nodes.add(C);
+        queryGraph.nodes.add(D);
+
+        queryGraph.aliasDictionary.insertAlias(A, "A");
+        queryGraph.aliasDictionary.insertAlias(B, "B");
+        queryGraph.aliasDictionary.insertAlias(C, "C");
+        queryGraph.aliasDictionary.insertAlias(D, "D");
+
+        queryGraph.relationships = new ArrayList<Relationship>();
+
+        Relationship A_B = A.createRelationshipTo(B, 1337, null);
+        Relationship A_C = A.createRelationshipTo(C, 10, null);
+        Relationship B_C = B.createRelationshipTo(C, 56, null);
+        Relationship B_D = B.createRelationshipTo(D, 2, null);
+        Relationship D_B = D.createRelationshipTo(B, 40, null);
+
+        queryGraph.relationships.add(A_B);
+        queryGraph.relationships.add(A_C);
+        queryGraph.relationships.add(B_C);
+        queryGraph.relationships.add(B_D);
+        queryGraph.relationships.add(D_B);
+
+        return queryGraph;
+    }
 }
