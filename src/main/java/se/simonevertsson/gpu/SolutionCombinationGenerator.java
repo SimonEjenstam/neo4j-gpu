@@ -17,8 +17,8 @@ public class SolutionCombinationGenerator {
         this.queryContext = queryContext;
     }
 
-    public CLBuffer<Integer> generateSolutionCombinations(CLBuffer<Integer> oldPossibleSolutions, CandidateRelationships candidateRelationships, boolean startNodeVisited, int[] combinationIndices) throws IOException {
-        int oldPossibleSolutionCount = (int) oldPossibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+    public PossibleSolutions generateSolutionCombinations(PossibleSolutions oldPossibleSolutions, CandidateRelationships candidateRelationships, boolean startNodeVisited, int[] combinationIndices) throws IOException {
+        int oldPossibleSolutionCount = (int) oldPossibleSolutions.getSolutionElements().getElementCount() / this.queryContext.queryNodeCount;
 
         int totalCombinationCount = combinationIndices[combinationIndices.length - 1];
 
@@ -30,26 +30,29 @@ public class SolutionCombinationGenerator {
 
         CLBuffer<Integer>
                 combinationIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(combinationIndices), true),
-                possibleSolutions = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryContext.queryNodeCount);
+                newPossibleSolutionElements = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryContext.queryNodeCount),
+                newPossibleSolutionRelationships = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryContext.queryGraph.relationships.size());
 
         CLEvent generateSolutionCombinationsEvent = this.queryKernels.generateSolutionCombinationsKernel.generate_solution_combinations(
                 this.queryKernels.queue,
                 candidateRelationships.getQueryStartNodeId(),
                 candidateRelationships.getQueryEndNodeId(),
                 this.queryContext.queryNodeCount,
-                oldPossibleSolutions,
+                oldPossibleSolutions.getSolutionElements(),
                 combinationIndicesBuffer,
                 candidateRelationships.getCandidateStartNodes(),
                 candidateRelationships.getCandidateEndNodeIndices(),
                 candidateRelationships.getCandidateEndNodes(),
                 startNodeVisitedBuffer,
                 candidateRelationships.getStartNodeCount(),
-                possibleSolutions,
+                newPossibleSolutionElements,
                 globalSizes,
                 null
         );
         generateSolutionCombinationsEvent.waitFor();
 
-        return possibleSolutions;
+        PossibleSolutions newPossibleSolutions = new PossibleSolutions(newPossibleSolutionElements, newPossibleSolutionRelationships);
+
+        return newPossibleSolutions;
     }
 }

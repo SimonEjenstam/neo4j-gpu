@@ -7,9 +7,11 @@ import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
 import se.simonevertsson.gpu.CandidateRelationshipFinder;
 import se.simonevertsson.gpu.CandidateRelationships;
+import se.simonevertsson.gpu.QueryUtils;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
+import java.util.Arrays;
 
 /**
  * Created by simon on 2015-06-25.
@@ -39,7 +41,7 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(mockQuery.queryKernels.queue);
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -72,16 +74,22 @@ public class CandidateRelationshipFinderTest extends TestCase {
 
 
         // When
-        CLBuffer<Integer> result =  candidateRelationshipFinder.findCandidateRelationships(candidateRelationships);
-        Pointer<Integer> resultPointer = result.read(mockQuery.queryKernels.queue);
+        CandidateRelationships result =  candidateRelationshipFinder.findCandidateRelationships(candidateRelationships);
+        Pointer<Integer> endNodesPointer = result.getCandidateEndNodes().read(mockQuery.queryKernels.queue);
+        Pointer<Integer> relationshipIndicesPointer = result.getRelationshipIndices().read(mockQuery.queryKernels.queue);
 
         // Then
         int[] expectedCandidateRelationshipEndNodes = {
                 1,2,2
         };
 
+        int[] expectedCandidateRelationshipRelationshipIndices = {
+                0,1,2
+        };
+
         for(int i = 0; i < expectedCandidateRelationshipEndNodes.length; i++) {
-            assertEquals(expectedCandidateRelationshipEndNodes[i], (int) resultPointer.get(i));
+            assertEquals(expectedCandidateRelationshipEndNodes[i], (int) endNodesPointer.get(i));
+            assertEquals(expectedCandidateRelationshipRelationshipIndices[i], (int) relationshipIndicesPointer.get(i));
         }
     }
 
@@ -108,7 +116,7 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(mockQuery.queryKernels.queue);
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -141,16 +149,22 @@ public class CandidateRelationshipFinderTest extends TestCase {
 
 
         // When
-        CLBuffer<Integer> result =  candidateRelationshipFinder.findCandidateRelationships(candidateRelationships);
-        Pointer<Integer> resultPointer = result.read(mockQuery.queryKernels.queue);
+        CandidateRelationships result =  candidateRelationshipFinder.findCandidateRelationships(candidateRelationships);
+        Pointer<Integer> endNodesPointer = result.getCandidateEndNodes().read(mockQuery.queryKernels.queue);
+        Pointer<Integer> relationshipIndicesPointer = result.getRelationshipIndices().read(mockQuery.queryKernels.queue);
 
         // Then
         int[] expectedCandidateRelationshipEndNodes = {
                 1,2,2,3
         };
 
+        int[] expectedCandidateRelationshipRelationshipIndices = {
+                0,1,2,3
+        };
+
         for(int i = 0; i < expectedCandidateRelationshipEndNodes.length; i++) {
-            assertEquals(expectedCandidateRelationshipEndNodes[i], (int) resultPointer.get(i));
+            assertEquals(expectedCandidateRelationshipEndNodes[i], (int) endNodesPointer.get(i));
+            assertEquals(expectedCandidateRelationshipRelationshipIndices[i], (int) relationshipIndicesPointer.get(i));
         }
     }
 
@@ -177,7 +191,7 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(mockQuery.queryKernels.queue);
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 1,2
@@ -207,16 +221,22 @@ public class CandidateRelationshipFinderTest extends TestCase {
 
         
         // When
-        CLBuffer<Integer> result =  candidateRelationshipFinder.findCandidateRelationships(candidateRelationships);
-        Pointer<Integer> resultPointer = result.read(mockQuery.queryKernels.queue);
+        CandidateRelationships result =  candidateRelationshipFinder.findCandidateRelationships(candidateRelationships);
+        Pointer<Integer> endNodesPointer = result.getCandidateEndNodes().read(mockQuery.queryKernels.queue);
+        Pointer<Integer> relationshipIndicesPointer = result.getRelationshipIndices().read(mockQuery.queryKernels.queue);
 
         // Then
         int[] expectedCandidateRelationshipEndNodes = {
                 2,3,3
         };
 
+        int[] expectedCandidateRelationshipRelationshipIndices = {
+                2,3,4
+        };
+
         for(int i = 0; i < expectedCandidateRelationshipEndNodes.length; i++) {
-            assertEquals(expectedCandidateRelationshipEndNodes[i], (int) resultPointer.get(i));
+            assertEquals(expectedCandidateRelationshipEndNodes[i], (int) endNodesPointer.get(i));
+            assertEquals(expectedCandidateRelationshipRelationshipIndices[i], (int) relationshipIndicesPointer.get(i));
         }
     }
 }

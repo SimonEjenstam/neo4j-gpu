@@ -16,8 +16,8 @@ public class SolutionValidator {
         this.queryContext = queryContext;
     }
 
-    public CLBuffer<Boolean> validateSolutions(CLBuffer<Integer> possibleSolutions, CandidateRelationships candidateRelationships) throws IOException {
-        int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+    public CLBuffer<Boolean> validateSolutions(PossibleSolutions possibleSolutions, CandidateRelationships candidateRelationships) throws IOException {
+        int possibleSolutionCount = (int) possibleSolutions.getSolutionElements().getElementCount() / this.queryContext.queryNodeCount;
 
         CLBuffer<Boolean> validationIndicators = this.queryKernels.context.createBuffer(
                 CLMem.Usage.Output,
@@ -30,7 +30,7 @@ public class SolutionValidator {
                 candidateRelationships.getQueryStartNodeId(),
                 candidateRelationships.getQueryEndNodeId(),
                 this.queryContext.queryNodeCount,
-                possibleSolutions,
+                possibleSolutions.getSolutionElements(),
                 candidateRelationships.getCandidateStartNodes(),
                 candidateRelationships.getCandidateEndNodeIndices(),
                 candidateRelationships.getCandidateEndNodes(),

@@ -16,8 +16,8 @@ public class SolutionCombinationCounter {
         this.queryContext = queryContext;
     }
 
-    public Pointer<Integer> countSolutionCombinations(CLBuffer<Integer> possibleSolutions, CandidateRelationships candidateRelationships, boolean startNodeVisited) throws IOException {
-        int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+    public Pointer<Integer> countSolutionCombinations(PossibleSolutions possibleSolutions, CandidateRelationships candidateRelationships, boolean startNodeVisited) throws IOException {
+        int possibleSolutionCount = (int) possibleSolutions.getSolutionElements().getElementCount() / this.queryContext.queryNodeCount;
 
         CLBuffer<Integer>
                 combinationCountsBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, possibleSolutionCount);
@@ -33,10 +33,13 @@ public class SolutionCombinationCounter {
                 candidateRelationships.getQueryStartNodeId(),
                 candidateRelationships.getQueryEndNodeId(),
                 this.queryContext.queryNodeCount,
-                possibleSolutions,
+                this.queryContext.queryRelationshipCount,
+                possibleSolutions.getSolutionElements(),
+                possibleSolutions.getSolutionRelationships(),
                 candidateRelationships.getCandidateStartNodes(),
                 candidateRelationships.getCandidateEndNodeIndices(),
                 candidateRelationships.getCandidateEndNodes(),
+                candidateRelationships.getRelationshipIndices(),
                 startNodeVisitedBuffer,
                 candidateRelationships.getStartNodeCount(),
                 combinationCountsBuffer,

@@ -33,7 +33,7 @@ public class CandidateRelationshipSearcher {
         HashMap<Integer, CandidateRelationships> candidateRelationshipsHashMap = new HashMap<Integer, CandidateRelationships>();
 
         for (Relationship relationship : relationships) {
-            CandidateRelationships candidateRelationships = new CandidateRelationships(relationship, this.queryContext.gpuQuery.getQueryIdDictionary(), this.queryKernels);
+            CandidateRelationships candidateRelationships = new CandidateRelationships(relationship, this.queryContext.gpuQuery.getNodeIdDictionary(), this.queryKernels);
 
             Pointer<Integer> candidateRelationshipCountsPointer = this.candidateRelationshipCounter.countCandidateRelationships(candidateRelationships);
 

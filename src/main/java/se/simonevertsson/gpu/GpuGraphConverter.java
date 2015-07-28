@@ -1,7 +1,6 @@
 package se.simonevertsson.gpu;
 
 import org.neo4j.graphdb.*;
-import se.simonevertsson.query.QueryGraph;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,13 +13,14 @@ public class GpuGraphConverter {
     private List<Node> nodes;
     private LabelDictionary labelDictionary;
     private TypeDictionary typeDictionary;
-    private QueryIdDictionary queryIdDictionary;
+    private QueryIdDictionary nodeIdDictionary;
 
     private ArrayList<Integer> labelIndices;
     private ArrayList<Integer> nodeLabels;
     private ArrayList<Integer> relationshipIndices;
     private ArrayList<Integer> nodeRelationships;
     private ArrayList<Integer> relationshipTypes;
+    private QueryIdDictionary relationshipIdDictionary;
 
     public GpuGraphConverter(List<Node> nodes, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
         this.nodes = nodes;
@@ -31,9 +31,8 @@ public class GpuGraphConverter {
     public GpuGraph convert() {
         initializeLists();
         for(Node node : this.nodes) {
-            queryIdDictionary.add(node.getId());
+            nodeIdDictionary.add(node.getId());
         }
-
 
         int currentLabelIndex = 0;
         int currentRelationshipIndex = 0;
@@ -44,7 +43,7 @@ public class GpuGraphConverter {
 
         appendLastIndexIfNotEmpty(labelIndices, currentLabelIndex);
         appendLastIndexIfNotEmpty(relationshipIndices, currentRelationshipIndex);
-        return new GpuGraph(labelIndices, nodeLabels, relationshipIndices, nodeRelationships, relationshipTypes, queryIdDictionary);
+        return new GpuGraph(labelIndices, nodeLabels, relationshipIndices, nodeRelationships, relationshipTypes, nodeIdDictionary, relationshipIdDictionary);
     }
 
     private int addRelationships(int currentRelationshipIndex, Node sourceNode) {
@@ -74,7 +73,8 @@ public class GpuGraphConverter {
     private int addRelationships(Iterable<Relationship> nodeRelationships) {
         int relationshipCount = 0;
         for(Relationship nodeRelationship : nodeRelationships) {
-            int endNodeQueryId = this.queryIdDictionary.getQueryId(nodeRelationship.getEndNode().getId());
+            this.relationshipIdDictionary.add(nodeRelationship.getId());
+            int endNodeQueryId = this.nodeIdDictionary.getQueryId(nodeRelationship.getEndNode().getId());
             this.nodeRelationships.add(endNodeQueryId);
             if(nodeRelationship.getType() != null) {
                 int relationshipTypeId = this.typeDictionary.insertType(nodeRelationship.getType().name());
@@ -111,7 +111,8 @@ public class GpuGraphConverter {
     }
 
     private void initializeLists() {
-        this.queryIdDictionary = new QueryIdDictionary();
+        this.nodeIdDictionary = new QueryIdDictionary();
+        this.relationshipIdDictionary = new QueryIdDictionary();
         this.labelIndices = new ArrayList<Integer>();
         this.nodeLabels = new ArrayList<Integer>();
         this.relationshipIndices = new ArrayList<Integer>();

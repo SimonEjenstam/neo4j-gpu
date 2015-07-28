@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
 import se.simonevertsson.gpu.CandidateRelationships;
+import se.simonevertsson.gpu.PossibleSolutions;
 import se.simonevertsson.gpu.SolutionInitializer;
 
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class SolutionInitializerTest extends TestCase{
         /******* Relationship candidates 1 *********/
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), this.mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), this.mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -56,24 +57,33 @@ public class SolutionInitializerTest extends TestCase{
                 1,2,2
         };
 
+        int[] candidateRelationshipRelationshipIndices = {
+                0,1,2
+        };
+
         CLBuffer<Integer>
                 candidateStartNodesBuffer = mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
         CLBuffer<Integer> candidateRelationshipEndNodeIndicesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         CLBuffer<Integer> candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        CLBuffer<Integer> candidateRelationshipRelationshipBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipRelationshipIndices), true);
+
+
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipEndNodeIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
 
         /******* Relationship candidates 2 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
-        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), this.mockQuery.queryKernels);
+        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 0,1
@@ -85,6 +95,10 @@ public class SolutionInitializerTest extends TestCase{
                 1,2,2,3
         };
 
+        candidateRelationshipRelationshipIndices = new int[] {
+                0,1,2,3
+        };
+
 
         candidateStartNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
@@ -92,18 +106,21 @@ public class SolutionInitializerTest extends TestCase{
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        candidateRelationshipRelationshipBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipRelationshipIndices), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipRelationshipBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
 
         /******* Relationship candidates 3 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
-        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), this.mockQuery.queryKernels);
+        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 1,2
@@ -115,6 +132,10 @@ public class SolutionInitializerTest extends TestCase{
                 2,3,3
         };
 
+        candidateRelationshipRelationshipIndices = new int[] {
+                2,3,4
+        };
+
 
         candidateStartNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
@@ -122,11 +143,14 @@ public class SolutionInitializerTest extends TestCase{
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        candidateRelationshipRelationshipBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipRelationshipIndices), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipRelationshipBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
     }
@@ -147,15 +171,16 @@ public class SolutionInitializerTest extends TestCase{
         SolutionInitializer solutionInitializer = new SolutionInitializer(this.mockQuery.queryContext, this.mockQuery.queryKernels);
 
         // When
-        int[] result =  solutionInitializer.createInitialPossibleSolutions(this.candidateRelationshipsHashMap.get(0));
+        PossibleSolutions result =  solutionInitializer.createInitialPossibleSolutions(this.candidateRelationshipsHashMap.get(0));
 
         // Then
         int[] expectedInitialPossibleSolutions = {
             0,1,-1, 0,2,-1, 1,2,-1
         };
 
+        Pointer<Integer> resultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
         for(int i = 0; i < expectedInitialPossibleSolutions.length; i++) {
-            assertEquals(expectedInitialPossibleSolutions[i], result[i]);
+            assertEquals(expectedInitialPossibleSolutions[i], (int) resultPointer.get(i));
         }
     }
 
@@ -164,15 +189,16 @@ public class SolutionInitializerTest extends TestCase{
         SolutionInitializer solutionInitializer = new SolutionInitializer(this.mockQuery.queryContext, this.mockQuery.queryKernels);
 
         // When
-        int[] result =  solutionInitializer.createInitialPossibleSolutions(this.candidateRelationshipsHashMap.get(1));
+        PossibleSolutions result =  solutionInitializer.createInitialPossibleSolutions(this.candidateRelationshipsHashMap.get(1));
 
         // Then
         int[] expectedInitialPossibleSolutions = {
                 0,-1,1, 0,-1,2, 1,-1,2, 1,-1,3
         };
 
+        Pointer<Integer> resultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
         for(int i = 0; i < expectedInitialPossibleSolutions.length; i++) {
-            assertEquals(expectedInitialPossibleSolutions[i], result[i]);
+            assertEquals(expectedInitialPossibleSolutions[i], (int) resultPointer.get(i));
         }
     }
 
@@ -181,15 +207,16 @@ public class SolutionInitializerTest extends TestCase{
         SolutionInitializer solutionInitializer = new SolutionInitializer(this.mockQuery.queryContext, this.mockQuery.queryKernels);
 
         // When
-        int[] result =  solutionInitializer.createInitialPossibleSolutions(this.candidateRelationshipsHashMap.get(2));
+        PossibleSolutions result =  solutionInitializer.createInitialPossibleSolutions(this.candidateRelationshipsHashMap.get(2));
 
         // Then
         int[] expectedInitialPossibleSolutions = {
                 -1,1,2, -1,1,3, -1,2,3
         };
 
+        Pointer<Integer> resultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
         for(int i = 0; i < expectedInitialPossibleSolutions.length; i++) {
-            assertEquals(expectedInitialPossibleSolutions[i], result[i]);
+            assertEquals(expectedInitialPossibleSolutions[i], (int) resultPointer.get(i));
         }
     }
 
@@ -201,8 +228,8 @@ public class SolutionInitializerTest extends TestCase{
         ArrayList<Integer> visitedNodes = new ArrayList<Integer>();
 
         // When
-        CLBuffer<Integer> result =  solutionInitializer.initializePossibleSolutions(candidateRelationshipsHashMap,visitedRelationships, visitedNodes);
-        Pointer<Integer> resultPointer = result.read(this.mockQuery.queryKernels.queue);
+        PossibleSolutions result =  solutionInitializer.initializePossibleSolutions(candidateRelationshipsHashMap, visitedRelationships, visitedNodes);
+        Pointer<Integer> resultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
 
         // Then
         assertEquals(1, visitedRelationships.size());

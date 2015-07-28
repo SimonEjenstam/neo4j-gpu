@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
 import se.simonevertsson.gpu.CandidateRelationships;
+import se.simonevertsson.gpu.PossibleSolutions;
 import se.simonevertsson.gpu.QueryUtils;
 import se.simonevertsson.gpu.SolutionCombinationGenerator;
 
@@ -44,7 +45,7 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         /******* Relationship candidates 1 *********/
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), this.mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), this.mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -73,7 +74,7 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         /******* Relationship candidates 2 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
-        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), this.mockQuery.queryKernels);
+        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 0,1
@@ -103,7 +104,7 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         /******* Relationship candidates 3 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
-        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), this.mockQuery.queryKernels);
+        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 1,2
@@ -135,12 +136,12 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         // Given
 
         /* Relationship 2 visited */
-        int[] oldPossibleSolutions = {
+        int[] oldPossibleSolutionElements = {
                 -1,1,2, -1,1,3, -1,2,3
         };
 
-        CLBuffer<Integer> oldPossibleSolutionsBuffer =
-                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutions), true);
+        CLBuffer<Integer> oldPossibleSolutionElementsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionElements), true);
 
         int[] solutionCombinationCounts = {
                 1,1,2
@@ -154,6 +155,8 @@ public class SolutionCombinationGeneratorTest extends TestCase {
                 0,1,2,4
         };
 
+        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, null);
+
         //combinationIndices = QueryUtils.generatePrefixScanArray(solutionCombinationCountsBuffer.read(this.mockQuery.queryKernels.queue), 3);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(0);
@@ -161,8 +164,8 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         SolutionCombinationGenerator solutionCombinationGenerator = new SolutionCombinationGenerator(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 
         // When
-        CLBuffer<Integer> result =  solutionCombinationGenerator.generateSolutionCombinations(oldPossibleSolutionsBuffer, candidateRelationships, false, combinationIndices);
-        Pointer<Integer> resultPointer =result.read(this.mockQuery.queryKernels.queue);
+        PossibleSolutions result =  solutionCombinationGenerator.generateSolutionCombinations(oldPossibleSolutions, candidateRelationships, false, combinationIndices);
+        Pointer<Integer> resultPointer =result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
         System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(resultPointer, 12)));
 
         // Then
@@ -180,12 +183,12 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         // Given
 
         /* Relationship 0 visited */
-        int[] oldPossibleSolutions = {
+        int[] oldPossibleSolutionElements = {
                 0,1,-1, 0,2,-1, 1,2,-1
         };
 
-        CLBuffer<Integer> oldPossibleSolutionsBuffer =
-                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutions), true);
+        CLBuffer<Integer> oldPossibleSolutionElementsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionElements), true);
 
         int[] solutionCombinationCounts = {
                 2,2,2
@@ -199,6 +202,8 @@ public class SolutionCombinationGeneratorTest extends TestCase {
                 0,2,4,6
         };
 
+        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, null);
+
         //combinationIndices = QueryUtils.generatePrefixScanArray(solutionCombinationCountsBuffer.read(this.mockQuery.queryKernels.queue), 3);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(1);
@@ -206,8 +211,8 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         SolutionCombinationGenerator solutionCombinationGenerator = new SolutionCombinationGenerator(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 
         // When
-        CLBuffer<Integer> result =  solutionCombinationGenerator.generateSolutionCombinations(oldPossibleSolutionsBuffer, candidateRelationships, true, combinationIndices);
-        Pointer<Integer> resultPointer =result.read(this.mockQuery.queryKernels.queue);
+        PossibleSolutions result =  solutionCombinationGenerator.generateSolutionCombinations(oldPossibleSolutions, candidateRelationships, true, combinationIndices);
+        Pointer<Integer> resultPointer =result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
         System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(resultPointer, 18)));
 
         // Then

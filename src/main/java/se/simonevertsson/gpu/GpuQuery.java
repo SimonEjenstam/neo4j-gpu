@@ -43,7 +43,7 @@ public class GpuQuery {
         /****** Candidate relationship joining step ******/
         CandidateRelationshipJoiner candidateRelationshipJoiner =
                 new CandidateRelationshipJoiner(this.queryContext, this.queryKernels, this.bufferContainer);
-        CLBuffer<Integer> solutions = candidateRelationshipJoiner.joinCandidateRelationships(relationshipCandidatesHashMap);
+        PossibleSolutions solutions = candidateRelationshipJoiner.joinCandidateRelationships(relationshipCandidatesHashMap);
 
 //        return QueryUtils.generateCypherQueriesFromFinalSolutions(this.queryKernels, this.queryContext, solutions);
         return QueryUtils.generateQuerySolutions(this.queryKernels, this.queryContext, solutions);

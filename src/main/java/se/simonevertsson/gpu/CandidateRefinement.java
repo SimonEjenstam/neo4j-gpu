@@ -3,7 +3,6 @@ package se.simonevertsson.gpu;
 import org.neo4j.graphdb.Node;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -28,7 +27,7 @@ public class CandidateRefinement {
         boolean candidateIndicatorsHasChanged = true;
         while (candidateIndicatorsHasChanged) {
             for (Node queryNode : visitOrder) {
-                int queryNodeId = this.queryContext.gpuQuery.getQueryIdDictionary().getQueryId(queryNode.getId());
+                int queryNodeId = this.queryContext.gpuQuery.getNodeIdDictionary().getQueryId(queryNode.getId());
                 int[] candidateArray = QueryUtils.gatherCandidateArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount, queryNodeId);
                 if (candidateArray.length > 0) {
                     this.candidateRefinery.refineCandidates(queryNodeId, candidateArray);

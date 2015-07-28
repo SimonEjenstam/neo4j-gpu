@@ -5,8 +5,9 @@ __kernel void find_candidate_relationships(
     __global int* d_relationship_indices,
 
     __global int* candidate_relationship_end_nodes,
-    __global int* candidate_relationship_end_node_indices,
+    __global int* candidate_relationship_indices,
 
+    __global int* candidate_relationship_end_node_indices,
     __global int* candidate_relationship_start_nodes,
     __global bool* candidate_indicators,
     int d_node_count)
@@ -24,6 +25,7 @@ __kernel void find_candidate_relationships(
         int candidate_end_node = d_relationships[i];
         if(candidate_indicators[q_end_node*d_node_count + candidate_end_node]) {
             candidate_relationship_end_nodes[current_output_index] = candidate_end_node;
+            candidate_relationship_indices[current_output_index] = i;
             current_output_index++;
         }
     }

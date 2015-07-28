@@ -40,7 +40,7 @@ public class CandidateRelationshipCounterTest extends TestCase {
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
 
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), mockQuery.queryKernels);
 
         // When
         Pointer<Integer> result =  candidateRelationshipCounter.countCandidateRelationships(candidateRelationships);
@@ -82,7 +82,7 @@ public class CandidateRelationshipCounterTest extends TestCase {
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
 
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), mockQuery.queryKernels);
 
         // When
         Pointer<Integer> result =  candidateRelationshipCounter.countCandidateRelationships(candidateRelationships);
@@ -124,7 +124,7 @@ public class CandidateRelationshipCounterTest extends TestCase {
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
 
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getQueryIdDictionary(), mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), mockQuery.queryKernels);
 
         // When
         Pointer<Integer> result =  candidateRelationshipCounter.countCandidateRelationships(candidateRelationships);

@@ -10,7 +10,9 @@ import java.util.Arrays;
  */
 public class GpuGraph {
 
-    private QueryIdDictionary queryIdDictionary;
+    private QueryIdDictionary nodeIdDictionary;
+
+    private QueryIdDictionary relationshipIdDictionary;
 
     private int[] labelIndices;
 
@@ -22,13 +24,14 @@ public class GpuGraph {
 
     private int[] relationshipTypes;
 
-    public GpuGraph(ArrayList<Integer> labelIndices, ArrayList<Integer> nodeLabels, ArrayList<Integer> relationshipIndices, ArrayList<Integer> nodeRelationships, ArrayList<Integer> relationshipTypes, QueryIdDictionary queryIdDictionary) {
+    public GpuGraph(ArrayList<Integer> labelIndices, ArrayList<Integer> nodeLabels, ArrayList<Integer> relationshipIndices, ArrayList<Integer> nodeRelationships, ArrayList<Integer> relationshipTypes, QueryIdDictionary nodeIdDictionary, QueryIdDictionary relationshipIdDictionary) {
         this.labelIndices = ArrayUtil.toIntArray(labelIndices);
         this.nodeLabels = ArrayUtil.toIntArray(nodeLabels);
         this.relationshipIndices = ArrayUtil.toIntArray(relationshipIndices);
         this.nodeRelationships = ArrayUtil.toIntArray(nodeRelationships);
         this.relationshipTypes = ArrayUtil.toIntArray(relationshipTypes);
-        this.queryIdDictionary = queryIdDictionary;
+        this.nodeIdDictionary = nodeIdDictionary;
+        this.relationshipIdDictionary = relationshipIdDictionary;
     }
 
     public int[] getNodeLabels() {
@@ -62,7 +65,11 @@ public class GpuGraph {
         return relationshipTypes;
     }
 
-    public QueryIdDictionary getQueryIdDictionary() {
-        return queryIdDictionary;
+    public QueryIdDictionary getNodeIdDictionary() {
+        return nodeIdDictionary;
+    }
+
+    public QueryIdDictionary getRelationshipIdDictionary() {
+        return relationshipIdDictionary;
     }
 }

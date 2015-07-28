@@ -17,33 +17,41 @@ public class SolutionPruner {
         this.queryContext = queryContext;
     }
 
-    public CLBuffer<Integer> prunePossibleSolutions(CLBuffer<Integer> oldPossibleSolutions, CLBuffer<Boolean> validationIndicators, int[] outputIndexArray) throws IOException {
-        int possibleSolutionCount = (int) oldPossibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+    public PossibleSolutions prunePossibleSolutions(PossibleSolutions oldPossibleSolutions, CLBuffer<Boolean> validationIndicators, int[] outputIndexArray) throws IOException {
+        int possibleSolutionCount = (int) oldPossibleSolutions.getSolutionElements().getElementCount() / this.queryContext.queryNodeCount;
 
         CLBuffer<Integer> outputIndices = this.queryKernels.context.createIntBuffer(
                 CLMem.Usage.Input,
                 IntBuffer.wrap(outputIndexArray),
                 true);
 
-        CLBuffer<Integer> prunedPossibleSolutions = this.queryKernels.context.createIntBuffer(
+        CLBuffer<Integer> prunedPossibleSolutionElements = this.queryKernels.context.createIntBuffer(
                 CLMem.Usage.Input,
                 outputIndexArray[outputIndexArray.length - 1] * this.queryContext.queryNodeCount
         );
+
+        CLBuffer<Integer> prunedPossibleSolutionRelationships = this.queryKernels.context.createIntBuffer(
+                CLMem.Usage.Input,
+                outputIndexArray[outputIndexArray.length - 1] * this.queryContext.queryGraph.relationships.size()
+        );
+
 
         int[] globalSizes = new int[]{possibleSolutionCount};
 
         CLEvent pruneSolutionsEvent = this.queryKernels.pruneSolutionsKernel.prune_solutions(
                 this.queryKernels.queue,
                 this.queryContext.queryNodeCount,
-                oldPossibleSolutions,
+                oldPossibleSolutions.getSolutionElements(),
                 validationIndicators,
                 outputIndices,
-                prunedPossibleSolutions,
+                prunedPossibleSolutionElements,
                 globalSizes,
                 null
         );
 
         pruneSolutionsEvent.waitFor();
+
+        PossibleSolutions prunedPossibleSolutions = new PossibleSolutions(prunedPossibleSolutionElements, prunedPossibleSolutionRelationships);
 
         return prunedPossibleSolutions;
     }

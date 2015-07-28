@@ -10,6 +10,7 @@ public class QueryContext {
     public GpuGraph gpuQuery;
     public int queryNodeCount;
     public int dataNodeCount;
+    public int queryRelationshipCount;
 
     public QueryContext(GpuGraph gpuData, GpuGraph gpuQuery, QueryGraph queryGraph, LabelDictionary labelDictionary, TypeDictionary typeDictionary) {
         this.gpuData = gpuData;
@@ -17,6 +18,7 @@ public class QueryContext {
         this.queryGraph = queryGraph;
         this.dataNodeCount = gpuData.getRelationshipIndices().length - 1;
         this.queryNodeCount = gpuQuery.getRelationshipIndices().length - 1;
+        this.queryRelationshipCount = queryGraph.relationships.size();
         this.labelDictionary = labelDictionary;
         this.typeDictionary = typeDictionary;
     }

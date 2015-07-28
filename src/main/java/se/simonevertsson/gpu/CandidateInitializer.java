@@ -4,7 +4,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class CandidateInitializer {
@@ -24,7 +23,7 @@ public class CandidateInitializer {
     void candidateInitialization(List<Node> visitOrder) throws IOException {
         boolean initializedQueryNodes[] = new boolean[this.queryContext.queryNodeCount];
         for (Node queryNode : visitOrder) {
-            int queryNodeId = this.queryContext.gpuQuery.getQueryIdDictionary().getQueryId(queryNode.getId());
+            int queryNodeId = this.queryContext.gpuQuery.getNodeIdDictionary().getQueryId(queryNode.getId());
 
             if (!initializedQueryNodes[queryNodeId]) {
                 this.candidateChecker.checkCandidates(this.queryContext.gpuQuery, queryNode);
@@ -45,7 +44,7 @@ public class CandidateInitializer {
 
                     /* We have explored the neighborhood, mark query nodes related to the current query node as initialized */
                     for (Relationship neighborhoodRelationship : queryNode.getRelationships()) {
-                        int neighborQueryNodeId = this.queryContext.gpuQuery.getQueryIdDictionary()
+                        int neighborQueryNodeId = this.queryContext.gpuQuery.getNodeIdDictionary()
                                 .getQueryId(neighborhoodRelationship.getEndNode().getId());
                         initializedQueryNodes[neighborQueryNodeId] = true;
                     }

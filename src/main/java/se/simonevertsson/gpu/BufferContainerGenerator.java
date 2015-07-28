@@ -2,6 +2,7 @@ package se.simonevertsson.gpu;
 
 import com.nativelibs4java.opencl.CLMem;
 import org.bridj.Pointer;
+import org.neo4j.register.Register;
 
 import java.nio.IntBuffer;
 

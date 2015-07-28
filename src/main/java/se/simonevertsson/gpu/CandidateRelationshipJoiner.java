@@ -30,11 +30,11 @@ public class CandidateRelationshipJoiner {
         this.solutionCombinationGenerator = new SolutionCombinationGenerator(queryKernels,queryContext);
     }
 
-    public CLBuffer<Integer> joinCandidateRelationships(HashMap<Integer, CandidateRelationships> candidateRelationshipsHashMap) throws IOException {
+    public PossibleSolutions joinCandidateRelationships(HashMap<Integer, CandidateRelationships> candidateRelationshipsHashMap) throws IOException {
         ArrayList<Integer> visitedQueryRelationships = new ArrayList<Integer>();
         ArrayList<Integer> visitedQueryNodes = new ArrayList<Integer>();
 
-        CLBuffer<Integer> possibleSolutions = solutionInitializer.initializePossibleSolutions(candidateRelationshipsHashMap, visitedQueryRelationships, visitedQueryNodes);
+        PossibleSolutions possibleSolutions = solutionInitializer.initializePossibleSolutions(candidateRelationshipsHashMap, visitedQueryRelationships, visitedQueryNodes);
 
 
         while( visitedQueryRelationships.size() < candidateRelationshipsHashMap.size()) {
@@ -46,7 +46,7 @@ public class CandidateRelationshipJoiner {
                     boolean startNodeVisisted = visitedQueryNodes.contains(startNodeId);
                     boolean endNodeVisisted = visitedQueryNodes.contains(endNodeId);
 
-                    int possibleSolutionCount = (int) possibleSolutions.getElementCount() / this.queryContext.queryNodeCount;
+                    int possibleSolutionCount = (int) possibleSolutions.getSolutionElements().getElementCount() / this.queryContext.queryNodeCount;
 
                     if (startNodeVisisted && endNodeVisisted) {
                         /* Prune existing possible solutions */
@@ -60,7 +60,7 @@ public class CandidateRelationshipJoiner {
                             return null;
                         }
 
-                        CLBuffer<Integer> prunedPossibleSolutions = solutionPruner.prunePossibleSolutions(
+                        PossibleSolutions prunedPossibleSolutions = solutionPruner.prunePossibleSolutions(
                                 possibleSolutions,
                                 validationIndicators,
                                 outputIndexArray);
@@ -77,7 +77,7 @@ public class CandidateRelationshipJoiner {
 
                         int[] combinationIndices = QueryUtils.generatePrefixScanArray(combinationCountsPointer, possibleSolutionCount);
 
-                        CLBuffer<Integer> newPossibleSolutions = solutionCombinationGenerator.generateSolutionCombinations(
+                        PossibleSolutions newPossibleSolutions = solutionCombinationGenerator.generateSolutionCombinations(
                                 possibleSolutions,
                                 candidateRelationships,
                                 startNodeVisisted,

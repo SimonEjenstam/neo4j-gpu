@@ -20,9 +20,11 @@ public class CandidateRelationshipFinder {
         this.dataNodeCount = dataNodeCount;
     }
 
-    public CLBuffer<Integer> findCandidateRelationships(CandidateRelationships candidateRelationships) throws IOException {
+    public CandidateRelationships findCandidateRelationships(CandidateRelationships candidateRelationships) throws IOException {
 
         CLBuffer candidateRelationshipEndNodes = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, candidateRelationships.getEndNodeCount());
+
+        CLBuffer candidateRelationshipIndices = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, candidateRelationships.getEndNodeCount());
 
 
         int[] globalSizes = new int[]{(int) candidateRelationships.getStartNodeCount()};
@@ -36,8 +38,9 @@ public class CandidateRelationshipFinder {
                 this.dataBuffers.dataRelationshipIndicesBuffer,
 
                 candidateRelationshipEndNodes,
-                candidateRelationships.getCandidateEndNodeIndices(),
+                candidateRelationshipIndices,
 
+                candidateRelationships.getCandidateEndNodeIndices(),
                 candidateRelationships.getCandidateStartNodes(),
                 this.queryBuffers.candidateIndicatorsBuffer,
                 this.dataNodeCount,
@@ -48,6 +51,7 @@ public class CandidateRelationshipFinder {
 
         findCandidateRelationshipsEvent.waitFor();
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodes);
-        return candidateRelationshipEndNodes;
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndices);
+        return candidateRelationships;
     }
 }

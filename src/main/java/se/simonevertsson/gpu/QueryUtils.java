@@ -2,8 +2,6 @@ package se.simonevertsson.gpu;
 
 import com.nativelibs4java.opencl.CLBuffer;
 import org.bridj.Pointer;
-import org.neo4j.graphdb.Node;
-import se.simonevertsson.Main;
 import se.simonevertsson.query.AliasDictionary;
 
 import java.util.AbstractMap;
@@ -97,16 +95,16 @@ public class QueryUtils {
     }
 
 
-    public static List<QuerySolution> generateQuerySolutions(QueryKernels queryKernels, QueryContext queryContext, CLBuffer<Integer> solutionsBuffer) {
+    public static List<QuerySolution> generateQuerySolutions(QueryKernels queryKernels, QueryContext queryContext, PossibleSolutions solution) {
         ArrayList<QuerySolution> results = new ArrayList<QuerySolution>();
         List<Map.Entry<String, Integer>> solutionElements = null;
 
-        if(solutionsBuffer != null) {
+        if(solution != null) {
             AliasDictionary aliasDictionary = queryContext.queryGraph.aliasDictionary;
-            QueryIdDictionary queryGraphQueryIdDictionary = queryContext.gpuQuery.getQueryIdDictionary();
-            QueryIdDictionary dataGraphQueryIdDictionary = queryContext.gpuData.getQueryIdDictionary();
-            Pointer<Integer> solutionsPointer = solutionsBuffer.read(queryKernels.queue);
-            int solutionCount = (int) (solutionsBuffer.getElementCount() / queryContext.queryNodeCount);
+            QueryIdDictionary queryGraphQueryIdDictionary = queryContext.gpuQuery.getNodeIdDictionary();
+            QueryIdDictionary dataGraphQueryIdDictionary = queryContext.gpuData.getNodeIdDictionary();
+            Pointer<Integer> solutionsPointer = solution.getSolutionElements().read(queryKernels.queue);
+            int solutionCount = (int) (solution.getSolutionElements().getElementCount() / queryContext.queryNodeCount);
 
 
             for (int i = 0; i < solutionCount * queryContext.queryNodeCount; i++) {
