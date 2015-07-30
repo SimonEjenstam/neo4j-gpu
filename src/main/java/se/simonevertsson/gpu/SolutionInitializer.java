@@ -41,6 +41,7 @@ public class SolutionInitializer {
 
             /* Initially mark all nodes in all possible solutions as unknown (-1) */
             Arrays.fill(initialSolutionElementsArray, -1);
+            Arrays.fill(initialSolutionRelationshipsArray, -1);
 
             Pointer<Integer> candidateStartNodes = candidateRelationships.getCandidateStartNodes().read(this.queryKernels.queue);
             Pointer<Integer> candidateEndNodes = candidateRelationships.getCandidateEndNodes().read(this.queryKernels.queue);

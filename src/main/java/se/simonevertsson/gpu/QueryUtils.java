@@ -1,6 +1,5 @@
 package se.simonevertsson.gpu;
 
-import com.nativelibs4java.opencl.CLBuffer;
 import org.bridj.Pointer;
 import se.simonevertsson.query.AliasDictionary;
 

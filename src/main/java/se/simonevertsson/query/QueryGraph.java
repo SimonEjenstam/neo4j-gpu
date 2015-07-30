@@ -1,9 +1,7 @@
 package se.simonevertsson.query;
 
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import se.simonevertsson.gpu.QueryIdDictionary;
 import se.simonevertsson.gpu.SpanningTree;
 
 import java.util.ArrayList;
