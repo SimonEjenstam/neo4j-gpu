@@ -36,8 +36,8 @@ __kernel void count_solution_combinations(
                                 relationship_valid = false;
                                 break;
                             }
-                            count += relationship_valid ? 1 : 0;
                         }
+                        count += relationship_valid ? 1 : 0;
                     }
                 }
                 combination_counts[possible_solution_index] = count;
@@ -57,9 +57,9 @@ __kernel void count_solution_combinations(
                     if(possible_solution_relationship[possible_solution_index*query_relationship_count + k] == relationship_index) {
                         relationship_valid = false;
                         break;
-                    }
-                    count += relationship_valid ? 1 : 0;
+                    }        
                 }
+                count += relationship_valid ? 1 : 0;
             }
         }
     }

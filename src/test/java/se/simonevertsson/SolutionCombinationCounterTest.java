@@ -57,17 +57,26 @@ public class SolutionCombinationCounterTest extends TestCase {
                 1,2,2
         };
 
+        int[] candidateRelationshipIndices = {
+                0,1,2
+        };
+
         CLBuffer<Integer>
                 candidateStartNodesBuffer = mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
         CLBuffer<Integer> candidateRelationshipEndNodeIndicesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         CLBuffer<Integer> candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        CLBuffer<Integer> candidateRelationshipIndicesBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipIndices), true);
+
+
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
 
@@ -86,6 +95,10 @@ public class SolutionCombinationCounterTest extends TestCase {
                 1,2,2,3
         };
 
+        candidateRelationshipIndices = new int[] {
+                0,1,2,3
+        };
+
 
         candidateStartNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
@@ -93,11 +106,14 @@ public class SolutionCombinationCounterTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        candidateRelationshipIndicesBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipIndices), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
 
@@ -117,6 +133,9 @@ public class SolutionCombinationCounterTest extends TestCase {
         candidateRelationshipEndNodes = new int[] {
                 2,3,3
         };
+        candidateRelationshipIndices = new int[] {
+                2,3,4
+        };
 
 
         candidateStartNodesBuffer =
@@ -125,11 +144,15 @@ public class SolutionCombinationCounterTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        candidateRelationshipIndicesBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipIndices), true);
+
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
     }
@@ -142,10 +165,17 @@ public class SolutionCombinationCounterTest extends TestCase {
                 0,1,-1, 0,2,-1, 1,2,-1
         };
 
+        int[] possibleSolutionRelationships = {
+                0,-1,-1, 1,-1,-1, 2,-1,-1
+        };
+
         CLBuffer<Integer> possibleSolutionElementsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionElements), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, null);
+        CLBuffer<Integer> possibleSolutionRelationshipsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionRelationships), true);
+
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(1);
 
