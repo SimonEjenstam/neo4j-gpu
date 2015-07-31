@@ -187,9 +187,8 @@ public class SolutionCombinationCounterTest extends TestCase {
 
         // Then
         int[] expectedSolutionCombinationCounts = {
-                2,2,2
+                1,1,1
         };
-
 
         for(int i = 0; i < expectedSolutionCombinationCounts.length; i++) {
             assertEquals(expectedSolutionCombinationCounts[i], (int) result.get(i));
@@ -204,12 +203,17 @@ public class SolutionCombinationCounterTest extends TestCase {
                 -1,1,2, -1,1,3, -1,2,3
         };
 
+        int[] possibleSolutionRelationships = {
+                -1,-1, 2, -1,-1,3, -1,-1,4
+        };
+
         CLBuffer<Integer> possibleSolutionElementsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionElements), true);
 
+        CLBuffer<Integer> possibleSolutionRelationshipsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionRelationships), true);
 
-
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, null);
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(0);
 

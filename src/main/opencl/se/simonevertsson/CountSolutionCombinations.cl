@@ -28,20 +28,16 @@ __kernel void count_solution_combinations(
                 int end_node_index_start = c_end_node_indices[i];
                 int end_node_index_end = c_end_node_indices[i+1];
                 for(int j = end_node_index_start; j < end_node_index_end; j++) {
-                     if(c_end_nodes[j] == possible_solution_elements[possible_solution_index*query_node_count + q_end_node]) {
-                        int relationship_index = c_relationship_indices[j];
-                        bool relationship_valid = true;
-                        for(int k = 0; k < query_relationship_count; k++) {
-                            if(possible_solution_relationship[possible_solution_index*query_relationship_count + k] == relationship_index) {
-                                relationship_valid = false;
-                                break;
-                            }
+                    int relationship_index = c_relationship_indices[j];
+                    bool relationship_valid = true;
+                    for(int k = 0; k < query_relationship_count; k++) {
+                        if(possible_solution_relationship[possible_solution_index*query_relationship_count + k] == relationship_index) {
+                            relationship_valid = false;
+                            break;
                         }
-                        count += relationship_valid ? 1 : 0;
                     }
+                    count += (relationship_valid ? 1 : 0);
                 }
-                combination_counts[possible_solution_index] = count;
-                break;
             }
         }
     } else{
@@ -51,19 +47,20 @@ __kernel void count_solution_combinations(
             int end_node_index_end = c_end_node_indices[i+1];
             for(int j = end_node_index_start; j < end_node_index_end; j++) {
                 //count += (c_end_nodes[j] == possible_solution_elements[possible_solution_index*query_node_count + q_end_node]) ? 1 : 0;
-                int relationship_index = c_relationship_indices[j];
-                bool relationship_valid = true;
-                for(int k = 0; k < query_relationship_count; k++) {
-                    if(possible_solution_relationship[possible_solution_index*query_relationship_count + k] == relationship_index) {
-                        relationship_valid = false;
-                        break;
-                    }        
-                }
-                count += relationship_valid ? 1 : 0;
+                if(c_end_nodes[j] == possible_solution_elements[possible_solution_index*query_node_count + q_end_node]) {
+                    int relationship_index = c_relationship_indices[j];
+                    bool relationship_valid = true;
+                    for(int k = 0; k < query_relationship_count; k++) {
+                        if(possible_solution_relationship[possible_solution_index*query_relationship_count + k] == relationship_index) {
+                            relationship_valid = false;
+                            break;
+                        }        
+                    }
+                    count += (relationship_valid ? 1 : 0);
+                }             
             }
         }
     }
-
      
     combination_counts[possible_solution_index] = count;
 }
