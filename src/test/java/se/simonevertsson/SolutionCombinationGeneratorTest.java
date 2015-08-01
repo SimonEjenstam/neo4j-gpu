@@ -57,17 +57,26 @@ public class SolutionCombinationGeneratorTest extends TestCase {
                 1,2,2
         };
 
+        int[] candidateRelationshipIndices = {
+                0,1,2
+        };
+
         CLBuffer<Integer>
                 candidateStartNodesBuffer = mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
         CLBuffer<Integer> candidateRelationshipEndNodeIndicesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         CLBuffer<Integer> candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        CLBuffer<Integer> candidateRelationshipIndicesBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipIndices), true);
+
+
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
 
@@ -86,6 +95,10 @@ public class SolutionCombinationGeneratorTest extends TestCase {
                 1,2,2,3
         };
 
+        candidateRelationshipIndices = new int[] {
+                0,1,2,3
+        };
+
 
         candidateStartNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
@@ -93,11 +106,14 @@ public class SolutionCombinationGeneratorTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        candidateRelationshipIndicesBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipIndices), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
 
@@ -109,11 +125,16 @@ public class SolutionCombinationGeneratorTest extends TestCase {
         candidateStartNodes =  new int[] {
                 1,2
         };
+
+
         candidateRelationshipEndNodeIndices =  new int[] {
                 0,2,3
         };
         candidateRelationshipEndNodes = new int[] {
                 2,3,3
+        };
+        candidateRelationshipIndices = new int[] {
+                2,3,4
         };
 
 
@@ -123,11 +144,15 @@ public class SolutionCombinationGeneratorTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        candidateRelationshipIndicesBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipIndices), true);
+
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
     }
@@ -140,8 +165,16 @@ public class SolutionCombinationGeneratorTest extends TestCase {
                 -1,1,2, -1,1,3, -1,2,3
         };
 
+
+        int[] oldPossibleSolutionRelationships = {
+                -1,-1, 2, -1,-1,3, -1,-1,4
+        };
+
         CLBuffer<Integer> oldPossibleSolutionElementsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionElements), true);
+
+        CLBuffer<Integer> oldPossibleSolutionRelationshipsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionRelationships), true);
 
         int[] solutionCombinationCounts = {
                 1,1,2
@@ -151,13 +184,13 @@ public class SolutionCombinationGeneratorTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(solutionCombinationCounts), true);
 
 
-        int[] combinationIndices = {
-                0,1,2,4
-        };
+//        int[] combinationIndices = {
+//                0,1,2,4
+//        };
 
-        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, null);
+        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer);
 
-        //combinationIndices = QueryUtils.generatePrefixScanArray(solutionCombinationCountsBuffer.read(this.mockQuery.queryKernels.queue), 3);
+        int[] combinationIndices = QueryUtils.generatePrefixScanArray(solutionCombinationCountsBuffer.read(this.mockQuery.queryKernels.queue), 3);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(0);
 
@@ -165,17 +198,30 @@ public class SolutionCombinationGeneratorTest extends TestCase {
 
         // When
         PossibleSolutions result =  solutionCombinationGenerator.generateSolutionCombinations(oldPossibleSolutions, candidateRelationships, false, combinationIndices);
-        Pointer<Integer> resultPointer =result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
-        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(resultPointer, 12)));
+        Pointer<Integer> solutionElementsResultPointer =result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
+        Pointer<Integer> solutionRelationshipsResultPointer =result.getSolutionRelationships().read(this.mockQuery.queryKernels.queue);
+
+        int solutionElementsSize = combinationIndices[combinationIndices.length-1]*mockQuery.queryContext.queryNodeCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
+
+        int solutionRelationshipsSize = combinationIndices[combinationIndices.length-1]*mockQuery.queryContext.queryRelationshipCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionRelationshipsResultPointer, solutionRelationshipsSize)));
 
         // Then
-        int[] expectedPossibleSolutions = {
+        int[] expectedPossibleSolutionElements = {
                 0,1,2, 0,1,3, 0,2,3, 1,2,3
         };
 
+        for(int i = 0; i < expectedPossibleSolutionElements.length; i++) {
+            assertEquals(expectedPossibleSolutionElements[i], (int) solutionElementsResultPointer.get(i));
+        }
 
-        for(int i = 0; i < expectedPossibleSolutions.length; i++) {
-            assertEquals(expectedPossibleSolutions[i], (int) resultPointer.get(i));
+        int[] expectedPossibleSolutionRelationships = {
+                0,-1,2, 0,-1,3, 1,-1,4, 2,-1,4
+        };
+
+        for(int i = 0; i < expectedPossibleSolutionRelationships.length; i++) {
+            assertEquals(expectedPossibleSolutionRelationships[i], (int) solutionRelationshipsResultPointer.get(i));
         }
     }
 
@@ -187,24 +233,31 @@ public class SolutionCombinationGeneratorTest extends TestCase {
                 0,1,-1, 0,2,-1, 1,2,-1
         };
 
+        int[] oldPossibleSolutionRelationships = {
+                0,-1,-1, 1,-1,-1, 2,-1,-1
+        };
+
         CLBuffer<Integer> oldPossibleSolutionElementsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionElements), true);
 
+        CLBuffer<Integer> oldPossibleSolutionRelationshipsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionRelationships), true);
+
         int[] solutionCombinationCounts = {
-                2,2,2
+                1,1,1
         };
 
         CLBuffer<Integer> solutionCombinationCountsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(solutionCombinationCounts), true);
 
 
-        int[] combinationIndices = {
-                0,2,4,6
-        };
+//        int[] combinationIndices = {
+//                0,2,4,6
+//        };
 
-        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, null);
+        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer);
 
-        //combinationIndices = QueryUtils.generatePrefixScanArray(solutionCombinationCountsBuffer.read(this.mockQuery.queryKernels.queue), 3);
+        int[] combinationIndices = QueryUtils.generatePrefixScanArray(solutionCombinationCountsBuffer.read(this.mockQuery.queryKernels.queue), 3);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(1);
 
@@ -212,17 +265,30 @@ public class SolutionCombinationGeneratorTest extends TestCase {
 
         // When
         PossibleSolutions result =  solutionCombinationGenerator.generateSolutionCombinations(oldPossibleSolutions, candidateRelationships, true, combinationIndices);
-        Pointer<Integer> resultPointer =result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
-        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(resultPointer, 18)));
+        Pointer<Integer> solutionElementsResultPointer =result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
+        Pointer<Integer> solutionRelationshipsResultPointer =result.getSolutionRelationships().read(this.mockQuery.queryKernels.queue);
+
+        int solutionElementsSize = combinationIndices[combinationIndices.length-1]*mockQuery.queryContext.queryNodeCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
+
+        int solutionRelationshipsSize = combinationIndices[combinationIndices.length-1]*mockQuery.queryContext.queryRelationshipCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionRelationshipsResultPointer, solutionRelationshipsSize)));
 
         // Then
         int[] expectedPossibleSolutions = {
-                0,1,1, 0,1,2, 0,2,1, 0,2,2, 1,2,2, 1,2,3
+                0,1,2, 0,2,1, 1,2,3
         };
 
-
         for(int i = 0; i < expectedPossibleSolutions.length; i++) {
-            assertEquals(expectedPossibleSolutions[i], (int) resultPointer.get(i));
+            assertEquals(expectedPossibleSolutions[i], (int) solutionElementsResultPointer.get(i));
+        }
+
+        int[] expectedPossibleSolutionRelationships = {
+                0,1,-1, 1,0,-1, 2,3,-1
+        };
+
+        for(int i = 0; i < expectedPossibleSolutionRelationships.length; i++) {
+            assertEquals(expectedPossibleSolutionRelationships[i], (int) solutionRelationshipsResultPointer.get(i));
         }
     }
 }

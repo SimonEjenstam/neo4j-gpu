@@ -31,21 +31,29 @@ public class SolutionCombinationGenerator {
         CLBuffer<Integer>
                 combinationIndicesBuffer = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(combinationIndices), true),
                 newPossibleSolutionElements = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryContext.queryNodeCount),
-                newPossibleSolutionRelationships = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryContext.queryGraph.relationships.size());
+                newPossibleSolutionRelationships = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, totalCombinationCount * this.queryContext.queryRelationshipCount);
+
+        int relationshipId = this.queryContext.gpuQuery.getRelationshipIdDictionary()
+                .getQueryId(candidateRelationships.getRelationship().getId());
 
         CLEvent generateSolutionCombinationsEvent = this.queryKernels.generateSolutionCombinationsKernel.generate_solution_combinations(
                 this.queryKernels.queue,
                 candidateRelationships.getQueryStartNodeId(),
                 candidateRelationships.getQueryEndNodeId(),
+                relationshipId,
                 this.queryContext.queryNodeCount,
+                this.queryContext.queryRelationshipCount,
                 oldPossibleSolutions.getSolutionElements(),
+                oldPossibleSolutions.getSolutionRelationships(),
                 combinationIndicesBuffer,
                 candidateRelationships.getCandidateStartNodes(),
                 candidateRelationships.getCandidateEndNodeIndices(),
                 candidateRelationships.getCandidateEndNodes(),
+                candidateRelationships.getRelationshipIndices(),
                 startNodeVisitedBuffer,
                 candidateRelationships.getStartNodeCount(),
                 newPossibleSolutionElements,
+                newPossibleSolutionRelationships,
                 globalSizes,
                 null
         );

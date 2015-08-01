@@ -4,7 +4,7 @@ __kernel void count_solution_combinations(
     int query_node_count,
     int query_relationship_count,
     __global int* possible_solution_elements,
-    __global int* possible_solution_relationship,
+    __global int* possible_solution_relationships,
 
     __global int* c_start_nodes,
     __global int* c_end_node_indices,
@@ -31,7 +31,7 @@ __kernel void count_solution_combinations(
                     int relationship_index = c_relationship_indices[j];
                     bool relationship_valid = true;
                     for(int k = 0; k < query_relationship_count; k++) {
-                        if(possible_solution_relationship[possible_solution_index*query_relationship_count + k] == relationship_index) {
+                        if(possible_solution_relationships[possible_solution_index*query_relationship_count + k] == relationship_index) {
                             relationship_valid = false;
                             break;
                         }
@@ -51,7 +51,7 @@ __kernel void count_solution_combinations(
                     int relationship_index = c_relationship_indices[j];
                     bool relationship_valid = true;
                     for(int k = 0; k < query_relationship_count; k++) {
-                        if(possible_solution_relationship[possible_solution_index*query_relationship_count + k] == relationship_index) {
+                        if(possible_solution_relationships[possible_solution_index*query_relationship_count + k] == relationship_index) {
                             relationship_valid = false;
                             break;
                         }        
