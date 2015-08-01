@@ -57,17 +57,26 @@ public class SolutionValidatorTest extends TestCase {
                 1,2,2
         };
 
+        int[] candidateRelationshipIndices = {
+                0,1,2
+        };
+
         CLBuffer<Integer>
                 candidateStartNodesBuffer = mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
         CLBuffer<Integer> candidateRelationshipEndNodeIndicesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         CLBuffer<Integer> candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        CLBuffer<Integer> candidateRelationshipIndicesBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipIndices), true);
+
+
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
 
@@ -86,6 +95,10 @@ public class SolutionValidatorTest extends TestCase {
                 1,2,2,3
         };
 
+        candidateRelationshipIndices = new int[] {
+                0,1,2,3
+        };
+
 
         candidateStartNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateStartNodes), true);
@@ -93,11 +106,14 @@ public class SolutionValidatorTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        candidateRelationshipIndicesBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipIndices), true);
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
 
@@ -109,11 +125,16 @@ public class SolutionValidatorTest extends TestCase {
         candidateStartNodes =  new int[] {
                 1,2
         };
+
+
         candidateRelationshipEndNodeIndices =  new int[] {
                 0,2,3
         };
         candidateRelationshipEndNodes = new int[] {
                 2,3,3
+        };
+        candidateRelationshipIndices = new int[] {
+                2,3,4
         };
 
 
@@ -123,11 +144,15 @@ public class SolutionValidatorTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodeIndices), true);
         candidateRelationshipEndNodesBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipEndNodes), true);
+        candidateRelationshipIndicesBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(candidateRelationshipIndices), true);
+
 
         candidateRelationships.setCandidateStartNodes(candidateStartNodesBuffer);
         candidateRelationships.setCandidateEndNodeIndices(candidateRelationshipEndNodeIndicesBuffer);
         candidateRelationships.setEndNodeCount(candidateRelationshipEndNodeIndices[candidateRelationshipEndNodeIndices.length - 1]);
         candidateRelationships.setCandidateEndNodes(candidateRelationshipEndNodesBuffer);
+        candidateRelationships.setCandidateRelationshipIndices(candidateRelationshipIndicesBuffer);
 
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
     }
@@ -140,10 +165,17 @@ public class SolutionValidatorTest extends TestCase {
                 0,1,2, 0,1,3, 0,2,3, 1,2,3
         };
 
+        int[] oldPossibleSolutionRelationships = {
+                0,-1,2, 0,-1,3, 1,-1,4, 2,-1,4
+        };
+
         CLBuffer<Integer> possibleSolutionElementsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionElements), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, null);
+        CLBuffer<Integer> oldPossibleSolutionRelationshipsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionRelationships), true);
+
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(1);
 
@@ -151,8 +183,10 @@ public class SolutionValidatorTest extends TestCase {
 
         // When
         CLBuffer<Boolean> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
-        Pointer<Boolean> resultPointer =result.read(this.mockQuery.queryKernels.queue);
-        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(resultPointer, 4)));
+        Pointer<Boolean> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
+
+        int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(solutionElementsResultPointer, solutionElementsSize)));
 
         // Then
         boolean[] expectedValidationIndicators = {
@@ -161,7 +195,7 @@ public class SolutionValidatorTest extends TestCase {
 
 
         for(int i = 0; i < expectedValidationIndicators.length; i++) {
-            assertEquals(expectedValidationIndicators[i], (boolean) resultPointer.get(i));
+            assertEquals(expectedValidationIndicators[i], (boolean) solutionElementsResultPointer.get(i));
         }
     }
 
@@ -170,13 +204,20 @@ public class SolutionValidatorTest extends TestCase {
 
         /* Relationship 0 and 1 visited */
         int[] possibleSolutionElements = {
-                0,1,1, 0,1,2, 0,2,1, 0,2,2, 1,2,2, 1,2,3
+                0,1,2, 0,2,1, 1,2,3
+        };
+
+        int[] oldPossibleSolutionRelationships = {
+                0,1,-1, 1,0,-1, 2,3,-1
         };
 
         CLBuffer<Integer> possibleSolutionElementsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionElements), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, null);
+        CLBuffer<Integer> oldPossibleSolutionRelationshipsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionRelationships), true);
+
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(2);
 
@@ -184,17 +225,19 @@ public class SolutionValidatorTest extends TestCase {
 
         // When
         CLBuffer<Boolean> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
-        Pointer<Boolean> resultPointer =result.read(this.mockQuery.queryKernels.queue);
-        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(resultPointer, 6)));
+        Pointer<Boolean> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
+
+        int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(solutionElementsResultPointer, solutionElementsSize)));
 
         // Then
         boolean[] expectedValidationIndicators = {
-                false, true, false, false, false, true
+                true, false, true
         };
 
 
         for(int i = 0; i < expectedValidationIndicators.length; i++) {
-            assertEquals(expectedValidationIndicators[i], (boolean) resultPointer.get(i));
+            assertEquals(expectedValidationIndicators[i], (boolean) solutionElementsResultPointer.get(i));
         }
     }
 }
