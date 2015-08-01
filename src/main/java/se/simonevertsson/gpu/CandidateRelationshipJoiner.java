@@ -50,17 +50,18 @@ public class CandidateRelationshipJoiner {
 
                     if (startNodeVisisted && endNodeVisisted) {
                         /* Prune existing possible solutions */
-                        CLBuffer<Boolean> validationIndicators = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
+                        CLBuffer<Integer> validationIndicators = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
 
-                        Pointer<Boolean> validationIndicatorsPointer = validationIndicators.read(this.queryKernels.queue);
+                        Pointer<Integer> validationIndicatorsPointer = validationIndicators.read(this.queryKernels.queue);
 
-                        int[] outputIndexArray = generateOutputIndexArray(validationIndicatorsPointer, possibleSolutionCount);
+                        int[] outputIndexArray = generateOutputIndexArrayFromIntegers(validationIndicatorsPointer, possibleSolutionCount);
 
                         if (outputIndexArray[outputIndexArray.length - 1] == 0) {
                             return null;
                         }
 
                         PossibleSolutions prunedPossibleSolutions = solutionPruner.prunePossibleSolutions(
+                                candidateRelationships,
                                 possibleSolutions,
                                 validationIndicators,
                                 outputIndexArray);
@@ -98,6 +99,10 @@ public class CandidateRelationshipJoiner {
 
         return possibleSolutions;
 
+    }
+
+    private int[] generateOutputIndexArrayFromIntegers(Pointer<Integer> validationIndicatorsPointer, int possibleSolutionCount) {
+        return new int[0];
     }
 
     public int[] generateOutputIndexArray(Pointer<Boolean> validationIndicatorsPointer, int possibleSolutionCount) {

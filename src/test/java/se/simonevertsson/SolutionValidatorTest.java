@@ -182,20 +182,20 @@ public class SolutionValidatorTest extends TestCase {
         SolutionValidator solutionValidator = new SolutionValidator(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 
         // When
-        CLBuffer<Boolean> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
-        Pointer<Boolean> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
+        CLBuffer<Integer> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
+                Pointer<Integer> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
 
         int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
-        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(solutionElementsResultPointer, solutionElementsSize)));
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
 
         // Then
-        boolean[] expectedValidationIndicators = {
-                true, false, false, true
+        int[] expectedValidRelationships = {
+                1, -1, -1, 3
         };
 
 
-        for(int i = 0; i < expectedValidationIndicators.length; i++) {
-            assertEquals(expectedValidationIndicators[i], (boolean) solutionElementsResultPointer.get(i));
+        for(int i = 0; i < expectedValidRelationships.length; i++) {
+            assertEquals(expectedValidRelationships[i], (int) solutionElementsResultPointer.get(i));
         }
     }
 
@@ -224,20 +224,20 @@ public class SolutionValidatorTest extends TestCase {
         SolutionValidator solutionValidator = new SolutionValidator(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 
         // When
-        CLBuffer<Boolean> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
-        Pointer<Boolean> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
+        CLBuffer<Integer> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
+        Pointer<Integer> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
 
         int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
-        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(solutionElementsResultPointer, solutionElementsSize)));
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
 
         // Then
-        boolean[] expectedValidationIndicators = {
-                true, false, true
+        int[] expectedValidationIndicators = {
+                2, -1, 4
         };
 
 
         for(int i = 0; i < expectedValidationIndicators.length; i++) {
-            assertEquals(expectedValidationIndicators[i], (boolean) solutionElementsResultPointer.get(i));
+            assertEquals(expectedValidationIndicators[i], (int) solutionElementsResultPointer.get(i));
         }
     }
 }

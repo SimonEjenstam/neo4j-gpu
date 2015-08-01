@@ -17,7 +17,7 @@ public class SolutionPruner {
         this.queryContext = queryContext;
     }
 
-    public PossibleSolutions prunePossibleSolutions(PossibleSolutions oldPossibleSolutions, CLBuffer<Boolean> validationIndicators, int[] outputIndexArray) throws IOException {
+    public PossibleSolutions prunePossibleSolutions(CandidateRelationships candidateRelationships, PossibleSolutions oldPossibleSolutions, CLBuffer<Integer> validRelationships, int[] outputIndexArray) throws IOException {
         int possibleSolutionCount = (int) oldPossibleSolutions.getSolutionElements().getElementCount() / this.queryContext.queryNodeCount;
 
         CLBuffer<Integer> outputIndices = this.queryKernels.context.createIntBuffer(
@@ -35,16 +35,23 @@ public class SolutionPruner {
                 outputIndexArray[outputIndexArray.length - 1] * this.queryContext.queryGraph.relationships.size()
         );
 
+        int relationshipId = this.queryContext.gpuQuery.getRelationshipIdDictionary()
+                .getQueryId(candidateRelationships.getRelationship().getId());
 
         int[] globalSizes = new int[]{possibleSolutionCount};
 
         CLEvent pruneSolutionsEvent = this.queryKernels.pruneSolutionsKernel.prune_solutions(
                 this.queryKernels.queue,
                 this.queryContext.queryNodeCount,
+                this.queryContext.queryRelationshipCount,
+                relationshipId,
+
                 oldPossibleSolutions.getSolutionElements(),
-                validationIndicators,
+                oldPossibleSolutions.getSolutionRelationships(),
+                validRelationships,
                 outputIndices,
                 prunedPossibleSolutionElements,
+                prunedPossibleSolutionRelationships,
                 globalSizes,
                 null
         );
