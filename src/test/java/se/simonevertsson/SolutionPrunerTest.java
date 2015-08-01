@@ -196,9 +196,14 @@ public class SolutionPrunerTest extends TestCase {
         // When
         PossibleSolutions result = solutionPruner.prunePossibleSolutions(candidateRelationships, possibleSolutions, validationIndicatorsBuffer, outputIndicatorsArray);
         Pointer<Integer> solutionElementsResultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
+        Pointer<Integer> solutionRelationshipsResultPointer = result.getSolutionRelationships().read(this.mockQuery.queryKernels.queue);
 
-        int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
+        int solutionElementsSize = outputIndicatorsArray[outputIndicatorsArray.length-1]*mockQuery.queryContext.queryNodeCount;
         System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
+
+        int solutionRelationshipsSize = outputIndicatorsArray[outputIndicatorsArray.length-1]*mockQuery.queryContext.queryRelationshipCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionRelationshipsResultPointer, solutionRelationshipsSize)));
+
 
         // Then
         int[] expectedPrunedPossibleSolutions = {
@@ -206,8 +211,17 @@ public class SolutionPrunerTest extends TestCase {
         };
 
 
+        int[] expectedPrunedPossibleRelationships = {
+                0,1,2, 2,3,4
+        };
+
+
         for(int i = 0; i < expectedPrunedPossibleSolutions.length; i++) {
             assertEquals(expectedPrunedPossibleSolutions[i], (int) solutionElementsResultPointer.get(i));
+        }
+
+        for(int i = 0; i < expectedPrunedPossibleRelationships.length; i++) {
+            assertEquals(expectedPrunedPossibleRelationships[i], (int) solutionRelationshipsResultPointer.get(i));
         }
     }
 
@@ -220,15 +234,15 @@ public class SolutionPrunerTest extends TestCase {
         };
 
         int[] possibleSolutionRelationships = {
-                0,-1,2, 0,-1,3, 1,-1,4, 2,-1,4
+                0,1,-1, 1,0,-1, 2,3,-1
         };
 
         int[] validationIndicators = {
-                1, -1, -1, 3
+                2, -1, 4
         };
 
         int[] outputIndicatorsArray = {
-                0,0,1,1,1,1,2
+                0,1,1,2
         };
 
         CLBuffer<Integer> possibleSolutionElementsBuffer =
@@ -249,18 +263,31 @@ public class SolutionPrunerTest extends TestCase {
         // When
         PossibleSolutions result = solutionPruner.prunePossibleSolutions(candidateRelationships, possibleSolutions, validationIndicatorsBuffer, outputIndicatorsArray);
         Pointer<Integer> solutionElementsResultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
+        Pointer<Integer> solutionRelationshipsResultPointer = result.getSolutionRelationships().read(this.mockQuery.queryKernels.queue);
 
-        int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
+
+        int solutionElementsSize = outputIndicatorsArray[outputIndicatorsArray.length-1]*mockQuery.queryContext.queryNodeCount;
         System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
+
+        int solutionRelationshipsSize = outputIndicatorsArray[outputIndicatorsArray.length-1]*mockQuery.queryContext.queryRelationshipCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionRelationshipsResultPointer, solutionRelationshipsSize)));
 
         // Then
         int[] expectedPrunedPossibleSolutions = {
                 0,1,2, 1,2,3
         };
 
+        int[] expectedPrunedPossibleRelationships = {
+                0,1,2, 2,3,4
+        };
+
 
         for(int i = 0; i < expectedPrunedPossibleSolutions.length; i++) {
             assertEquals(expectedPrunedPossibleSolutions[i], (int) solutionElementsResultPointer.get(i));
+        }
+
+        for(int i = 0; i < expectedPrunedPossibleRelationships.length; i++) {
+            assertEquals(expectedPrunedPossibleRelationships[i], (int) solutionRelationshipsResultPointer.get(i));
         }
     }
 }

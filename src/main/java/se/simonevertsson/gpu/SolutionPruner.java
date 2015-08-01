@@ -26,13 +26,13 @@ public class SolutionPruner {
                 true);
 
         CLBuffer<Integer> prunedPossibleSolutionElements = this.queryKernels.context.createIntBuffer(
-                CLMem.Usage.Input,
+                CLMem.Usage.Output,
                 outputIndexArray[outputIndexArray.length - 1] * this.queryContext.queryNodeCount
         );
 
         CLBuffer<Integer> prunedPossibleSolutionRelationships = this.queryKernels.context.createIntBuffer(
-                CLMem.Usage.Input,
-                outputIndexArray[outputIndexArray.length - 1] * this.queryContext.queryGraph.relationships.size()
+                CLMem.Usage.Output,
+                outputIndexArray[outputIndexArray.length - 1] * this.queryContext.queryRelationshipCount
         );
 
         int relationshipId = this.queryContext.gpuQuery.getRelationshipIdDictionary()

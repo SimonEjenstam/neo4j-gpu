@@ -102,7 +102,23 @@ public class CandidateRelationshipJoiner {
     }
 
     private int[] generateOutputIndexArrayFromIntegers(Pointer<Integer> validationIndicatorsPointer, int possibleSolutionCount) {
-        return new int[0];
+        int[] outputIndexArray = new int[possibleSolutionCount + 1];
+        int validSolutionCount = 0;
+
+        if (validationIndicatorsPointer.get(0) != -1) {
+            validSolutionCount++;
+        }
+
+        for (int i = 1; i < possibleSolutionCount; i++) {
+            int nextElement = (validationIndicatorsPointer.get(i - 1) != -1) ? 1 : 0;
+            outputIndexArray[i] = outputIndexArray[i - 1] + nextElement;
+            if (validationIndicatorsPointer.get(i) != -1) {
+                validSolutionCount++;
+            }
+        }
+
+        outputIndexArray[outputIndexArray.length - 1] = validSolutionCount;
+        return outputIndexArray;
     }
 
     public int[] generateOutputIndexArray(Pointer<Boolean> validationIndicatorsPointer, int possibleSolutionCount) {
