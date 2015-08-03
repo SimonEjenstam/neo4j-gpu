@@ -189,8 +189,12 @@ public class SolutionValidatorTest extends TestCase {
         System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
 
         // Then
+//        int[] expectedValidRelationships = {
+//                1, -1, -1, 3
+//        };
+
         int[] expectedValidRelationships = {
-                1, -1, -1, 3
+                1, 0, 0, 1
         };
 
 
@@ -231,8 +235,12 @@ public class SolutionValidatorTest extends TestCase {
         System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
 
         // Then
+//        int[] expectedValidationIndicators = {
+//                2, -1, 4
+//        };
+
         int[] expectedValidationIndicators = {
-                2, -1, 4
+                1, 0, 1
         };
 
 
