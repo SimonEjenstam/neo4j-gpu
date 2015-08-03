@@ -17,6 +17,7 @@ public class CandidateRelationshipJoiner {
     private final SolutionCombinationCounter solutionCombinationCounter;
     private final SolutionCombinationGenerator solutionCombinationGenerator;
     private final SolutionValidator solutionValidator;
+//    private final SolutionRelationshipCombiner solutionRelationshipCombiner;
     private final SolutionPruner solutionPruner;
     private final SolutionInitializer solutionInitializer;
 
@@ -55,11 +56,13 @@ public class CandidateRelationshipJoiner {
 
                         Pointer<Integer> validationIndicatorsPointer = validationIndicators.read(this.queryKernels.queue);
 
-                        int[] outputIndexArray = generateOutputIndexArrayFromIntegers(validationIndicatorsPointer, possibleSolutionCount);
+                        int[] outputIndexArray = QueryUtils.generatePrefixScanArray(validationIndicatorsPointer, possibleSolutionCount);
 
                         if (outputIndexArray[outputIndexArray.length - 1] == 0) {
                             return null;
                         }
+
+                        CLBuffer<Integer> relationshipIndices = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
 
                         PossibleSolutions prunedPossibleSolutions = solutionPruner.prunePossibleSolutions(
                                 candidateRelationships,

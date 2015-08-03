@@ -18,6 +18,7 @@ public class QueryKernels {
     CountSolutionCombinations countSolutionCombinationsKernel;
     GenerateSolutionCombinations generateSolutionCombinationsKernel;
     ValidateSolutions validateSolutionsKernel;
+    CombineRelationships combineRelationshipsKernel;
     PruneSolutions pruneSolutionsKernel;
 
     public QueryKernels() throws IOException {
@@ -35,6 +36,7 @@ public class QueryKernels {
         this.countSolutionCombinationsKernel = new CountSolutionCombinations(this.context);
         this.generateSolutionCombinationsKernel = new GenerateSolutionCombinations(this.context);
         this.validateSolutionsKernel = new ValidateSolutions(this.context);
+        this.combineRelationshipsKernel = new CombineRelationships(this.context);
         this.pruneSolutionsKernel = new PruneSolutions(this.context);
     }
 }
