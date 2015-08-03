@@ -58,7 +58,7 @@ public class SolutionPruner {
 
         pruneSolutionsEvent.waitFor();
 
-        PossibleSolutions prunedPossibleSolutions = new PossibleSolutions(prunedPossibleSolutionElements, prunedPossibleSolutionRelationships);
+        PossibleSolutions prunedPossibleSolutions = new PossibleSolutions(prunedPossibleSolutionElements, prunedPossibleSolutionRelationships, this.queryContext, this.queryKernels.queue);
 
         return prunedPossibleSolutions;
     }

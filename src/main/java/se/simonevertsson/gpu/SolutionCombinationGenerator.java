@@ -59,7 +59,7 @@ public class SolutionCombinationGenerator {
         );
         generateSolutionCombinationsEvent.waitFor();
 
-        PossibleSolutions newPossibleSolutions = new PossibleSolutions(newPossibleSolutionElements, newPossibleSolutionRelationships);
+        PossibleSolutions newPossibleSolutions = new PossibleSolutions(newPossibleSolutionElements, newPossibleSolutionRelationships, this.queryContext, this.queryKernels.queue);
 
         return newPossibleSolutions;
     }

@@ -100,6 +100,10 @@ public class CandidateRelationships {
         builder.append(Arrays.toString(QueryUtils.pointerIntegerToArray(this.candidateEndNodes.read(this.queryKernels.queue), this.endNodeCount)));
         builder.append('\n');
 
+        builder.append("Relationship indices: ");
+        builder.append(Arrays.toString(QueryUtils.pointerIntegerToArray(this.candidateRelationshipIndices.read(this.queryKernels.queue), this.endNodeCount)));
+        builder.append('\n');
+
         return builder.toString();
     }
 

@@ -87,7 +87,7 @@ public class SolutionInitializer {
             CLBuffer<Integer>
                     initialSolutionRelationships = this.queryKernels.context.createIntBuffer(CLMem.Usage.Output, IntBuffer.wrap(initialSolutionRelationshipsArray), true);
 
-            PossibleSolutions initialPossibleSolution = new PossibleSolutions(initialSolutionElements, initialSolutionRelationships);
+            PossibleSolutions initialPossibleSolution = new PossibleSolutions(initialSolutionElements, initialSolutionRelationships, this.queryContext, this.queryKernels.queue);
 
             return initialPossibleSolution;
     }

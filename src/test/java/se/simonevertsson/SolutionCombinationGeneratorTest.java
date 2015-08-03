@@ -188,7 +188,7 @@ public class SolutionCombinationGeneratorTest extends TestCase {
 //                0,1,2,4
 //        };
 
-        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer);
+        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer, this.mockQuery.queryContext, this.mockQuery.queryKernels.queue);
 
         int[] combinationIndices = QueryUtils.generatePrefixScanArray(solutionCombinationCountsBuffer.read(this.mockQuery.queryKernels.queue), 3);
 
@@ -255,7 +255,7 @@ public class SolutionCombinationGeneratorTest extends TestCase {
 //                0,2,4,6
 //        };
 
-        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer);
+        PossibleSolutions oldPossibleSolutions = new PossibleSolutions(oldPossibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer, this.mockQuery.queryContext, this.mockQuery.queryKernels.queue);
 
         int[] combinationIndices = QueryUtils.generatePrefixScanArray(solutionCombinationCountsBuffer.read(this.mockQuery.queryKernels.queue), 3);
 

@@ -175,7 +175,7 @@ public class SolutionCombinationCounterTest extends TestCase {
         CLBuffer<Integer> possibleSolutionRelationshipsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionRelationships), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer);
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer, this.mockQuery.queryContext,this.mockQuery.queryKernels.queue);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(1);
 
@@ -213,7 +213,7 @@ public class SolutionCombinationCounterTest extends TestCase {
         CLBuffer<Integer> possibleSolutionRelationshipsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionRelationships), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer);
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer, this.mockQuery.queryContext,this.mockQuery.queryKernels.queue);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(0);
 

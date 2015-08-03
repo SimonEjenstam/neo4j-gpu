@@ -29,16 +29,26 @@ public class GpuQuery {
                 new CandidateInitializer(this.queryContext, this.queryKernels, this.bufferContainer);
         candidateInitializer.candidateInitialization(visitOrder);
 
+        System.out.println("Candidate indicators after intialization step:");
+        QueryUtils.printCandidateIndicatorMatrix(this.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(this.queryKernels.queue), this.queryContext.dataNodeCount);
+
         /****** Candidate refinement step ******/
         CandidateRefinement candidateRefinement =
                 new CandidateRefinement(this.queryContext, this.queryKernels, this.bufferContainer);
         candidateRefinement.refine(visitOrder);
-        QueryUtils.printCandidateIndicatorMatrix(this.bufferContainer.queryBuffers.candidateIndicatorsPointer, this.queryContext.dataNodeCount);
+
+        System.out.println("Candidate indicators after refinement step:");
+        QueryUtils.printCandidateIndicatorMatrix(this.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(this.queryKernels.queue), this.queryContext.dataNodeCount);
 
         /****** Candidate relationship searching step ******/
         CandidateRelationshipSearcher candidateRelationshipSearcher =
                 new CandidateRelationshipSearcher(this.queryContext, this.queryKernels, this.bufferContainer);
         HashMap<Integer, CandidateRelationships> relationshipCandidatesHashMap = candidateRelationshipSearcher.searchCandidateRelationships();
+
+        System.out.println("Candidate relationships after candidate relationships search step:");
+        for(int relationshipId : relationshipCandidatesHashMap.keySet()) {
+            System.out.println(relationshipCandidatesHashMap.get(relationshipId));
+        }
 
         /****** Candidate relationship joining step ******/
         CandidateRelationshipJoiner candidateRelationshipJoiner =

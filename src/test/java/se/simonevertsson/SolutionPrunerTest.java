@@ -187,7 +187,7 @@ public class SolutionPrunerTest extends TestCase {
         CLBuffer<Integer> validationIndicatorsBuffer =
                 mockQuery.queryKernels.context.createBuffer(CLMem.Usage.Input, Pointer.pointerToInts(validationIndicators), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer);
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer, mockQuery.queryContext, mockQuery.queryKernels.queue);
 
         SolutionPruner solutionPruner = new SolutionPruner(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 
@@ -254,7 +254,7 @@ public class SolutionPrunerTest extends TestCase {
         CLBuffer<Integer> validationIndicatorsBuffer =
                 mockQuery.queryKernels.context.createBuffer(CLMem.Usage.Input, Pointer.pointerToInts(validationIndicators), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer);
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer, mockQuery.queryContext, mockQuery.queryKernels.queue);
 
         SolutionPruner solutionPruner = new SolutionPruner(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 

@@ -175,7 +175,7 @@ public class SolutionValidatorTest extends TestCase {
         CLBuffer<Integer> oldPossibleSolutionRelationshipsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionRelationships), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer);
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer, this.mockQuery.queryContext, this.mockQuery.queryKernels.queue);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(1);
 
@@ -217,7 +217,7 @@ public class SolutionValidatorTest extends TestCase {
         CLBuffer<Integer> oldPossibleSolutionRelationshipsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionRelationships), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer);
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer, this.mockQuery.queryContext, this.mockQuery.queryKernels.queue);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(2);
 

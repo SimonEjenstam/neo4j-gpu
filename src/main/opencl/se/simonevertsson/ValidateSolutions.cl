@@ -27,12 +27,15 @@ __kernel void validate_solutions(
 
                 if(c_end_nodes[j] == possible_solution_elements[possible_solution_index*query_node_count + q_end_node]) {
                     int relationship_index = c_relationship_indices[j];
-                    bool relationship_valid = false;
+                    bool relationship_valid = true;
                     for(int k = 0; k < query_relationship_count; k++) {
-                        if(possible_solution_relationships[possible_solution_index*query_relationship_count + k] != relationship_index) {
-                            valid_relationships[possible_solution_index] = relationship_index;
-                            return;
+                        if(possible_solution_relationships[possible_solution_index*query_relationship_count + k] == relationship_index) {
+                            relationship_valid = false;
+                            break;
                         }
+                    }
+                    if(relationship_valid) {
+                        valid_relationships[possible_solution_index] = relationship_index;
                     }
                 }
 
