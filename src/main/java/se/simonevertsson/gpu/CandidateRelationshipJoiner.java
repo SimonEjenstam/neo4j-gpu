@@ -17,7 +17,7 @@ public class CandidateRelationshipJoiner {
     private final SolutionCombinationCounter solutionCombinationCounter;
     private final SolutionCombinationGenerator solutionCombinationGenerator;
     private final SolutionValidator solutionValidator;
-//    private final SolutionRelationshipCombiner solutionRelationshipCombiner;
+    private final SolutionRelationshipCombiner solutionRelationshipCombiner;
     private final SolutionPruner solutionPruner;
     private final SolutionInitializer solutionInitializer;
 
@@ -26,6 +26,7 @@ public class CandidateRelationshipJoiner {
         this.queryKernels = queryKernels;
         this.solutionInitializer = new SolutionInitializer(queryContext, queryKernels);
         this.solutionValidator = new SolutionValidator(queryKernels, queryContext);
+        this.solutionRelationshipCombiner = new SolutionRelationshipCombiner(queryKernels, queryContext);
         this.solutionPruner = new SolutionPruner(queryKernels, queryContext);
         this.solutionCombinationCounter = new SolutionCombinationCounter(queryKernels, queryContext);
         this.solutionCombinationGenerator = new SolutionCombinationGenerator(queryKernels,queryContext);
@@ -51,23 +52,24 @@ public class CandidateRelationshipJoiner {
 
                     if (startNodeVisisted && endNodeVisisted) {
                         /* Prune existing possible solutions */
-                        System.out.println("Pruning solutions with relationship " + candidateRelationships.getRelationship().getId());
-                        CLBuffer<Integer> validationIndicators = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
+                        System.out.println("Pruning solutions with relationship " + candidateRelationships.getRelationship().getId() + ":");
+                        System.out.println(candidateRelationships);
+                        CLBuffer<Integer> validRelationshipsCount = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
 
-                        Pointer<Integer> validationIndicatorsPointer = validationIndicators.read(this.queryKernels.queue);
+                        Pointer<Integer> validRelationshipsCountPointer = validRelationshipsCount.read(this.queryKernels.queue);
 
-                        int[] outputIndexArray = QueryUtils.generatePrefixScanArray(validationIndicatorsPointer, possibleSolutionCount);
+                        int[] outputIndexArray = QueryUtils.generatePrefixScanArray(validRelationshipsCountPointer, possibleSolutionCount);
 
                         if (outputIndexArray[outputIndexArray.length - 1] == 0) {
                             return null;
                         }
 
-                        CLBuffer<Integer> relationshipIndices = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
+                        CLBuffer<Integer> validRelationships = solutionRelationshipCombiner.combineRelationships(possibleSolutions, candidateRelationships, outputIndexArray);
 
                         PossibleSolutions prunedPossibleSolutions = solutionPruner.prunePossibleSolutions(
                                 candidateRelationships,
                                 possibleSolutions,
-                                validationIndicators,
+                                validRelationships,
                                 outputIndexArray);
 
                         possibleSolutions = prunedPossibleSolutions;
@@ -76,7 +78,8 @@ public class CandidateRelationshipJoiner {
 
                     } else if (startNodeVisisted || endNodeVisisted) {
                         /* Combine candidate edges with existing possible solutions */
-                        System.out.println("Combining solutions with relationship " + candidateRelationships.getRelationship().getId());
+                        System.out.println("Combining solutions with relationship " + candidateRelationships.getRelationship().getId() + ":");
+                        System.out.println(candidateRelationships);
                         Pointer<Integer> combinationCountsPointer = this.solutionCombinationCounter.countSolutionCombinations(
                                 possibleSolutions,
                                 candidateRelationships,

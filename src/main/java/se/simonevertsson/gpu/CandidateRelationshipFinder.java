@@ -34,7 +34,10 @@ public class CandidateRelationshipFinder {
 
                 candidateRelationships.getQueryStartNodeId(),
                 candidateRelationships.getQueryEndNodeId(),
+                candidateRelationships.getRelationshipType(),
+
                 this.dataBuffers.dataNodeRelationshipsBuffer,
+                this.dataBuffers.dataRelationshipTypesBuffer,
                 this.dataBuffers.dataRelationshipIndicesBuffer,
 
                 candidateRelationshipEndNodes,

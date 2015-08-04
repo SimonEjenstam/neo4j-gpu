@@ -13,26 +13,30 @@ __kernel void prune_solutions(
     )
 {
     int possible_solution_index = get_global_id(0);
+    int output_start = output_indices[possible_solution_index];
+    int output_end = output_indices[possible_solution_index+1];
 
-    if(valid_relationships[possible_solution_index] != -1) {
-        int old_solution_element_index = (possible_solution_index)*q_node_count;
-        int old_solution_relationship_index = (possible_solution_index)*q_relationship_count;
-        int new_solution_element_index = (output_indices[possible_solution_index])*q_node_count;
-        int new_solution_relationship_index = (output_indices[possible_solution_index])*q_relationship_count;
+    if(output_end > output_start) {
+        for(int output_index = output_start; output_index < output_end; output_index++) {
+            int old_solution_element_index = (possible_solution_index)*q_node_count;
+            int old_solution_relationship_index = (possible_solution_index)*q_relationship_count;
+            int new_solution_element_index = output_index*q_node_count;
+            int new_solution_relationship_index = output_index*q_relationship_count;
 
-        /* Copy solution elements to new indices */
-        for(int i = 0; i < q_node_count; i++ ) {
-            pruned_possible_solution_elements[new_solution_element_index + i] = 
-                old_possible_solution_elements[old_solution_element_index + i];
+            /* Copy solution elements to new indices */
+            for(int i = 0; i < q_node_count; i++ ) {
+                pruned_possible_solution_elements[new_solution_element_index + i] = 
+                    old_possible_solution_elements[old_solution_element_index + i];
+            }
+
+            /* Copy solution relationships to new indices */
+            for(int j = 0; j < q_relationship_count; j++ ) {
+                pruned_possible_solution_relationships[new_solution_relationship_index + j] = 
+                    old_possible_solution_relationships[old_solution_relationship_index + j];
+            }
+
+            /* Add current valid relationship to relationship indices */
+            pruned_possible_solution_relationships[new_solution_relationship_index + q_relationhip] = valid_relationships[output_index];
         }
-
-        /* Copy solution relationships to new indices */
-        for(int j = 0; j < q_relationship_count; j++ ) {
-            pruned_possible_solution_relationships[new_solution_relationship_index + j] = 
-                old_possible_solution_relationships[old_solution_relationship_index + j];
-        }
-
-        /* Add current valid relationship to relationship indices */
-        pruned_possible_solution_relationships[new_solution_relationship_index + q_relationhip] = valid_relationships[possible_solution_index];
     }
 }

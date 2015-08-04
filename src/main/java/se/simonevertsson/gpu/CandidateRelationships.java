@@ -14,6 +14,7 @@ public class CandidateRelationships {
     private final Relationship relationship;
     private final QueryKernels queryKernels;
     private final QueryIdDictionary nodeIdDictionary;
+    private final TypeDictionary typeDictionary;
     private CLBuffer<Integer> candidateEndNodeIndices;
     private CLBuffer<Integer> candidateEndNodes;
     private CLBuffer<Integer> candidateStartNodes;
@@ -22,10 +23,18 @@ public class CandidateRelationships {
     private CLBuffer<Integer> candidateRelationshipIndices;
 
 
-    public CandidateRelationships(Relationship relationship, QueryIdDictionary nodeIdDictionary, QueryKernels queryKernels) {
+    public CandidateRelationships(Relationship relationship, QueryContext queryContext, QueryKernels queryKernels) {
         this.relationship = relationship;
-        this.nodeIdDictionary = nodeIdDictionary;
+        this.nodeIdDictionary = queryContext.gpuQuery.getNodeIdDictionary();
+        this.typeDictionary = queryContext.typeDictionary;
         this.queryKernels = queryKernels;
+    }
+
+
+
+    public int getRelationshipType() {
+
+        return this.relationship.getType() != null ? this.typeDictionary.getIdForType(this.relationship.getType().name()) : -1;
     }
 
     public CLBuffer<Integer> getCandidateEndNodeIndices() {

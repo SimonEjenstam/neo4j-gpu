@@ -30,8 +30,8 @@ public class TypeDictionary {
         }
     }
 
-    public int getIdForType(String label) {
-        return typeToIds.get(label);
+    public int getIdForType(String type) {
+        return typeToIds.get(type) != null ? typeToIds.get(type) : -1;
     }
 
     @Override

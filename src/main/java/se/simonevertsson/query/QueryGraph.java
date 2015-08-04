@@ -45,9 +45,9 @@ public class QueryGraph {
 //                builder.append(label.name());
 //            }
             builder.append(")-");
-//            if(relationship.getType() != null) {
-//                builder.append("[:"+relationship.getType().name()+"]");
-//            }
+            if(relationship.getType() != null) {
+                builder.append("[:"+relationship.getType().name()+"]");
+            }
             builder.append("->");
             builder.append("(");
             builder.append(endNodeAlias);

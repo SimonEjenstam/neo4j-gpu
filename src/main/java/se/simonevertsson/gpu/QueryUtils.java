@@ -40,7 +40,7 @@ public class QueryUtils {
         StringBuilder builder = new StringBuilder();
         int j = 1;
         for(boolean candidate : candidateIndicatorsPointer)  {
-            builder.append(candidate + ", ");
+            builder.append((j%dataNodeCount-1) + ":" + candidate + ", ");
             if(j % dataNodeCount == 0) {
                 builder.append("\n");
             }

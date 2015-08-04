@@ -8,6 +8,7 @@ import se.simonevertsson.query.QueryGraphGenerator;
 
 import java.awt.*;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -31,8 +32,12 @@ public class GpuQueryRunner {
         LabelDictionary labelDictionary = new LabelDictionary();
         TypeDictionary typeDictionary = new TypeDictionary();
         GpuGraph gpuData = convertData(databaseService, labelDictionary, typeDictionary);
+        System.out.println("Data query ids:");
+        System.out.print(gpuData.getNodeIdDictionary().toString());
         GpuGraph gpuQuery = convertQuery(queryGraph, labelDictionary, typeDictionary);
-
+        System.out.println("Query query ids:");
+        System.out.println(gpuQuery.getNodeIdDictionary());
+        System.out.println(gpuQuery);
         tock = System.currentTimeMillis();
         System.out.println("GPU Data conversion runtime: " + (tock-tick) + "ms");
 

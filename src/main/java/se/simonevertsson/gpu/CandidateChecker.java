@@ -28,6 +28,7 @@ public class CandidateChecker {
         int queryLabelStartIndex = gpuQuery.getLabelIndices()[queryNodeId];
         int queryLabelEndIndex = gpuQuery.getLabelIndices()[queryNodeId + 1];
         int queryNodeDegree = queryNode.getDegree(Direction.OUTGOING);
+        System.out.println("QueryNode degree: " + queryNodeDegree);
         int[] globalSizes = new int[]{ this.dataNodeCount };
 
 

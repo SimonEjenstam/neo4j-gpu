@@ -41,7 +41,7 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(mockQuery.queryKernels.queue);
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext, mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -116,7 +116,7 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(mockQuery.queryKernels.queue);
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext, mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -191,7 +191,7 @@ public class CandidateRelationshipFinderTest extends TestCase {
                 mockQuery.bufferContainer.queryBuffers.candidateIndicatorsBuffer.read(mockQuery.queryKernels.queue);
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext, mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 1,2

@@ -77,7 +77,7 @@ __kernel void explore_candidates(
                 int v = d_relationships[j];
                 if(v != -1) {
                     /* The related data node has relationships */
-                    if(q_relationships[q_relationship_start_index] != -1) {
+                    //if(q_relationships[q_relationship_start_index] != -1) {
                         int d_relationship_type = d_relationship_types[j];
                         if(q_relationship_type == -1 || d_relationship_type == q_relationship_type ) {
                         
@@ -91,7 +91,7 @@ __kernel void explore_candidates(
                                 break;
                             }
                         }
-                    }
+                    //}
                 }
                  
             }

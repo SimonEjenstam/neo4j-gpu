@@ -2,9 +2,7 @@ package se.simonevertsson.query;
 
 import org.neo4j.graphdb.Node;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by simon.evertsson on 2015-06-30.
@@ -36,6 +34,22 @@ public class AliasDictionary {
 
     public int getAliasCount() {
         return aliasToIds.size();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        Set<Integer> ids = this.idToAliases.keySet();
+        List<Integer> idList = new ArrayList<Integer>(ids);
+        Collections.sort(idList);
+
+        for(int id : idList) {
+            builder.append("Id " + id + ": " + this.idToAliases.get(id));
+            builder.append('\n');
+        }
+
+        return builder.toString();
     }
 
 }

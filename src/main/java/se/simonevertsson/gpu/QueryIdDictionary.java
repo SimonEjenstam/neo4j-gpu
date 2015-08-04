@@ -1,6 +1,6 @@
 package se.simonevertsson.gpu;
 
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Created by simon on 2015-07-10.
@@ -34,5 +34,22 @@ public class QueryIdDictionary {
 
     public long getId(int queryId) {
         return this.queryIdToIds.get(queryId);
+    }
+
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        Set<Long> ids = this.idToQueryId.keySet();
+        List<Long> idList = new ArrayList<Long>(ids);
+        Collections.sort(idList);
+
+        for(long id : idList) {
+            builder.append("Id " + id + ": " + this.idToQueryId.get(id));
+            builder.append('\n');
+        }
+
+        return builder.toString();
     }
 }

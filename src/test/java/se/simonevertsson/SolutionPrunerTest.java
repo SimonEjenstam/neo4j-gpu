@@ -45,7 +45,7 @@ public class SolutionPrunerTest extends TestCase {
         /******* Relationship candidates 1 *********/
 
         Relationship queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(0);
-        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), this.mockQuery.queryKernels);
+        CandidateRelationships candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext, this.mockQuery.queryKernels);
 
         int[] candidateStartNodes = {
                 0,1
@@ -83,7 +83,7 @@ public class SolutionPrunerTest extends TestCase {
         /******* Relationship candidates 2 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(1);
-        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), this.mockQuery.queryKernels);
+        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext, this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 0,1
@@ -120,7 +120,7 @@ public class SolutionPrunerTest extends TestCase {
         /******* Relationship candidates 3 *********/
 
         queryRelationship = mockQuery.queryContext.queryGraph.relationships.get(2);
-        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext.gpuQuery.getNodeIdDictionary(), this.mockQuery.queryKernels);
+        candidateRelationships = new CandidateRelationships(queryRelationship, mockQuery.queryContext, this.mockQuery.queryKernels);
 
         candidateStartNodes =  new int[] {
                 1,2
@@ -169,12 +169,12 @@ public class SolutionPrunerTest extends TestCase {
                 0,-1,2, 0,-1,3, 1,-1,4, 2,-1,4
         };
 
-        int[] validationIndicators = {
-                1, -1, -1, 3
+        int[] outputIndicesArray = {
+                0,1,1,1,2
         };
 
-        int[] outputIndicatorsArray = {
-                0,1,1,1,2
+        int[] validRelationships = {
+                1,3
         };
 
         CLBuffer<Integer> possibleSolutionElementsBuffer =
@@ -184,8 +184,8 @@ public class SolutionPrunerTest extends TestCase {
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionRelationships), true);
 
 
-        CLBuffer<Integer> validationIndicatorsBuffer =
-                mockQuery.queryKernels.context.createBuffer(CLMem.Usage.Input, Pointer.pointerToInts(validationIndicators), true);
+        CLBuffer<Integer> validRelationshipsBuffer =
+                mockQuery.queryKernels.context.createBuffer(CLMem.Usage.Input, Pointer.pointerToInts(validRelationships), true);
 
         PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer, mockQuery.queryContext, mockQuery.queryKernels.queue);
 
@@ -194,14 +194,14 @@ public class SolutionPrunerTest extends TestCase {
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(1);
 
         // When
-        PossibleSolutions result = solutionPruner.prunePossibleSolutions(candidateRelationships, possibleSolutions, validationIndicatorsBuffer, outputIndicatorsArray);
+        PossibleSolutions result = solutionPruner.prunePossibleSolutions(candidateRelationships, possibleSolutions, validRelationshipsBuffer, outputIndicesArray);
         Pointer<Integer> solutionElementsResultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
         Pointer<Integer> solutionRelationshipsResultPointer = result.getSolutionRelationships().read(this.mockQuery.queryKernels.queue);
 
-        int solutionElementsSize = outputIndicatorsArray[outputIndicatorsArray.length-1]*mockQuery.queryContext.queryNodeCount;
+        int solutionElementsSize = outputIndicesArray[outputIndicesArray.length-1]*mockQuery.queryContext.queryNodeCount;
         System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
 
-        int solutionRelationshipsSize = outputIndicatorsArray[outputIndicatorsArray.length-1]*mockQuery.queryContext.queryRelationshipCount;
+        int solutionRelationshipsSize = outputIndicesArray[outputIndicesArray.length-1]*mockQuery.queryContext.queryRelationshipCount;
         System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionRelationshipsResultPointer, solutionRelationshipsSize)));
 
 
@@ -237,12 +237,12 @@ public class SolutionPrunerTest extends TestCase {
                 0,1,-1, 1,0,-1, 2,3,-1
         };
 
-        int[] validationIndicators = {
-                2, -1, 4
-        };
-
         int[] outputIndicatorsArray = {
                 0,1,1,2
+        };
+
+        int[] validRelationships = {
+                2,4
         };
 
         CLBuffer<Integer> possibleSolutionElementsBuffer =
@@ -251,8 +251,8 @@ public class SolutionPrunerTest extends TestCase {
         CLBuffer<Integer> possibleSolutionRelationshipsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionRelationships), true);
 
-        CLBuffer<Integer> validationIndicatorsBuffer =
-                mockQuery.queryKernels.context.createBuffer(CLMem.Usage.Input, Pointer.pointerToInts(validationIndicators), true);
+        CLBuffer<Integer> validRelationshipsBuffer =
+                mockQuery.queryKernels.context.createBuffer(CLMem.Usage.Input, Pointer.pointerToInts(validRelationships), true);
 
         PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer, mockQuery.queryContext, mockQuery.queryKernels.queue);
 
@@ -261,7 +261,7 @@ public class SolutionPrunerTest extends TestCase {
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(2);
 
         // When
-        PossibleSolutions result = solutionPruner.prunePossibleSolutions(candidateRelationships, possibleSolutions, validationIndicatorsBuffer, outputIndicatorsArray);
+        PossibleSolutions result = solutionPruner.prunePossibleSolutions(candidateRelationships, possibleSolutions, validRelationshipsBuffer, outputIndicatorsArray);
         Pointer<Integer> solutionElementsResultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
         Pointer<Integer> solutionRelationshipsResultPointer = result.getSolutionRelationships().read(this.mockQuery.queryKernels.queue);
 
