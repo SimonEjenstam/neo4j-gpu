@@ -25,14 +25,9 @@ public class CandidateInitializer {
         for (Node queryNode : visitOrder) {
 
             int queryNodeId = this.queryContext.gpuQuery.getNodeIdDictionary().getQueryId(queryNode.getId());
-            System.out.println("-------------------- Initialization of query node " + queryNodeId + "-------------------------------------");
 
             if (!initializedQueryNodes[queryNodeId]) {
                 this.candidateChecker.checkCandidates(this.queryContext.gpuQuery, queryNode);
-
-                System.out.println("Candidate indicators after candidate checking of query node " + queryNode.getId());
-                QueryUtils.printCandidateIndicatorMatrix(this.queryBuffers.candidateIndicatorsPointer, queryContext.dataNodeCount);
-
             }
 
             int queryNodeRelationshipStartIndex = this.queryContext.gpuQuery.getRelationshipIndices()[queryNodeId];
@@ -51,12 +46,9 @@ public class CandidateInitializer {
                     /* We have explored the neighborhood, mark query nodes related to the current query node as initialized */
                     for (Relationship neighborhoodRelationship : queryNode.getRelationships()) {
                         int neighborQueryNodeId = this.queryContext.gpuQuery.getNodeIdDictionary()
-                                .getQueryId(neighborhoodRelationship.getEndNode().getId());
-                        System.out.println("Initialized query node: " + neighborQueryNodeId);
+                                .getQueryId(neighborhoodRelationship.getEndNode().getId());;
                         initializedQueryNodes[neighborQueryNodeId] = true;
                     }
-                    System.out.println("Candidate indicators after candidate neighborhood exploration of query node " + queryNode.getId());
-                    QueryUtils.printCandidateIndicatorMatrix(this.queryBuffers.candidateIndicatorsPointer, queryContext.dataNodeCount);
                 } else {
                     throw new IllegalStateException("No candidates for query node " + queryNodeId + " were found.");
                 }

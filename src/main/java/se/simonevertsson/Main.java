@@ -18,8 +18,8 @@ import java.util.*;
 public class Main {
 
     public static final String TEST_DB_PATH = "target/foo";
-//    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
-    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
+    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
+//    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
     public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j";
 //    public static final String EXPERIMENT_QUERY =
 //            "MATCH (a1),(b2),(a3),(c4)" +
@@ -105,7 +105,7 @@ public class Main {
 
         Set<String> uniqueResults = new HashSet<String>();
         for(QuerySolution solution : results) {
-            System.out.println(solution);
+//            System.out.println(solution);
             uniqueResults.add(solution.toString());
         }
         System.out.println("Number of solutions: " + results.size());
@@ -121,7 +121,7 @@ public class Main {
         List<QuerySolution> cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService, queryGraph);
         Set<String> uniqueCypherResults = new HashSet<String>();
         for(QuerySolution solution : cypherQueryResult) {
-            System.out.println(solution);
+//            System.out.println(solution);
             uniqueCypherResults.add(solution.toString());
         }
         System.out.println("Cypher solution count: " + cypherQueryResult.size());

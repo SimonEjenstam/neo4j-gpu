@@ -1,6 +1,7 @@
 package se.simonevertsson.gpu;
 
 import com.nativelibs4java.opencl.CLContext;
+import com.nativelibs4java.opencl.CLPlatform;
 import com.nativelibs4java.opencl.CLQueue;
 import com.nativelibs4java.opencl.JavaCL;
 import se.simonevertsson.*;

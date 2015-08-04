@@ -37,7 +37,6 @@ public class CandidateRelationshipJoiner {
         ArrayList<Integer> visitedQueryNodes = new ArrayList<Integer>();
 
         PossibleSolutions possibleSolutions = solutionInitializer.initializePossibleSolutions(candidateRelationshipsHashMap, visitedQueryRelationships, visitedQueryNodes);
-        System.out.println(possibleSolutions);
 
         while( visitedQueryRelationships.size() < candidateRelationshipsHashMap.size()) {
             for (int relationshipId : candidateRelationshipsHashMap.keySet()) {
@@ -52,8 +51,6 @@ public class CandidateRelationshipJoiner {
 
                     if (startNodeVisisted && endNodeVisisted) {
                         /* Prune existing possible solutions */
-                        System.out.println("Pruning solutions with relationship " + candidateRelationships.getRelationship().getId() + ":");
-                        System.out.println(candidateRelationships);
                         CLBuffer<Integer> validRelationshipsCount = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
 
                         Pointer<Integer> validRelationshipsCountPointer = validRelationshipsCount.read(this.queryKernels.queue);
@@ -73,13 +70,10 @@ public class CandidateRelationshipJoiner {
                                 outputIndexArray);
 
                         possibleSolutions = prunedPossibleSolutions;
-                        System.out.println(possibleSolutions);
                         visitedQueryRelationships.add(relationshipId);
 
                     } else if (startNodeVisisted || endNodeVisisted) {
                         /* Combine candidate edges with existing possible solutions */
-                        System.out.println("Combining solutions with relationship " + candidateRelationships.getRelationship().getId() + ":");
-                        System.out.println(candidateRelationships);
                         Pointer<Integer> combinationCountsPointer = this.solutionCombinationCounter.countSolutionCombinations(
                                 possibleSolutions,
                                 candidateRelationships,
@@ -94,7 +88,6 @@ public class CandidateRelationshipJoiner {
                                 combinationIndices);
 
                         possibleSolutions = newPossibleSolutions;
-                        System.out.println(possibleSolutions);
 
                         visitedQueryRelationships.add(relationshipId);
                         if (startNodeVisisted) {
@@ -106,8 +99,6 @@ public class CandidateRelationshipJoiner {
                 }
             }
         }
-
-//        System.out.println("Found solutions: " + possibleSolutions.getSolutionCount());
 
         return possibleSolutions;
 
