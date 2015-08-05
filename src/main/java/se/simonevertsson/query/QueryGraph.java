@@ -1,5 +1,6 @@
 package se.simonevertsson.query;
 
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import se.simonevertsson.gpu.SpanningTree;
@@ -40,10 +41,10 @@ public class QueryGraph {
             }
             builder.append("(");
             builder.append(startNodeAlias);
-//            for(Label label : relationship.getStartNode().getLabels()) {
-//                builder.append(':');
-//                builder.append(label.name());
-//            }
+            for(Label label : relationship.getStartNode().getLabels()) {
+                builder.append(':');
+                builder.append(label.name());
+            }
             builder.append(")-");
             if(relationship.getType() != null) {
                 builder.append("[:"+relationship.getType().name()+"]");
@@ -51,10 +52,10 @@ public class QueryGraph {
             builder.append("->");
             builder.append("(");
             builder.append(endNodeAlias);
-//            for(Label label : relationship.getStartNode().getLabels()) {
-//                builder.append(':');
-//                builder.append(label.name());
-//            }
+            for(Label label : relationship.getEndNode().getLabels()) {
+                builder.append(':');
+                builder.append(label.name());
+            }
             builder.append(")");
         }
         return builder.toString();

@@ -37,6 +37,16 @@ public class ExperimentQueryGraphGenerator {
         if(relationshipCount > 0 && relationshipCount <= 26) {
             Random random = new Random();
             int startIndex = random.nextInt(this.allNodes.size());
+            System.out.println("Generating query graph from start index " + startIndex);
+            queryGraph = generate(startIndex);
+        }
+        return queryGraph;
+    }
+
+    public QueryGraph generate(int startIndex) {
+
+        QueryGraph queryGraph = null;
+        if(relationshipCount > 0 && relationshipCount <= 26) {
             queryGraph = generateQueryGraphFromGivenStartIndex(startIndex);
         }
         return queryGraph;

@@ -21,58 +21,7 @@ public class Main {
     public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
 //    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
     public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j";
-//    public static final String EXPERIMENT_QUERY =
-//            "MATCH (a1),(b2),(a3),(c4)" +
-//            "WHERE (a3)<--(a1)-->(b2) AND (a3)<--(b2)-->(c4)<--(a3)" +
-//            "RETURN a1, b2, a3, c4";
-//
-//    public static final String EXPERIMENT_QUERY =
-//            "MATCH (A),(B),(C)" +
-//            "WHERE (C)<--(A)-->(B) AND (B)-->(C)" +
-//            "RETURN A, B, C";
 
-
-//    public static final String EXPERIMENT_QUERY =
-//            "MATCH \n" +
-//                    "\t(a1)-->(b2), \n" +
-//                    "\t(a1)-->(a3),\n" +
-//                    "\t(b2)-->(a3),\n" +
-//                    "\t(b2)-->(c4),\n" +
-//                    "\t(a3)-->(c4)\n" +
-//                    "RETURN id(a1), id(b2), id(a3), id(c4);";
-
-
-    public static final String EXPERIMENT_QUERY =
-            "MATCH (A1)-->(B2), (A1)-->(A3), (B2)-->(A3), (B2)-->(C4), (A3)-->(C4) RETURN A1, B2, A3, C4;";
-
-    public static final String EXPERIMENT_QUERY_PREFIX =
-            "MATCH (A1)-->(B2), (A1)-->(A3), (B2)-->(A3), (B2)-->(C4), (A3)-->(C4)";
-
-    public static final String EXPERIMENT_QUERY_SUFFIX =
-            " RETURN A1, B2, A3, C4;";
-
-
-//    public static final String EXPERIMENT_QUERY_PREFIX =
-//            "MATCH " +
-//                    "(A)-->(B)," +
-//                    "(A)-->(C)," +
-//                    "(B)-->(C)";
-//
-//    public static final String EXPERIMENT_QUERY_SUFFIX =
-//            " RETURN A,B,C";
-//
-//
-//    public static final String EXPERIMENT_QUERY =
-//            "MATCH " +
-//                    "(A)-->(B)," +
-//                    "(A)-->(C)," +
-//                    "(B)-->(C)" +
-//                    "RETURN A,B,C";
-
-//    public static final String EXPERIMENT_QUERY =
-//            "MATCH " +
-//                    "(a1)-->(a2)" +
-//                    "RETURN count(*)";
 
     public static void main(String[] args) throws IOException {
         /* Setup database */
@@ -85,9 +34,8 @@ public class Main {
 
         ArrayList<Node> allNodes = databaseService.getAllNodes();
 
-        ExperimentQueryGraphGenerator experimentQueryGraphGenerator = new ExperimentQueryGraphGenerator(allNodes, 5, 4, 2, 2);
+        ExperimentQueryGraphGenerator experimentQueryGraphGenerator = new ExperimentQueryGraphGenerator(allNodes, 7, 4, 2, 2);
         QueryGraph queryGraph = experimentQueryGraphGenerator.generate();
-        System.out.println(queryGraph.aliasDictionary.toString());
 //        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
         System.out.println("Querying with query:");
         System.out.println(queryGraph.toCypherQueryString());

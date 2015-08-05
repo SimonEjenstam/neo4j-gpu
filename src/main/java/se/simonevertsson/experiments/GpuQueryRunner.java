@@ -33,6 +33,7 @@ public class GpuQueryRunner {
         TypeDictionary typeDictionary = new TypeDictionary();
         GpuGraph gpuData = convertData(databaseService, labelDictionary, typeDictionary);
         GpuGraph gpuQuery = convertQuery(queryGraph, labelDictionary, typeDictionary);
+        System.out.println(gpuQuery);
         tock = System.currentTimeMillis();
         System.out.println("GPU Data conversion runtime: " + (tock-tick) + "ms");
 
