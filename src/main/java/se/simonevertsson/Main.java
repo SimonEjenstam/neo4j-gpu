@@ -7,7 +7,6 @@ import se.simonevertsson.experiments.ExperimentQueryGraphGenerator;
 import se.simonevertsson.experiments.GpuQueryRunner;
 import se.simonevertsson.gpu.QuerySolution;
 import se.simonevertsson.query.QueryGraph;
-import se.simonevertsson.query.QueryGraphGenerator;
 
 import java.io.IOException;
 import java.util.*;
@@ -18,8 +17,8 @@ import java.util.*;
 public class Main {
 
     public static final String TEST_DB_PATH = "target/foo";
-    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
-//    public static final String DR_WHO_DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
+//    public static final String DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
+    public static final String DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
     public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j";
 
 
@@ -29,14 +28,15 @@ public class Main {
 //        ExperimentSetup experimentSetup = new ExperimentSetup();
 //        experimentSetup.fillDatabaseWithSmallDrWhoTestData(databaseService.getGraphDatabase());
 
-        DatabaseService databaseService = new DatabaseService(DR_WHO_DB_PATH, DR_WHO_DB_CONFIG_PATH);
+        DatabaseService databaseService = new DatabaseService(DB_PATH, DR_WHO_DB_CONFIG_PATH);
 
 
         ArrayList<Node> allNodes = databaseService.getAllNodes();
 
         ExperimentQueryGraphGenerator experimentQueryGraphGenerator = new ExperimentQueryGraphGenerator(allNodes, 7, 4, 2, 2);
+//        ExperimentQueryGraphGenerator experimentQueryGraphGenerator = new ExperimentQueryGraphGenerator(allNodes, 5, 4, 2, 2);
         QueryGraph queryGraph = experimentQueryGraphGenerator.generate();
-//        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
+//        QueryGraph queryGraph = QueryGraphGenerator.generateLabeledTriangleMockQueryGraph();
         System.out.println("Querying with query:");
         System.out.println(queryGraph.toCypherQueryString());
 

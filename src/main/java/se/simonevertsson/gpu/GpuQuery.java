@@ -30,9 +30,9 @@ public class GpuQuery {
         candidateInitializer.candidateInitialization(visitOrder);
 
         /****** Candidate refinement step ******/
-        CandidateRefinement candidateRefinement =
-                new CandidateRefinement(this.queryContext, this.queryKernels, this.bufferContainer);
-        candidateRefinement.refine(visitOrder);
+//        CandidateRefinement candidateRefinement =
+//                new CandidateRefinement(this.queryContext, this.queryKernels, this.bufferContainer);
+//        candidateRefinement.refine(visitOrder);
 
         /****** Candidate relationship searching step ******/
         CandidateRelationshipSearcher candidateRelationshipSearcher =

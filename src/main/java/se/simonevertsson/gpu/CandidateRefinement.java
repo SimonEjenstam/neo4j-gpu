@@ -26,6 +26,7 @@ public class CandidateRefinement {
         boolean[] oldCandidateIndicators = QueryUtils.pointerBooleanToArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount * this.queryNodeCount);
         boolean candidateIndicatorsHasChanged = true;
         while (candidateIndicatorsHasChanged) {
+            System.out.println("Refining candidates.");
             for (Node queryNode : visitOrder) {
                 int queryNodeId = this.queryContext.gpuQuery.getNodeIdDictionary().getQueryId(queryNode.getId());
                 int[] candidateArray = QueryUtils.gatherCandidateArray(this.queryBuffers.candidateIndicatorsPointer, this.dataNodeCount, queryNodeId);

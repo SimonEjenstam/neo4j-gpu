@@ -43,6 +43,15 @@ public class GpuGraphConverter {
 
         appendLastIndexIfNotEmpty(labelIndices, currentLabelIndex);
         appendLastIndexIfNotEmpty(relationshipIndices, currentRelationshipIndex);
+
+        /*
+            If no node has labels the label array will be empty. Empty arrays are not supported by JavaCL hence a
+            dummy element is added in this case.
+         */
+        if(nodeLabels.isEmpty()) {
+            nodeLabels.add(-1);
+        }
+
         return new GpuGraph(labelIndices, nodeLabels, relationshipIndices, nodeRelationships, relationshipTypes, nodeIdDictionary, relationshipIdDictionary);
     }
 
@@ -85,11 +94,11 @@ public class GpuGraphConverter {
             relationshipCount++;
         }
 
-        if(relationshipCount == 0) {
-            this.nodeRelationships.add(-1);
-            this.relationshipTypes.add(-1);
-            relationshipCount++;
-        }
+//        if(relationshipCount == 0) {
+//            this.nodeRelationships.add(-1);
+//            this.relationshipTypes.add(-1);
+//            relationshipCount++;
+//        }
 
         return relationshipCount;
     }
@@ -102,10 +111,10 @@ public class GpuGraphConverter {
             labelCount++;
         }
 
-        if(labelCount == 0) {
-            this.nodeLabels.add(-1);
-            labelCount++;
-        }
+//        if(labelCount == 0) {
+//            this.nodeLabels.add(-1);
+//            labelCount++;
+//        }
 
         return labelCount;
     }

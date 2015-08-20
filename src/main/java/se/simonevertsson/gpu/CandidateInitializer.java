@@ -31,7 +31,8 @@ public class CandidateInitializer {
             }
 
             int queryNodeRelationshipStartIndex = this.queryContext.gpuQuery.getRelationshipIndices()[queryNodeId];
-            if(this.queryContext.gpuQuery.getNodeRelationships()[queryNodeRelationshipStartIndex] != -1) {
+            int queryNodeRelationshipEndIndex = this.queryContext.gpuQuery.getRelationshipIndices()[queryNodeId+1];
+            if(queryNodeRelationshipStartIndex != queryNodeRelationshipEndIndex) {
 
                 /* The current query node has relationships, hence we explore the neighborhood */
 

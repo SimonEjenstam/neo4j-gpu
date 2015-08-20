@@ -150,6 +150,50 @@ public class QueryGraphGenerator {
         return queryGraph;
     }
 
+    //                 (AB)
+    //                /  \
+    //              /     \
+    //            /        \
+    //          /           \
+    //        v              v
+    //     ( ) <-------------(B)
+    public static QueryGraph generateLabeledTriangleMockQueryGraph() {
+
+        QueryGraph queryGraph = new QueryGraph();
+
+        queryGraph.nodes = new ArrayList<Node>();
+
+        QueryNode AB = new QueryNode(2);
+        AB.addLabel(new QueryLabel("A"));
+        AB.addLabel(new QueryLabel("B"));
+
+        QueryNode B = new QueryNode(7);
+        B.addLabel(new QueryLabel("B"));
+
+        QueryNode Unlabeled = new QueryNode(4);
+
+        queryGraph.nodes.add(AB);
+        queryGraph.nodes.add(B);
+        queryGraph.nodes.add(Unlabeled);
+
+        queryGraph.aliasDictionary.insertAlias(AB, "AB");
+        queryGraph.aliasDictionary.insertAlias(B, "B");
+        queryGraph.aliasDictionary.insertAlias(Unlabeled, "C");
+
+        queryGraph.relationships = new ArrayList<Relationship>();
+
+        Relationship AB_B = AB.createRelationshipTo(B, 5, RelationshipTypes.KNOWS);
+        Relationship AB_C = AB.createRelationshipTo(Unlabeled, 3, RelationshipTypes.LOVES);
+        Relationship B_C = B.createRelationshipTo(Unlabeled, 8, null);
+
+        queryGraph.relationships.add(AB_B);
+        queryGraph.relationships.add(AB_C);
+        queryGraph.relationships.add(B_C);
+
+        return queryGraph;
+    }
+
+
 
     public static QueryGraph generateQueryGraphWithManyRelationships() {
 
