@@ -17,8 +17,8 @@ import java.util.*;
 public class Main {
 
     public static final String TEST_DB_PATH = "target/foo";
-//    public static final String DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
-    public static final String DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
+    public static final String DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\cineasts_12k_movies_50k_actors";
+//    public static final String DB_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j\\drwho";
     public static final String DR_WHO_DB_CONFIG_PATH = "C:\\Users\\simon.evertsson\\Documents\\Neo4j";
 
 

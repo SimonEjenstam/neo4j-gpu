@@ -93,6 +93,17 @@ public class QueryUtils {
         return prefixScanArray;
     }
 
+    public static int[] generatePrefixScanArrayFromBooleans(Pointer<Boolean> bufferPointer, int bufferSize) {
+        int totalElementCount = 0;
+        int[] prefixScanArray = new int[bufferSize +1];
+        for(int i = 0; i < bufferSize; i++) {
+            prefixScanArray[i] = totalElementCount;
+            totalElementCount += bufferPointer.get(i) ? 1 : 0;
+        }
+        prefixScanArray[bufferSize] = totalElementCount;
+        return prefixScanArray;
+    }
+
 
     public static List<QuerySolution> generateQuerySolutions(QueryKernels queryKernels, QueryContext queryContext, PossibleSolutions solution) {
         ArrayList<QuerySolution> results = new ArrayList<QuerySolution>();

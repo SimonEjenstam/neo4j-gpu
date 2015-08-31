@@ -16,12 +16,12 @@ public class SolutionValidator {
         this.queryContext = queryContext;
     }
 
-    public CLBuffer<Integer> validateSolutions(PossibleSolutions possibleSolutions, CandidateRelationships candidateRelationships) throws IOException {
+    public CLBuffer<Boolean> validateSolutions(PossibleSolutions possibleSolutions, CandidateRelationships candidateRelationships) throws IOException {
         int possibleSolutionCount = (int) possibleSolutions.getSolutionElements().getElementCount() / this.queryContext.queryNodeCount;
 
-        CLBuffer<Integer> validationIndicators = this.queryKernels.context.createBuffer(
+        CLBuffer<Boolean> validationIndicators = this.queryKernels.context.createBuffer(
                 CLMem.Usage.Output,
-                Pointer.pointerToInts(new int[possibleSolutionCount]));
+                Pointer.pointerToBooleans(new boolean[possibleSolutionCount]));
 
         int[] globalSizes = new int[]{possibleSolutionCount};
 

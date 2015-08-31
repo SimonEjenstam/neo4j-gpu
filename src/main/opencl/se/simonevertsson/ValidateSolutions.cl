@@ -13,12 +13,12 @@ __kernel void validate_solutions(
 
     int start_node_count,
 
-    __global int* valid_relationships_count
+    __global bool* valid_relationships_indicators
     )
 {
     int possible_solution_index = get_global_id(0);
     
-    valid_relationships_count[possible_solution_index] = 0;
+    valid_relationships_indicators[possible_solution_index] = false;
 
     for(int i = 0; i < start_node_count; i++) {
         if(c_start_nodes[i] == possible_solution_elements[possible_solution_index*query_node_count + q_start_node]) {
@@ -36,7 +36,8 @@ __kernel void validate_solutions(
                         }
                     }
                     if(relationship_valid) {
-                        valid_relationships_count[possible_solution_index]++;
+                        valid_relationships_indicators[possible_solution_index] = true;
+                        return;
                     }
                 }
 

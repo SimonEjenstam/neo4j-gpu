@@ -51,11 +51,11 @@ public class CandidateRelationshipJoiner {
 
                     if (startNodeVisisted && endNodeVisisted) {
                         /* Prune existing possible solutions */
-                        CLBuffer<Integer> validRelationshipsCount = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
+                        CLBuffer<Boolean> validRelationshipsIndicators = solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
 
-                        Pointer<Integer> validRelationshipsCountPointer = validRelationshipsCount.read(this.queryKernels.queue);
+                        Pointer<Boolean> validRelationshipsIndicatorsointer = validRelationshipsIndicators.read(this.queryKernels.queue);
 
-                        int[] outputIndexArray = QueryUtils.generatePrefixScanArray(validRelationshipsCountPointer, possibleSolutionCount);
+                        int[] outputIndexArray = QueryUtils.generatePrefixScanArrayFromBooleans(validRelationshipsIndicatorsointer, possibleSolutionCount);
 
                         if (outputIndexArray[outputIndexArray.length - 1] == 0) {
                             return null;
