@@ -3,6 +3,7 @@ package se.simonevertsson.query;
 import org.neo4j.graphdb.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Created by simon.evertsson on 2015-05-18.
@@ -11,19 +12,22 @@ public class QueryNode implements Node {
 
     private final long id;
 
-    private ArrayList<Relationship> relationsships;
-    private ArrayList<Label> labels;
+    private ArrayList<Relationship> outgoingRelationsships;
+    private ArrayList<Relationship> incomingRelationsships;
+    private HashSet<Label> labels;
 
     public QueryNode(long id) {
         this.id = id;
-        this.relationsships = new ArrayList<Relationship>();
-        this.labels = new ArrayList<Label>();
+        this.outgoingRelationsships = new ArrayList<Relationship>();
+        this.incomingRelationsships = new ArrayList<>();
+        this.labels = new HashSet<Label>();
     }
 
     public QueryNode(Node node) {
         this.id = node.getId();
-        this.relationsships = new ArrayList<Relationship>();
-        this.labels = new ArrayList<Label>();
+        this.outgoingRelationsships = new ArrayList<Relationship>();
+        this.incomingRelationsships = new ArrayList<>();
+        this.labels = new HashSet<>();
         for(Label label : node.getLabels()) {
             this.addLabel(label);
         }
@@ -38,7 +42,7 @@ public class QueryNode implements Node {
     }
 
     public Iterable<Relationship> getRelationships() {
-        return this.relationsships;
+        return this.outgoingRelationsships;
     }
 
     public boolean hasRelationship() {
@@ -62,7 +66,7 @@ public class QueryNode implements Node {
     }
 
     public Iterable<Relationship> getRelationships(Direction direction) {
-        return relationsships;
+        return outgoingRelationsships;
     }
 
     public boolean hasRelationship(Direction direction) {
@@ -87,7 +91,8 @@ public class QueryNode implements Node {
 
     public Relationship createRelationshipTo(Node node, long relationshipId, RelationshipType relationshipType) {
         Relationship relationship = new QueryRelationship(relationshipId, this, node, relationshipType);
-        this.relationsships.add(relationship);
+        this.outgoingRelationsships.add(relationship);
+        ((QueryNode)node).getIncomingRelationsships().add(relationship);
         return relationship;
     }
 
@@ -96,7 +101,7 @@ public class QueryNode implements Node {
     }
 
     public int getDegree() {
-        return this.relationsships.size();
+        return this.outgoingRelationsships.size() + this.incomingRelationsships.size();
     }
 
     public int getDegree(RelationshipType relationshipType) {
@@ -105,7 +110,7 @@ public class QueryNode implements Node {
 
     public int getDegree(Direction direction) {
         /* We assume that the nodes in query graph only have outgoing relationships */
-        return this.relationsships.size();
+        return this.outgoingRelationsships.size();
     }
 
     public int getDegree(RelationshipType relationshipType, Direction direction) {
@@ -166,5 +171,9 @@ public class QueryNode implements Node {
 
     public Iterable<String> getPropertyKeys() {
         return null;
+    }
+
+    public ArrayList<Relationship> getIncomingRelationsships() {
+        return incomingRelationsships;
     }
 }

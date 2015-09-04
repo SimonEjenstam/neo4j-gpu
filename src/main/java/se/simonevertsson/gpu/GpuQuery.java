@@ -39,6 +39,16 @@ public class GpuQuery {
                 new CandidateRelationshipSearcher(this.queryContext, this.queryKernels, this.bufferContainer);
         HashMap<Integer, CandidateRelationships> relationshipCandidatesHashMap = candidateRelationshipSearcher.searchCandidateRelationships();
 
+        /* Release unneccessary buffers */
+        this.bufferContainer.queryBuffers.candidateIndicatorsBuffer.release();
+        this.bufferContainer.queryBuffers.candidateIndicatorsPointer.release();
+
+        this.bufferContainer.dataBuffers.dataLabelIndicesBuffer.release();
+        this.bufferContainer.dataBuffers.dataLabelsBuffer.release();
+        this.bufferContainer.dataBuffers.dataRelationshipIndicesBuffer.release();
+        this.bufferContainer.dataBuffers.dataNodeRelationshipsBuffer.release();
+        this.bufferContainer.dataBuffers.dataRelationshipTypesBuffer.release();
+
         /****** Candidate relationship joining step ******/
         CandidateRelationshipJoiner candidateRelationshipJoiner =
                 new CandidateRelationshipJoiner(this.queryContext, this.queryKernels, this.bufferContainer);

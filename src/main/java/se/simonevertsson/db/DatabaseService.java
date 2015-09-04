@@ -70,8 +70,9 @@ public class DatabaseService {
         return allNodes;
     }
 
-    public Iterable<Relationship> getAllRelationships() {
+    public ArrayList<Relationship> getAllRelationships() {
         Iterable<Relationship> result = null;
+        ArrayList<Relationship> allRelationships = new ArrayList<>();
         try {
             Transaction tx = this.graphDatabase.beginTx();
             result = this.graphOperations.getAllRelationships();
@@ -79,7 +80,10 @@ public class DatabaseService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return result;
+        for(Relationship relationship : result) {
+            allRelationships.add(relationship);
+        }
+        return allRelationships;
     }
 
     public void deleteData() {

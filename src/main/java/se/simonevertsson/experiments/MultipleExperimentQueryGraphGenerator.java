@@ -11,56 +11,92 @@ import java.util.*;
 /**
  * Created by simon on 2015-07-13.
  */
-public class ExperimentQueryGraphGenerator {
+public class MultipleExperimentQueryGraphGenerator {
 
     private final ArrayList<Node> allNodes;
     private final int maxDepth;
-    private final int nodeCount;
+    private final int maxNodeCount;
+    private int currentNodeCount;
+    private final int nodeCountDecrease;
     private int currentNodeAlias;
     private HashMap<Long, QueryNode> visitedNodes;
     private HashMap<Long, Relationship>  visitedRelationships;
     private Queue<Relationship> relationshipQueue;
 
-    public ExperimentQueryGraphGenerator(ArrayList<Node> allNodes, int nodeCount, int maxDepth) {
+    public MultipleExperimentQueryGraphGenerator(ArrayList<Node> allNodes, int maxNodeCount, int nodeCountDecrease, int maxDepth) {
         this.allNodes = allNodes;
-        this.nodeCount = nodeCount;
+        this.maxNodeCount = maxNodeCount;
+        this.nodeCountDecrease = nodeCountDecrease;
         this.maxDepth = maxDepth;
     }
 
-    public QueryGraph generate() {
+    public List<QueryGraph> generate() {
 
-        QueryGraph queryGraph = null;
+        List<QueryGraph> queryGraphs = null;
         Random random = new Random();
         int startIndex = random.nextInt(this.allNodes.size());
         System.out.println("Generating query graph from start index " + startIndex);
-        queryGraph = generate(startIndex);
+        queryGraphs = generate(startIndex);
 
-        return queryGraph;
+        return queryGraphs;
     }
 
-    public QueryGraph generate(int startIndex) {
+    private List<QueryGraph> generate(int startIndex) {
         return generateQueryGraphFromGivenStartIndex(startIndex);
     }
 
-    private QueryGraph generateQueryGraphFromGivenStartIndex(int startIndex) {
+    private List<QueryGraph> generateQueryGraphFromGivenStartIndex(int startIndex) {
         int rootNodeAttempts = 0;
+        ArrayList<QueryGraph> queryGraphs = new ArrayList<>();
+
+        int rootNodeIndex = 0;
+
         while (rootNodeAttempts < this.allNodes.size()) {
-            initializeGenerationAttempt();
+            initializeGenerationAttempt(this.maxNodeCount);
             QueryGraph queryGraph = new QueryGraph();
 
-            int currentNodeIndex = (startIndex + rootNodeAttempts) % this.allNodes.size();
-            Node rootNode = this.allNodes.get(currentNodeIndex);
+            rootNodeIndex = (startIndex + rootNodeAttempts) % this.allNodes.size();
+            Node rootNode = this.allNodes.get(rootNodeIndex);
 
             addNodeToQueryGraph(queryGraph, rootNode);
             List<Relationship> relationshipList = createRelationshipList(rootNode);
 
             if (generateQueryGraph(queryGraph, rootNode, relationshipList, 0) != null) {
-                return queryGraph;
+                queryGraphs.add(queryGraph);
+                break;
             }
 
             rootNodeAttempts++;
         }
-        return null;
+
+        System.out.println("Root node found at index: " + rootNodeIndex);
+
+        if(!queryGraphs.isEmpty()) {
+
+            int nodeCount = this.currentNodeCount - this.nodeCountDecrease;
+            System.out.println("Generating query graph with " + nodeCount + " nodes.");
+
+            while (nodeCount >= 2) {
+
+
+                initializeGenerationAttempt(nodeCount);
+                QueryGraph queryGraph = new QueryGraph();
+
+                Node rootNode = this.allNodes.get(rootNodeIndex);
+
+                addNodeToQueryGraph(queryGraph, rootNode);
+                List<Relationship> relationshipList = createRelationshipList(rootNode);
+
+                if (generateQueryGraph(queryGraph, rootNode, relationshipList, 0) != null) {
+                    queryGraphs.add(queryGraph);
+                    nodeCount = nodeCount - this.nodeCountDecrease;
+                    System.out.println("Generating query graph with " + nodeCount + " nodes.");
+                }
+            }
+        }
+
+
+        return queryGraphs;
     }
 
     private QueryGraph generateQueryGraph(QueryGraph queryGraph, Node visitedNode, List<Relationship> relationships, int level) {
@@ -71,7 +107,7 @@ public class ExperimentQueryGraphGenerator {
 
             if(this.visitedRelationships.get(relationship.getId()) == null) {
                 addRelationshipAndUnvisitedNodeToQueryGraph(queryGraph, relationship);
-                if (this.visitedNodes.size() == this.nodeCount) {
+                if (this.visitedNodes.size() == this.currentNodeCount) {
                     /* The query graph has been generated */
                     return queryGraph;
                 } else {
@@ -88,7 +124,13 @@ public class ExperimentQueryGraphGenerator {
             }
 
         }
-        return null;
+
+        if (this.visitedNodes.size() == this.currentNodeCount) {
+            /* The query graph has been generated */
+            return queryGraph;
+        } else {
+            return null;
+        }
     }
 
     private List<Relationship> createRelationshipList(Node node) {
@@ -129,11 +171,12 @@ public class ExperimentQueryGraphGenerator {
         visitedRelationships.put(currentRelationship.getId(), queryRelationship);
     }
 
-    private void initializeGenerationAttempt() {
+    private void initializeGenerationAttempt(int nodeCount) {
         this.relationshipQueue = new LinkedList<Relationship>();
         this.visitedRelationships = new HashMap<>();
         this.visitedNodes = new HashMap<>();
         this.currentNodeAlias = 0; //start with alias letter 'A'
+        this.currentNodeCount = nodeCount;
     }
 
     private QueryNode addNodeToQueryGraph(QueryGraph queryGraph, Node node) {

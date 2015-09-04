@@ -4,6 +4,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import se.simonevertsson.db.DatabaseService;
+import se.simonevertsson.gpu.QueryResult;
 import se.simonevertsson.gpu.QuerySolution;
 import se.simonevertsson.query.QueryGraph;
 
@@ -14,8 +15,7 @@ import java.util.*;
  */
 public class CypherQueryRunner {
 
-    public List<QuerySolution> runCypherQueryForSolutions(DatabaseService dbService, QueryGraph queryGraph) {
-        System.out.println("Starting CypherQueryRunner");
+    public QueryResult runCypherQueryForSolutions(DatabaseService dbService, QueryGraph queryGraph) {
         long tick = System.currentTimeMillis();
 
 
@@ -29,11 +29,9 @@ public class CypherQueryRunner {
         }
 
         long tock = System.currentTimeMillis();
-        System.out.println("CypherQueryRunner runtime: " + (tock - tick) + "ms");
+        long queryExecutionTime = tock-tick;
 
-
-
-        return querySolutions;
+        return new QueryResult(querySolutions, 0, queryExecutionTime);
     }
 
     private List<QuerySolution> handleResult(Result result, QueryGraph queryGraph) {

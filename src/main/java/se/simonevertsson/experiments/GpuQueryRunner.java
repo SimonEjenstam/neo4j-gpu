@@ -16,13 +16,7 @@ import java.util.List;
  */
 public class GpuQueryRunner {
 
-    public List<QuerySolution> runGpuQuery(DatabaseService databaseService) throws IOException {
-        QueryGraph queryGraph = QueryGraphGenerator.generateUnlabeledMockQueryGraph();
-//        QueryGraph queryGraph = QueryGraphGenerator.generateTriangleMockQueryGraph();
-        return runGpuQuery(databaseService, queryGraph);
-    }
-
-    public List<QuerySolution> runGpuQuery(DatabaseService databaseService, QueryGraph queryGraph) throws IOException {
+    public QueryResult runGpuQuery(DatabaseService databaseService, QueryGraph queryGraph) throws IOException {
         long tick, tock;
 
 
@@ -33,21 +27,20 @@ public class GpuQueryRunner {
         TypeDictionary typeDictionary = new TypeDictionary();
         GpuGraph gpuData = convertData(databaseService, labelDictionary, typeDictionary);
         GpuGraph gpuQuery = convertQuery(queryGraph, labelDictionary, typeDictionary);
-        System.out.println(gpuQuery);
         tock = System.currentTimeMillis();
-        System.out.println("GPU Data conversion runtime: " + (tock-tick) + "ms");
+        long conversionExecutionTime = tock-tick;
 
         tick = System.currentTimeMillis();
 
         /* Execute the query */
         QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph, labelDictionary, typeDictionary);
         GpuQuery gpuGraphQuery = new GpuQuery(queryContext);
-        List<QuerySolution> results = gpuGraphQuery.executeQuery(queryGraph.getSpanningTree().getVisitOrder());
+        List<QuerySolution> solutions = gpuGraphQuery.executeQuery(queryGraph.getSpanningTree().getVisitOrder());
 
         tock = System.currentTimeMillis();
-        System.out.println("GPU Query runtime: " + (tock - tick) + "ms");
+        long queryExecutionTime = tock-tick;
 
-        return results;
+        return new QueryResult(solutions, conversionExecutionTime, queryExecutionTime);
     }
 
     public List<QuerySolution> runGpuQuery(QueryGraph dataGraph, QueryGraph queryGraph) throws IOException {
