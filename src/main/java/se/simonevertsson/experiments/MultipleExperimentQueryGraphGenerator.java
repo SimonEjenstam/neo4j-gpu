@@ -41,7 +41,7 @@ public class MultipleExperimentQueryGraphGenerator {
         return queryGraphs;
     }
 
-    private List<QueryGraph> generate(int startIndex) {
+    public List<QueryGraph> generate(int startIndex) {
         return generateQueryGraphFromGivenStartIndex(startIndex);
     }
 
@@ -59,9 +59,8 @@ public class MultipleExperimentQueryGraphGenerator {
             Node rootNode = this.allNodes.get(rootNodeIndex);
 
             addNodeToQueryGraph(queryGraph, rootNode);
-            List<Relationship> relationshipList = createRelationshipList(rootNode);
 
-            if (generateQueryGraph(queryGraph, rootNode, relationshipList, 0) != null) {
+            if (generateQueryGraph(queryGraph, rootNode, 0) != null) {
                 queryGraphs.add(queryGraph);
                 break;
             }
@@ -85,11 +84,10 @@ public class MultipleExperimentQueryGraphGenerator {
                 Node rootNode = this.allNodes.get(rootNodeIndex);
 
                 addNodeToQueryGraph(queryGraph, rootNode);
-                List<Relationship> relationshipList = createRelationshipList(rootNode);
 
-                if (generateQueryGraph(queryGraph, rootNode, relationshipList, 0) != null) {
+                if (generateQueryGraph(queryGraph, rootNode, 0) != null) {
                     queryGraphs.add(queryGraph);
-                    nodeCount = nodeCount - this.nodeCountDecrease;
+                    nodeCount = this.currentNodeCount - this.nodeCountDecrease;
                     System.out.println("Generating query graph with " + nodeCount + " nodes.");
                 }
             }
@@ -99,28 +97,26 @@ public class MultipleExperimentQueryGraphGenerator {
         return queryGraphs;
     }
 
-    private QueryGraph generateQueryGraph(QueryGraph queryGraph, Node visitedNode, List<Relationship> relationships, int level) {
+    private QueryGraph generateQueryGraph(QueryGraph queryGraph, Node visitedNode, int level) {
         if(level >= this.maxDepth) {
             return queryGraph;
         }
-        for(Relationship relationship : relationships) {
+        for(Relationship relationship : visitedNode.getRelationships()) {
 
-            if(this.visitedRelationships.get(relationship.getId()) == null) {
+            if (this.visitedNodes.size() == this.currentNodeCount) {
+                /* The query graph has been generated */
+                return queryGraph;
+            } else if(this.visitedRelationships.get(relationship.getId()) == null) {
                 addRelationshipAndUnvisitedNodeToQueryGraph(queryGraph, relationship);
-                if (this.visitedNodes.size() == this.currentNodeCount) {
-                    /* The query graph has been generated */
-                    return queryGraph;
+                Node unvisitedNode = null;
+                if (relationship.getStartNode().getId() == visitedNode.getId()) {
+                    unvisitedNode = relationship.getEndNode();
                 } else {
-                    Node unvisitedNode = null;
-                    if (relationship.getStartNode().getId() == visitedNode.getId()) {
-                        unvisitedNode = relationship.getEndNode();
-                    } else {
-                        unvisitedNode = relationship.getStartNode();
-                    }
-
-                    List<Relationship> relationshipList = createRelationshipList(unvisitedNode);
-                    generateQueryGraph(queryGraph, unvisitedNode, relationshipList, level + 1);
+                    unvisitedNode = relationship.getStartNode();
                 }
+
+//                    List<Relationship> relationshipList = createRelationshipList(unvisitedNode);
+                generateQueryGraph(queryGraph, unvisitedNode, level + 1);
             }
 
         }
@@ -133,19 +129,19 @@ public class MultipleExperimentQueryGraphGenerator {
         }
     }
 
-    private List<Relationship> createRelationshipList(Node node) {
-        List<Relationship> relationshipList = new ArrayList<>();
-        if(node != null) {
-            int addedRelationships = 0;
-            for (Relationship relationship : node.getRelationships(Direction.BOTH)) {
-                if(visitedRelationships.get(relationship.getId()) == null) {
-                    relationshipList.add(relationship);
-                    addedRelationships++;
-                }
-            }
-        }
-        return relationshipList;
-    }
+//    private List<Relationship> createRelationshipList(Node node) {
+//        List<Relationship> relationshipList = new ArrayList<>();
+//        if(node != null) {
+//            int addedRelationships = 0;
+//            for (Relationship relationship : node.getRelationships(Direction.BOTH)) {
+//                if(visitedRelationships.get(relationship.getId()) == null) {
+//                    relationshipList.add(relationship);
+//                    addedRelationships++;
+//                }
+//            }
+//        }
+//        return relationshipList;
+//    }
 
     private void addRelationshipAndUnvisitedNodeToQueryGraph(QueryGraph queryGraph, Relationship currentRelationship) {
         Node startNode = currentRelationship.getStartNode();

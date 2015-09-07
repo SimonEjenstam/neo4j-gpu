@@ -77,6 +77,12 @@ public class QueryGraph {
         return builder.toString();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+
+        return obj instanceof QueryGraph && (((QueryGraph) obj).toCypherQueryString().equals(this.toCypherQueryString()));
+    }
+
     public SpanningTree getSpanningTree() {
         return spanningTree;
     }
