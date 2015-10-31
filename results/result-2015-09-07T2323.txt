@@ -1,0 +1,33 @@
+Result of query on yeast with node count 8, max depth 2 with 100 iterations
+node_count,gpu_conversion_time,gpu_runtime,cypher_runtime
+START
+END
+-----Averages for query with 2 nodes ----
+Average GPU conversion time: NaN ms
+Average GPU run time: NaN ms
+Average Cypher run time: NaN ms
+-----Averages for query with 3 nodes ----
+Average GPU conversion time: NaN ms
+Average GPU run time: NaN ms
+Average Cypher run time: NaN ms
+-----Averages for query with 4 nodes ----
+Average GPU conversion time: NaN ms
+Average GPU run time: NaN ms
+Average Cypher run time: NaN ms
+-----Averages for query with 5 nodes ----
+Average GPU conversion time: NaN ms
+Average GPU run time: NaN ms
+Average Cypher run time: NaN ms
+-----Averages for query with 6 nodes ----
+Average GPU conversion time: NaN ms
+Average GPU run time: NaN ms
+Average Cypher run time: NaN ms
+-----Averages for query with 7 nodes ----
+Average GPU conversion time: NaN ms
+Average GPU run time: NaN ms
+Average Cypher run time: NaN ms
+-----Averages for query with 8 nodes ----
+Average GPU conversion time: NaN ms
+Average GPU run time: NaN ms
+Average Cypher run time: NaN ms
+----Failed queries----

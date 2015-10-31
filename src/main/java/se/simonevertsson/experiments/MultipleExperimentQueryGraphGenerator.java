@@ -101,7 +101,7 @@ public class MultipleExperimentQueryGraphGenerator {
         if(level >= this.maxDepth) {
             return queryGraph;
         }
-        for(Relationship relationship : visitedNode.getRelationships()) {
+        for(Relationship relationship : visitedNode.getRelationships(Direction.BOTH)) {
 
             if (this.visitedNodes.size() == this.currentNodeCount) {
                 /* The query graph has been generated */
