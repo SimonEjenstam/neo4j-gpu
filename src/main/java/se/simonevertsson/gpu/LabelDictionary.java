@@ -1,48 +1,71 @@
 package se.simonevertsson.gpu;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
- * Created by simon on 2015-05-13.
+ * Dictionary class which contains Node labels and their corresponding generated GPU-friendly representation
  */
 public class LabelDictionary {
 
-    private HashMap<String, Integer> labelToIds;
+  private Map<String, Integer> labelToIds;
 
-    private HashMap<Integer, String> idToLabels;
+  private Map<Integer, String> idToLabels;
 
-    private int nextId;
+  private int nextId;
 
-    public LabelDictionary() {
-        labelToIds = new HashMap<String, Integer>();
-        idToLabels = new HashMap<Integer, String>();
-        nextId = 1;
+  /**
+   * Initializes a new label dictionary
+   */
+  public LabelDictionary() {
+    labelToIds = new TreeMap<>();
+    idToLabels = new TreeMap<>();
+    nextId = 1;
+  }
+
+  /**
+   * Inserts the supplied label to this dictionary, generating a new GPU representation if this label doesn't exist
+   * in this dictionary yet.
+   *
+   * @param label The label which will get a generated translation and be inserted to this dictionary
+   * @return
+   */
+  public int insertLabel(String label) {
+    if (labelToIds.containsKey(label)) {
+      return getIdForLabel(label);
+    } else {
+      int currentId = nextId;
+      labelToIds.put(label, currentId);
+      idToLabels.put(currentId, label);
+      nextId++;
+      return currentId;
     }
+  }
 
-    public int insertLabel(String label) {
-        if(labelToIds.containsKey(label)) {
-            return getIdForLabel(label);
-        } else {
-            int currentId = nextId;
-            labelToIds.put(label, currentId);
-            idToLabels.put(currentId, label);
-            nextId++;
-            return currentId;
-        }
+  /**
+   * Returns the GPU translation for the supplied label
+   * @param label A node label whose generated translation should be returned
+   * @return The GPU translation for the given label or  {@code -1} if it doesn't exist.
+   */
+  public int getIdForLabel(String label) {
+    return labelToIds.getOrDefault(label, -1);
+  }
+
+  /**
+   * Returns the Node label for the supplied GPU translation
+   * @param labelId A GPU label previously translated from a Node label using {@link LabelDictionary#insertLabel(String)}
+   * @return The label for the given GPU label id or {@code null} if it doesn't exist.
+   */
+  public String getLabelForId(int labelId) {
+    return idToLabels.get(labelId);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    for (Map.Entry<String, Integer> labelEntry : labelToIds.entrySet()) {
+      builder.append(labelEntry.getKey() + ": " + labelToIds.get(labelEntry.getKey()) + "\n");
     }
-
-    public int getIdForLabel(String label) {
-        return labelToIds.get(label);
-    }
-
-    public String getLabelForId(int id) { return idToLabels.get(id);}
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        for(String label : labelToIds.keySet()) {
-            builder.append(label + ": " + labelToIds.get(label) + "\n");
-        }
-        return builder.toString();
-    }
+    return builder.toString();
+  }
 }

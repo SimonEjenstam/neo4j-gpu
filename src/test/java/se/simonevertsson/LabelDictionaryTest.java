@@ -3,9 +3,6 @@ package se.simonevertsson;
 import junit.framework.TestCase;
 import se.simonevertsson.gpu.LabelDictionary;
 
-/**
- * Created by simon on 2015-05-13.
- */
 public class LabelDictionaryTest extends TestCase {
 
     public void testInsertLabelShouldNotIncreaseIdForSameLabel() throws Exception {
@@ -42,6 +39,6 @@ public class LabelDictionaryTest extends TestCase {
        String result = labelDictionary.toString();
 
         // Then
-        assertEquals("TEST_LABEL2: 2\nTEST_LABEL1: 1\n", result);
+        assertEquals("TEST_LABEL1: 1\nTEST_LABEL2: 2\n", result);
     }
 }
