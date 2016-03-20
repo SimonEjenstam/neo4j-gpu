@@ -1,4 +1,4 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu.query;
 
 import junit.framework.TestCase;
 import se.simonevertsson.gpu.query.QuerySolution;

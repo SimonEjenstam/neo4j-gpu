@@ -1,7 +1,6 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu.dictionary;
 
 import junit.framework.TestCase;
-import se.simonevertsson.gpu.query.dictionary.LabelDictionary;
 
 public class LabelDictionaryTest extends TestCase {
 

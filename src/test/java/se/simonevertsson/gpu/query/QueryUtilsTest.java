@@ -1,4 +1,4 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu.query;
 
 import junit.framework.TestCase;
 import org.bridj.Pointer;

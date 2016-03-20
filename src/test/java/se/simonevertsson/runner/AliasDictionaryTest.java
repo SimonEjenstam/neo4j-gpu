@@ -1,4 +1,4 @@
-package se.simonevertsson;
+package se.simonevertsson.runner;
 
 import junit.framework.TestCase;
 import se.simonevertsson.runner.AliasDictionary;

@@ -1,9 +1,9 @@
 package se.simonevertsson.gpu.graph;
 
 import org.neo4j.graphdb.*;
-import se.simonevertsson.gpu.query.dictionary.LabelDictionary;
-import se.simonevertsson.gpu.query.dictionary.QueryIdDictionary;
-import se.simonevertsson.gpu.query.dictionary.TypeDictionary;
+import se.simonevertsson.gpu.dictionary.LabelDictionary;
+import se.simonevertsson.gpu.dictionary.QueryIdDictionary;
+import se.simonevertsson.gpu.dictionary.TypeDictionary;
 
 import java.util.ArrayList;
 import java.util.List;

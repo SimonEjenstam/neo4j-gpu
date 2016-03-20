@@ -1,14 +1,16 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu.query.relationship.join;
 
 import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLMem;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
+import se.simonevertsson.MockHelper;
+import se.simonevertsson.MockQuery;
 import se.simonevertsson.gpu.query.relationship.search.CandidateRelationships;
 import se.simonevertsson.gpu.query.relationship.join.PossibleSolutions;
 import se.simonevertsson.gpu.query.QueryUtils;
-import se.simonevertsson.gpu.query.relationship.join.SolutionValidator;
+import se.simonevertsson.gpu.query.relationship.join.SolutionPruner;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
@@ -18,7 +20,7 @@ import java.util.HashMap;
 /**
  * Created by simon on 2015-06-25.
  */
-public class SolutionValidatorTest extends TestCase {
+public class SolutionPrunerTest extends TestCase {
     private MockQuery mockQuery;
     private HashMap<Integer, CandidateRelationships> candidateRelationshipsHashMap;
 
@@ -157,7 +159,7 @@ public class SolutionValidatorTest extends TestCase {
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
     }
 
-    public void testValidateSolutionWithRelationship1WhenRelationship2And0Visited() throws IOException {
+    public void testPruneSolutionWithRelationship1WhenRelationship2And0Visited() throws IOException {
         // Given
 
         /* Relationship 2 and 0 visited */
@@ -165,87 +167,129 @@ public class SolutionValidatorTest extends TestCase {
                 0,1,2, 0,1,3, 0,2,3, 1,2,3
         };
 
-        int[] oldPossibleSolutionRelationships = {
+        int[] possibleSolutionRelationships = {
                 0,-1,2, 0,-1,3, 1,-1,4, 2,-1,4
+        };
+
+        int[] outputIndicesArray = {
+                0,1,1,1,2
+        };
+
+        int[] validRelationships = {
+                1,3
         };
 
         CLBuffer<Integer> possibleSolutionElementsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionElements), true);
 
-        CLBuffer<Integer> oldPossibleSolutionRelationshipsBuffer =
-                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionRelationships), true);
+        CLBuffer<Integer> possibleSolutionRelationshipsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionRelationships), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer, this.mockQuery.queryContext, this.mockQuery.queryKernels.queue);
+
+        CLBuffer<Integer> validRelationshipsBuffer =
+                mockQuery.queryKernels.context.createBuffer(CLMem.Usage.Input, Pointer.pointerToInts(validRelationships), true);
+
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer, mockQuery.queryContext, mockQuery.queryKernels.queue);
+
+        SolutionPruner solutionPruner = new SolutionPruner(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(1);
 
-        SolutionValidator solutionValidator = new SolutionValidator(this.mockQuery.queryKernels, this.mockQuery.queryContext);
-
         // When
-        CLBuffer<Boolean> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
-                Pointer<Boolean> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
+        PossibleSolutions result = solutionPruner.prunePossibleSolutions(candidateRelationships, possibleSolutions, validRelationshipsBuffer, outputIndicesArray);
+        Pointer<Integer> solutionElementsResultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
+        Pointer<Integer> solutionRelationshipsResultPointer = result.getSolutionRelationships().read(this.mockQuery.queryKernels.queue);
 
-        int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
-        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(solutionElementsResultPointer, solutionElementsSize)));
+        int solutionElementsSize = outputIndicesArray[outputIndicesArray.length-1]*mockQuery.queryContext.queryNodeCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
+
+        int solutionRelationshipsSize = outputIndicesArray[outputIndicesArray.length-1]*mockQuery.queryContext.queryRelationshipCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionRelationshipsResultPointer, solutionRelationshipsSize)));
+
 
         // Then
-//        int[] expectedValidRelationships = {
-//                1, -1, -1, 3
-//        };
-
-        boolean[] expectedValidRelationships = {
-                true, false, false, true
+        int[] expectedPrunedPossibleSolutions = {
+                0,1,2, 1,2,3
         };
 
 
-        for(int i = 0; i < expectedValidRelationships.length; i++) {
-            assertEquals(expectedValidRelationships[i], (boolean) solutionElementsResultPointer.get(i));
+        int[] expectedPrunedPossibleRelationships = {
+                0,1,2, 2,3,4
+        };
+
+
+        for(int i = 0; i < expectedPrunedPossibleSolutions.length; i++) {
+            assertEquals(expectedPrunedPossibleSolutions[i], (int) solutionElementsResultPointer.get(i));
+        }
+
+        for(int i = 0; i < expectedPrunedPossibleRelationships.length; i++) {
+            assertEquals(expectedPrunedPossibleRelationships[i], (int) solutionRelationshipsResultPointer.get(i));
         }
     }
 
-    public void testValidateSolutionWithRelationship2WhenRelationship0And1Visited() throws IOException {
+    public void testPruneSolutionWithRelationship2WhenRelationship0And1Visited() throws IOException {
         // Given
 
-        /* Relationship 0 and 1 visited */
+        /* Relationship 1 and 0 visited */
         int[] possibleSolutionElements = {
                 0,1,2, 0,2,1, 1,2,3
         };
 
-        int[] oldPossibleSolutionRelationships = {
+        int[] possibleSolutionRelationships = {
                 0,1,-1, 1,0,-1, 2,3,-1
+        };
+
+        int[] outputIndicatorsArray = {
+                0,1,1,2
+        };
+
+        int[] validRelationships = {
+                2,4
         };
 
         CLBuffer<Integer> possibleSolutionElementsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionElements), true);
 
-        CLBuffer<Integer> oldPossibleSolutionRelationshipsBuffer =
-                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(oldPossibleSolutionRelationships), true);
+        CLBuffer<Integer> possibleSolutionRelationshipsBuffer =
+                mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionRelationships), true);
 
-        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, oldPossibleSolutionRelationshipsBuffer, this.mockQuery.queryContext, this.mockQuery.queryKernels.queue);
+        CLBuffer<Integer> validRelationshipsBuffer =
+                mockQuery.queryKernels.context.createBuffer(CLMem.Usage.Input, Pointer.pointerToInts(validRelationships), true);
+
+        PossibleSolutions possibleSolutions = new PossibleSolutions(possibleSolutionElementsBuffer, possibleSolutionRelationshipsBuffer, mockQuery.queryContext, mockQuery.queryKernels.queue);
+
+        SolutionPruner solutionPruner = new SolutionPruner(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(2);
 
-        SolutionValidator solutionValidator = new SolutionValidator(this.mockQuery.queryKernels, this.mockQuery.queryContext);
-
         // When
-        CLBuffer<Boolean> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
-        Pointer<Boolean> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
+        PossibleSolutions result = solutionPruner.prunePossibleSolutions(candidateRelationships, possibleSolutions, validRelationshipsBuffer, outputIndicatorsArray);
+        Pointer<Integer> solutionElementsResultPointer = result.getSolutionElements().read(this.mockQuery.queryKernels.queue);
+        Pointer<Integer> solutionRelationshipsResultPointer = result.getSolutionRelationships().read(this.mockQuery.queryKernels.queue);
 
-        int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
-        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(solutionElementsResultPointer, solutionElementsSize)));
+
+        int solutionElementsSize = outputIndicatorsArray[outputIndicatorsArray.length-1]*mockQuery.queryContext.queryNodeCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionElementsResultPointer, solutionElementsSize)));
+
+        int solutionRelationshipsSize = outputIndicatorsArray[outputIndicatorsArray.length-1]*mockQuery.queryContext.queryRelationshipCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(solutionRelationshipsResultPointer, solutionRelationshipsSize)));
 
         // Then
-//        int[] expectedValidationIndicators = {
-//                2, -1, 4
-//        };
+        int[] expectedPrunedPossibleSolutions = {
+                0,1,2, 1,2,3
+        };
 
-        boolean[] expectedValidationIndicators = {
-                true, false, true
+        int[] expectedPrunedPossibleRelationships = {
+                0,1,2, 2,3,4
         };
 
 
-        for(int i = 0; i < expectedValidationIndicators.length; i++) {
-            assertEquals(expectedValidationIndicators[i], (boolean) solutionElementsResultPointer.get(i));
+        for(int i = 0; i < expectedPrunedPossibleSolutions.length; i++) {
+            assertEquals(expectedPrunedPossibleSolutions[i], (int) solutionElementsResultPointer.get(i));
+        }
+
+        for(int i = 0; i < expectedPrunedPossibleRelationships.length; i++) {
+            assertEquals(expectedPrunedPossibleRelationships[i], (int) solutionRelationshipsResultPointer.get(i));
         }
     }
 }

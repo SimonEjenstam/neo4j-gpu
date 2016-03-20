@@ -1,10 +1,12 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu.query.relationship.search;
 
 import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLMem;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
+import se.simonevertsson.MockHelper;
+import se.simonevertsson.MockQuery;
 import se.simonevertsson.gpu.query.relationship.search.CandidateRelationshipFinder;
 import se.simonevertsson.gpu.query.relationship.search.CandidateRelationships;
 

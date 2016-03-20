@@ -1,8 +1,10 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu.query.candidate.initialization;
 
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Node;
+import se.simonevertsson.MockHelper;
+import se.simonevertsson.MockQuery;
 import se.simonevertsson.gpu.query.candidate.initialization.CandidateChecker;
 import se.simonevertsson.gpu.graph.GpuGraph;
 

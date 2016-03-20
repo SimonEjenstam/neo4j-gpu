@@ -1,7 +1,7 @@
 package se.simonevertsson.gpu.query;
 
-import se.simonevertsson.gpu.query.dictionary.LabelDictionary;
-import se.simonevertsson.gpu.query.dictionary.TypeDictionary;
+import se.simonevertsson.gpu.dictionary.LabelDictionary;
+import se.simonevertsson.gpu.dictionary.TypeDictionary;
 import se.simonevertsson.gpu.graph.GpuGraph;
 import se.simonevertsson.runner.QueryGraph;
 

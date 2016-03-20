@@ -1,4 +1,4 @@
-package se.simonevertsson.gpu.query.dictionary;
+package se.simonevertsson.gpu.dictionary;
 
 import java.util.*;
 

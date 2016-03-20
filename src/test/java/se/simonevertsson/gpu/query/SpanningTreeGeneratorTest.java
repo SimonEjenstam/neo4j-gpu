@@ -1,10 +1,9 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu.query;
 
 import junit.framework.TestCase;
-import se.simonevertsson.gpu.query.dictionary.LabelDictionary;
-import se.simonevertsson.gpu.query.SpanningTree;
-import se.simonevertsson.gpu.query.SpanningTreeGenerator;
-import se.simonevertsson.gpu.query.dictionary.TypeDictionary;
+import se.simonevertsson.MockHelper;
+import se.simonevertsson.gpu.dictionary.LabelDictionary;
+import se.simonevertsson.gpu.dictionary.TypeDictionary;
 import se.simonevertsson.runner.QueryGraph;
 
 /**

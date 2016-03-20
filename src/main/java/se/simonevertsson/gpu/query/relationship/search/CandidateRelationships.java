@@ -3,9 +3,9 @@ package se.simonevertsson.gpu.query.relationship.search;
 import com.nativelibs4java.opencl.CLBuffer;
 import org.neo4j.graphdb.Relationship;
 import se.simonevertsson.gpu.query.QueryContext;
-import se.simonevertsson.gpu.query.dictionary.QueryIdDictionary;
+import se.simonevertsson.gpu.dictionary.QueryIdDictionary;
 import se.simonevertsson.gpu.query.QueryUtils;
-import se.simonevertsson.gpu.query.dictionary.TypeDictionary;
+import se.simonevertsson.gpu.dictionary.TypeDictionary;
 import se.simonevertsson.gpu.kernel.QueryKernels;
 
 import java.util.Arrays;

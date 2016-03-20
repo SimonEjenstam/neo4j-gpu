@@ -2,7 +2,7 @@ package se.simonevertsson.gpu.query;
 
 import com.nativelibs4java.opencl.CLEvent;
 import org.bridj.Pointer;
-import se.simonevertsson.gpu.query.dictionary.QueryIdDictionary;
+import se.simonevertsson.gpu.dictionary.QueryIdDictionary;
 import se.simonevertsson.gpu.kernel.QueryKernels;
 import se.simonevertsson.gpu.query.relationship.join.PossibleSolutions;
 import se.simonevertsson.runner.AliasDictionary;

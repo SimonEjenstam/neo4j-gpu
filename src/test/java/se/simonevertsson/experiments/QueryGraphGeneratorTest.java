@@ -1,7 +1,8 @@
-package se.simonevertsson;
+package se.simonevertsson.experiments;
 
 import junit.framework.TestCase;
 import org.neo4j.graphdb.Node;
+import se.simonevertsson.MockHelper;
 import se.simonevertsson.experiments.QueryGraphGenerator;
 import se.simonevertsson.runner.QueryGraph;
 

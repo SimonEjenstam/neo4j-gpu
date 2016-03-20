@@ -9,8 +9,8 @@ import se.simonevertsson.gpu.graph.GpuGraph;
 import se.simonevertsson.gpu.graph.GpuGraphConverter;
 import se.simonevertsson.gpu.kernel.QueryKernels;
 import se.simonevertsson.gpu.query.QueryContext;
-import se.simonevertsson.gpu.query.dictionary.LabelDictionary;
-import se.simonevertsson.gpu.query.dictionary.TypeDictionary;
+import se.simonevertsson.gpu.dictionary.LabelDictionary;
+import se.simonevertsson.gpu.dictionary.TypeDictionary;
 import se.simonevertsson.runner.*;
 
 import java.io.IOException;

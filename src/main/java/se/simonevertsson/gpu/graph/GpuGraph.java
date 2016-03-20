@@ -1,7 +1,7 @@
 package se.simonevertsson.gpu.graph;
 
 import org.apache.lucene.util.ArrayUtil;
-import se.simonevertsson.gpu.query.dictionary.QueryIdDictionary;
+import se.simonevertsson.gpu.dictionary.QueryIdDictionary;
 
 import java.util.ArrayList;
 import java.util.Arrays;

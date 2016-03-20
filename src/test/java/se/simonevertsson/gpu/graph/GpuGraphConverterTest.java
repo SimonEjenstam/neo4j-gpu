@@ -1,10 +1,9 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu.graph;
 
 import junit.framework.TestCase;
-import se.simonevertsson.gpu.graph.GpuGraph;
-import se.simonevertsson.gpu.graph.GpuGraphConverter;
-import se.simonevertsson.gpu.query.dictionary.LabelDictionary;
-import se.simonevertsson.gpu.query.dictionary.TypeDictionary;
+import se.simonevertsson.MockHelper;
+import se.simonevertsson.gpu.dictionary.LabelDictionary;
+import se.simonevertsson.gpu.dictionary.TypeDictionary;
 import se.simonevertsson.runner.QueryGraph;
 
 import java.util.Arrays;

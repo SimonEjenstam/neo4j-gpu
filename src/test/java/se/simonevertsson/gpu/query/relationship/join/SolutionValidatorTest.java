@@ -1,14 +1,16 @@
-package se.simonevertsson;
+package se.simonevertsson.gpu.query.relationship.join;
 
 import com.nativelibs4java.opencl.CLBuffer;
 import com.nativelibs4java.opencl.CLMem;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
-import se.simonevertsson.gpu.query.QueryUtils;
-import se.simonevertsson.gpu.query.relationship.join.PossibleSolutions;
-import se.simonevertsson.gpu.query.relationship.join.SolutionRelationshipCombiner;
+import se.simonevertsson.MockHelper;
+import se.simonevertsson.MockQuery;
 import se.simonevertsson.gpu.query.relationship.search.CandidateRelationships;
+import se.simonevertsson.gpu.query.relationship.join.PossibleSolutions;
+import se.simonevertsson.gpu.query.QueryUtils;
+import se.simonevertsson.gpu.query.relationship.join.SolutionValidator;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
@@ -18,7 +20,7 @@ import java.util.HashMap;
 /**
  * Created by simon on 2015-06-25.
  */
-public class SolutionRelationshipCombinerTest extends TestCase {
+public class SolutionValidatorTest extends TestCase {
     private MockQuery mockQuery;
     private HashMap<Integer, CandidateRelationships> candidateRelationshipsHashMap;
 
@@ -157,7 +159,7 @@ public class SolutionRelationshipCombinerTest extends TestCase {
         candidateRelationshipsHashMap.put((int) queryRelationship.getId(), candidateRelationships);
     }
 
-    public void testCombineRelationshipWithRelationship1WhenRelationship2And0Visited() throws IOException {
+    public void testValidateSolutionWithRelationship1WhenRelationship2And0Visited() throws IOException {
         // Given
 
         /* Relationship 2 and 0 visited */
@@ -167,10 +169,6 @@ public class SolutionRelationshipCombinerTest extends TestCase {
 
         int[] oldPossibleSolutionRelationships = {
                 0,-1,2, 0,-1,3, 1,-1,4, 2,-1,4
-        };
-
-        int[] outputIndices = {
-                0,1,1,1,2
         };
 
         CLBuffer<Integer> possibleSolutionElementsBuffer =
@@ -183,27 +181,31 @@ public class SolutionRelationshipCombinerTest extends TestCase {
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(1);
 
-        SolutionRelationshipCombiner solutionRelationshipCombiner = new SolutionRelationshipCombiner(this.mockQuery.queryKernels, this.mockQuery.queryContext);
+        SolutionValidator solutionValidator = new SolutionValidator(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 
         // When
-        CLBuffer<Integer> result =  solutionRelationshipCombiner.combineRelationships(possibleSolutions, candidateRelationships, outputIndices);
-                Pointer<Integer> resultPointer =result.read(this.mockQuery.queryKernels.queue);
+        CLBuffer<Boolean> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
+                Pointer<Boolean> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
 
-        int resultLength = outputIndices[outputIndices.length - 1];
-        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(resultPointer, resultLength)));
+        int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(solutionElementsResultPointer, solutionElementsSize)));
 
         // Then
-        int[] expectedValidRelationships = {
-                1, 3
+//        int[] expectedValidRelationships = {
+//                1, -1, -1, 3
+//        };
+
+        boolean[] expectedValidRelationships = {
+                true, false, false, true
         };
 
 
         for(int i = 0; i < expectedValidRelationships.length; i++) {
-            assertEquals(expectedValidRelationships[i], (int) resultPointer.get(i));
+            assertEquals(expectedValidRelationships[i], (boolean) solutionElementsResultPointer.get(i));
         }
     }
 
-    public void testCombineRelationshipWithRelationship2WhenRelationship0And1Visited() throws IOException {
+    public void testValidateSolutionWithRelationship2WhenRelationship0And1Visited() throws IOException {
         // Given
 
         /* Relationship 0 and 1 visited */
@@ -215,11 +217,6 @@ public class SolutionRelationshipCombinerTest extends TestCase {
                 0,1,-1, 1,0,-1, 2,3,-1
         };
 
-        int[] outputIndices = {
-                0,1,1,2
-        };
-
-
         CLBuffer<Integer> possibleSolutionElementsBuffer =
                 mockQuery.queryKernels.context.createIntBuffer(CLMem.Usage.Input, IntBuffer.wrap(possibleSolutionElements), true);
 
@@ -230,27 +227,27 @@ public class SolutionRelationshipCombinerTest extends TestCase {
 
         CandidateRelationships candidateRelationships = this.candidateRelationshipsHashMap.get(2);
 
-        SolutionRelationshipCombiner solutionRelationshipCombiner = new SolutionRelationshipCombiner(this.mockQuery.queryKernels, this.mockQuery.queryContext);
+        SolutionValidator solutionValidator = new SolutionValidator(this.mockQuery.queryKernels, this.mockQuery.queryContext);
 
         // When
-        CLBuffer<Integer> result =  solutionRelationshipCombiner.combineRelationships(possibleSolutions, candidateRelationships, outputIndices);
-        Pointer<Integer> resultPointer =result.read(this.mockQuery.queryKernels.queue);
+        CLBuffer<Boolean> result =  solutionValidator.validateSolutions(possibleSolutions, candidateRelationships);
+        Pointer<Boolean> solutionElementsResultPointer =result.read(this.mockQuery.queryKernels.queue);
 
-        int resultLength = outputIndices[outputIndices.length - 1];
-        System.out.println(Arrays.toString(QueryUtils.pointerIntegerToArray(resultPointer, resultLength)));
+        int solutionElementsSize = possibleSolutionElements.length/mockQuery.queryContext.queryNodeCount;
+        System.out.println(Arrays.toString(QueryUtils.pointerBooleanToArray(solutionElementsResultPointer, solutionElementsSize)));
 
         // Then
 //        int[] expectedValidationIndicators = {
 //                2, -1, 4
 //        };
 
-        int[] expectedValidationIndicators = {
-                2, 4
+        boolean[] expectedValidationIndicators = {
+                true, false, true
         };
 
 
         for(int i = 0; i < expectedValidationIndicators.length; i++) {
-            assertEquals(expectedValidationIndicators[i], (int) resultPointer.get(i));
+            assertEquals(expectedValidationIndicators[i], (boolean) solutionElementsResultPointer.get(i));
         }
     }
 }
