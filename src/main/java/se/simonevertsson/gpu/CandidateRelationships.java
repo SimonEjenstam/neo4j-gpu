@@ -124,4 +124,11 @@ public class CandidateRelationships {
     public CLBuffer<Integer> getRelationshipIndices() {
         return this.candidateRelationshipIndices;
     }
+
+    public void release() {
+        this.candidateStartNodes.release();
+        this.candidateEndNodeIndices.release();
+        this.candidateEndNodes.release();
+        this.candidateRelationshipIndices.release();
+    }
 }

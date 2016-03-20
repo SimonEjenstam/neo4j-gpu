@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class GpuQueryRunner {
 
-    public QueryResult runGpuQuery(DatabaseService databaseService, QueryGraph queryGraph) throws IOException {
+    public QueryResult runGpuQuery(DatabaseService databaseService, QueryGraph queryGraph, QueryKernels queryKernels) throws IOException {
         long tick, tock;
 
 
@@ -34,7 +34,7 @@ public class GpuQueryRunner {
 
         /* Execute the query */
         QueryContext queryContext = new QueryContext(gpuData, gpuQuery, queryGraph, labelDictionary, typeDictionary);
-        GpuQuery gpuGraphQuery = new GpuQuery(queryContext);
+        GpuQuery gpuGraphQuery = new GpuQuery(queryContext, queryKernels);
         List<QuerySolution> solutions = gpuGraphQuery.executeQuery(queryGraph.getSpanningTree().getVisitOrder());
 
         tock = System.currentTimeMillis();

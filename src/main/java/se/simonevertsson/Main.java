@@ -3,6 +3,7 @@ package se.simonevertsson;
 import org.neo4j.graphdb.*;
 import se.simonevertsson.db.DatabaseService;
 import se.simonevertsson.experiments.*;
+import se.simonevertsson.gpu.QueryKernels;
 import se.simonevertsson.gpu.QueryResult;
 import se.simonevertsson.gpu.QuerySolution;
 import se.simonevertsson.query.QueryGraph;
@@ -30,7 +31,7 @@ public class Main {
 
         String database = args[0];
         int nodeCount = Integer.parseInt(args[1]);
-        int maxDepth = Integer.parseInt(args[2]);
+        int minRelationships = Integer.parseInt(args[2]);
         int iterations = Integer.parseInt(args[3]);
 
         /* Setup database */
@@ -52,7 +53,7 @@ public class Main {
 //        SimpleDateFormat sdfTime = new SimpleDateFormat("HH:mm");
 //            PrintWriter writer = new PrintWriter("results/result-" + sdfDate.format(now) + ".txt", "UTF-8");
             //Whatever the file path is.
-            String filename = "results/result-" + sdfDate.format(now) + ".txt";
+            String filename = "results/result-" + database + '-' + nodeCount + '-' + minRelationships + '-' + sdfDate.format(now) + ".txt";
             System.out.println("Creating result file: " + filename);
             File resultFile = new File(filename);
             FileOutputStream is = new FileOutputStream(resultFile);
@@ -60,8 +61,8 @@ public class Main {
             Writer writer = new BufferedWriter(osw);
 
 //            StringBuffer buffer = new StringBuffer();
-            writer.append("Result of query on " + database + " with node count " + nodeCount + ", max depth " + maxDepth + " with " + iterations + " iterations\n" );
-            writer.append("node_count,gpu_conversion_time,gpu_runtime,cypher_runtime\n");
+            writer.append("Result of query on " + database + " with node count " + nodeCount + ", min relationships " + minRelationships + " with " + iterations + " iterations\n" );
+            writer.append("node_count, result_count, gpu_conversion_time,gpu_runtime,cypher_runtime\n");
             writer.append("START\n");
 
             HashMap<Integer, ArrayList<Long>> gpuConversionTimes = new HashMap<>();
@@ -76,18 +77,41 @@ public class Main {
 
             ArrayList<QueryGraph> failedQueries = new ArrayList<>();
 
-            for(int i = 0; i < iterations; i++) {
+            ArrayList<QueryGraph> slowQueries = new ArrayList<>();
 
-                ArrayList<Node> allNodes = databaseService.getAllNodes();
-                MultipleExperimentQueryGraphGenerator experimentQueryGraphGenerator = new MultipleExperimentQueryGraphGenerator(allNodes, nodeCount, 1, maxDepth);
-                List<QueryGraph> queryGraphs = experimentQueryGraphGenerator.generate();
+//            ArrayList<ArrayList<QueryGraph>> queryGraphIterations = new ArrayList<>();
+
+            ArrayList<Node> allNodes = databaseService.getAllNodes();
+//            MultipleExperimentQueryGraphGenerator experimentQueryGraphGenerator = new MultipleExperimentQueryGraphGenerator(allNodes, nodeCount, 1, minRelationships);
+            SingleExperimentQueryGraphGenerator experimentQueryGraphGenerator = new SingleExperimentQueryGraphGenerator(allNodes, nodeCount, 1, minRelationships);
+            ArrayList<QueryGraph> queryGraphs = experimentQueryGraphGenerator.generate(iterations);
+            System.out.println("Generated " + queryGraphs.size() + " query graphs");
+//            queryGraphIterations.add(experimentQueryGraphGenerator.generate(null));
+
+            QueryKernels queryKernels = new QueryKernels();
+
+            for(int i = 0; i < 10; i++) {
+                Result result = databaseService.excuteCypherQuery("match (n)-[r]-() return count(n)");
+                result.close();
+            }
+
+//            for(int i = 1; i < iterations; i++) {
+//                    allNodes = databaseService.getAllNodes();
+//                    experimentQueryGraphGenerator = new MultipleExperimentQueryGraphGenerator(allNodes, nodeCount, 1, minRelationships);
+//                    queryGraphIterations.add(experimentQueryGraphGenerator.generate(queryGraphIterations.get(i-1).get(0)));
+//            }
+
+//            for(int i = 0; i < iterations; i++) {
 
                 //        RandomQueryGraphGenerator queryGraphGenerator = new RandomQueryGraphGenerator(databaseService);
                 //        QueryGraph queryGraph = queryGraphGenerator.generate(4, 2);
+//                ArrayList<QueryGraph> queryGraphs = queryGraphIterations.get(i);
 
-
-                System.out.println("######### ITERATION " + (i + 1) + " ########");
+                int iter = 0;
                 for (QueryGraph queryGraph : queryGraphs) {
+                    if(iter % (nodeCount-1) == 0) {
+                        System.out.println("######### ITERATION " + (iter + 1) + " ########");
+                    }
                     if(!failedQueries.contains(queryGraph)) {
                         System.out.println("*********** NEW QUERY  **********");
                         System.out.println("Querying with query:");
@@ -99,7 +123,8 @@ public class Main {
                         QueryResult gpuQueryResult = null;
                         QueryResult cypherQueryResult = null;
                         try {
-                            gpuQueryResult = gpuQueryRunner.runGpuQuery(databaseService, queryGraph);
+
+                            gpuQueryResult = gpuQueryRunner.runGpuQuery(databaseService, queryGraph, queryKernels);
                             System.out.println("GPU Data conversion execution time: " + gpuQueryResult.getConversionExecutionTime() + "ms");
                             System.out.println("GPU query execution time: " + gpuQueryResult.getQueryExecutionTime() + "ms");
 
@@ -107,11 +132,11 @@ public class Main {
                             //                        for (QuerySolution solution : gpuQueryResult.getQuerySolutions()) {
                             //                            uniqueResults.add(solution.toString());
                             //                        }
-                            //                        System.out.println("Number of solutions: " + gpuQueryResult.getQuerySolutions().size());
+                                                    System.out.println("Number of solutions: " + gpuQueryResult.getQuerySolutions().size());
                             //                        System.out.println("Unique results count: " + uniqueResults.size());
 
 
-                             /* Cypher query run */
+                            /* Cypher query run */
 
                             System.out.println("Starting Cypher query.");
                             cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService, queryGraph);
@@ -121,12 +146,41 @@ public class Main {
                             //                        for (QuerySolution solution : cypherQueryResult.getQuerySolutions()) {
                             //                            uniqueCypherResults.add(solution.toString());
                             //                        }
-                            //                        System.out.println("Cypher solution count: " + cypherQueryResult.getQuerySolutions().size());
+                                                    System.out.println("Cypher solution count: " + cypherQueryResult.getQuerySolutions().size());
                             //                        System.out.println("Number of unique rows: " + uniqueCypherResults.size());
                             //                        System.out.println("Speedup: " + ((double) cypherQueryResult.getTotalExecutionTime() / (double) gpuQueryResult.getTotalExecutionTime()) + "x");
 
-                        } catch (OutOfMemoryError e) {
+
+                            System.out.println("Speedup excluding conversion time: " + ((double) cypherQueryResult.getTotalExecutionTime() / (double) gpuQueryResult.getQueryExecutionTime()) + "x");
+
+                            if(gpuQueryResult.getQueryExecutionTime() > cypherQueryResult.getQueryExecutionTime()) {
+                                slowQueries.add(queryGraph);
+                            }
+
+                            if(iter > 1) {
+                                gpuConversionTimes.get(queryGraph.nodes.size()).add(gpuQueryResult.getConversionExecutionTime());
+                                gpuRunTimes.get(queryGraph.nodes.size()).add(gpuQueryResult.getQueryExecutionTime());
+                                cypherRunTimes.get(queryGraph.nodes.size()).add(cypherQueryResult.getQueryExecutionTime());
+
+                                writer.append("" + queryGraph.nodes.size());
+                                writer.append(",");
+                                writer.append("" + gpuQueryResult.getQuerySolutions().size());
+                                writer.append(",");
+                                writer.append("" + gpuQueryResult.getConversionExecutionTime());
+                                writer.append(",");
+                                writer.append("" + gpuQueryResult.getQueryExecutionTime());
+                                writer.append(",");
+                                writer.append("" + cypherQueryResult.getQueryExecutionTime());
+                                writer.append("\n");
+                            }
+
+
+                        } catch (OutOfMemoryError | IllegalArgumentException e) {
                             System.out.println("QUERY FAILED!!!");
+                            System.out.println(e.getMessage());
+                            for(StackTraceElement element : e.getStackTrace()) {
+                                System.out.println(element);
+                            }
                             failedQueries.add(queryGraph);
                             continue;
                         }
@@ -134,20 +188,7 @@ public class Main {
                         //        /* Validate solutions */
                         //        validateQuerySolutions(databaseService, uniqueResults);
 
-                        System.out.println("Speedup excluding conversion time: " + ((double) cypherQueryResult.getTotalExecutionTime() / (double) gpuQueryResult.getQueryExecutionTime()) + "x");
 
-                        gpuConversionTimes.get(queryGraph.nodes.size()).add(gpuQueryResult.getConversionExecutionTime());
-                        gpuRunTimes.get(queryGraph.nodes.size()).add(gpuQueryResult.getQueryExecutionTime());
-                        cypherRunTimes.get(queryGraph.nodes.size()).add(cypherQueryResult.getQueryExecutionTime());
-
-                        writer.append("" + queryGraph.nodes.size());
-                        writer.append(",");
-                        writer.append("" + gpuQueryResult.getConversionExecutionTime());
-                        writer.append(",");
-                        writer.append("" + gpuQueryResult.getQueryExecutionTime());
-                        writer.append(",");
-                        writer.append("" + cypherQueryResult.getQueryExecutionTime());
-                        writer.append("\n");
 
                         //        validateQuerySolutions(databaseService, uniqueCypherResults);
                         //
@@ -156,26 +197,45 @@ public class Main {
                         //
                         //        compareQuerySolutions(cypherQueryResult, results);
                     }
-
+                    iter++;
                 }
-            }
+//            }
 
             writer.append("END\n");
 
             for(int i = 2; i <= nodeCount; i++) {
-                double conversionAvg = calculateMean(gpuConversionTimes.get(i));
-                double gpuAvg = calculateMean(gpuRunTimes.get(i));
+                double conversionRunTimeAvg = calculateMean(gpuConversionTimes.get(i));
+                double conversionRunTimeStdDev = calculateStandardDeviation(gpuConversionTimes.get(i), conversionRunTimeAvg);
+                double conversionSpeedupAvg = calculateConversionSpeedupMean(gpuConversionTimes.get(i), gpuRunTimes.get(i), cypherRunTimes.get(i));
+                double conversionSpeedupStdDev = calculateConversionSpeedupStandardDeviation(gpuConversionTimes.get(i), gpuRunTimes.get(i), cypherRunTimes.get(i), conversionSpeedupAvg);
+
+                double gpuRuntimeAvg = calculateMean(gpuRunTimes.get(i));
+                double gpuRuntimeStdDev = calculateStandardDeviation(gpuRunTimes.get(i), gpuRuntimeAvg);
+                double gpuSpeedupAvg = calculateGpuSpeedupMean(gpuRunTimes.get(i), cypherRunTimes.get(i));
+                double gpuSpeedupStdDev = calculateGpuSpeedupStandardDeviation(gpuRunTimes.get(i), cypherRunTimes.get(i), gpuSpeedupAvg);
+
                 double cypherAvg = calculateMean(cypherRunTimes.get(i));
+                double cypherStdDev = calculateStandardDeviation(cypherRunTimes.get(i), cypherAvg);
+
+
                 writer.append("-----Averages for query with " + i + " nodes ----\n");
-                writer.append("Average GPU conversion time: " + conversionAvg + " ms\n");
-                writer.append("Average GPU run time: " + gpuAvg + " ms\n");
-                writer.append("Average Cypher run time: " + cypherAvg + " ms\n");
+                writer.append("Average GPU conversion time: " + conversionRunTimeAvg + " ms , stdDev: " + conversionRunTimeStdDev +"ms,  avg. speedup: (" + i + ", " + conversionSpeedupAvg + ")  speedup stdDev: (" + conversionSpeedupStdDev + ")\n");
+                writer.append("Average GPU run time: " + gpuRuntimeAvg + " ms , stdDev: " + gpuRuntimeStdDev + "ms,  avg. speedup: (" + i + ", " + gpuSpeedupAvg + ") speedup stdDev: (" + gpuSpeedupStdDev + ")\n");
+                writer.append("Average Cypher run time: " + cypherAvg + " ms, stdDev: " + cypherStdDev + "ms\n");
 
             }
-            writer.append("----Failed queries----\n");
+                 writer.append("----Failed queries----\n");
             for(QueryGraph failedQuery : failedQueries) {
                 writer.append(failedQuery.toCypherQueryString()+"\n");
             }
+
+            writer.append("----Slow queries----\n");
+            for(QueryGraph slowQuery : slowQueries) {
+                writer.append(slowQuery.toCypherQueryString()+"\n");
+                writer.append("---------------------");
+            }
+
+
 //        writer.append(buffer.toString());
             writer.close();
 
@@ -191,6 +251,48 @@ public class Main {
         System.out.println("Terminating database connection...");
         databaseService.shutdown();
         System.out.println("Database connection terminated.");
+    }
+
+    private static double calculateGpuSpeedupStandardDeviation(ArrayList<Long> gpuRuntimes, ArrayList<Long> cypherRuntimes, double gpuSpeedupAvg) {
+        double deviationSum = 0;
+        for(int i = 0; i < gpuRuntimes.size(); i++) {
+            double dataPoint = (double)cypherRuntimes.get(i)/(double)gpuRuntimes.get(i);
+            deviationSum += Math.pow(dataPoint - gpuSpeedupAvg, 2);
+        }
+        return Math.sqrt(deviationSum/(double) gpuRuntimes.size());
+    }
+
+    private static double calculateGpuSpeedupMean( ArrayList<Long> gpuRuntimes, ArrayList<Long> cypherRuntimes) {
+        double sum = 0;
+        for(int i = 0; i < gpuRuntimes.size(); i++) {
+            sum += (double)cypherRuntimes.get(i)/(double)gpuRuntimes.get(i);
+        }
+        return sum / (double) gpuRuntimes.size();
+    }
+
+    private static double calculateConversionSpeedupStandardDeviation(ArrayList<Long> conversionRuntimes, ArrayList<Long> gpuRuntimes, ArrayList<Long> cypherRuntimes, double conversionSpeedupAvg) {
+        double deviationSum = 0;
+        for(int i = 0; i < conversionRuntimes.size(); i++) {
+            double dataPoint = (double)cypherRuntimes.get(i)/(double)(conversionRuntimes.get(i) + gpuRuntimes.get(i));
+            deviationSum += Math.pow(dataPoint - conversionSpeedupAvg, 2);
+        }
+        return Math.sqrt(deviationSum/(double) conversionRuntimes.size());
+    }
+
+    private static double calculateConversionSpeedupMean(ArrayList<Long> conversionRuntimes, ArrayList<Long> gpuRuntimes, ArrayList<Long> cypherRuntimes) {
+        double sum = 0;
+        for(int i = 0; i < conversionRuntimes.size(); i++) {
+            sum += (double)cypherRuntimes.get(i)/(double)(conversionRuntimes.get(i) + gpuRuntimes.get(i));
+        }
+        return sum / (double) conversionRuntimes.size();
+    }
+
+    private static double calculateStandardDeviation(ArrayList<Long> conversionRunTimes, double conversionAvg) {
+        double deviationSum = 0;
+        for(long conversionRunTime : conversionRunTimes) {
+            deviationSum += Math.pow((double) conversionRunTime - conversionAvg, 2);
+        }
+        return Math.sqrt(deviationSum/(double) conversionRunTimes.size());
     }
 
     private static double calculateMean(ArrayList<Long> values) {

@@ -1,5 +1,6 @@
 package se.simonevertsson.gpu;
 
+import com.nativelibs4java.opencl.CLEvent;
 import org.bridj.Pointer;
 import se.simonevertsson.query.AliasDictionary;
 
@@ -136,5 +137,9 @@ public class QueryUtils {
         }
 
         return results;
+    }
+
+    public static double getEventRunTime(CLEvent event) {
+        return (double)(event.getProfilingCommandEnd() - event.getProfilingCommandStart()) / 10e6;
     }
 }

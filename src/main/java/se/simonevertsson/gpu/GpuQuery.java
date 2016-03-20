@@ -22,8 +22,14 @@ public class GpuQuery {
         this.bufferContainer = BufferContainerGenerator.generateBufferContainer(this.queryContext, this.queryKernels);
     }
 
-    public List<QuerySolution> executeQuery(List<Node> visitOrder) throws IOException {
+    public GpuQuery(QueryContext queryContext, QueryKernels queryKernels) throws IOException {
+        this.queryContext = queryContext;
+        this.queryKernels =queryKernels;
+        this.bufferContainer = BufferContainerGenerator.generateBufferContainer(this.queryContext, this.queryKernels);
+    }
 
+    public List<QuerySolution> executeQuery(List<Node> visitOrder) throws IOException {
+        long tick = System.currentTimeMillis();
         /****** Candidate initialization step ******/
         CandidateInitializer candidateInitializer =
                 new CandidateInitializer(this.queryContext, this.queryKernels, this.bufferContainer);
@@ -53,6 +59,10 @@ public class GpuQuery {
         CandidateRelationshipJoiner candidateRelationshipJoiner =
                 new CandidateRelationshipJoiner(this.queryContext, this.queryKernels, this.bufferContainer);
         PossibleSolutions solutions = candidateRelationshipJoiner.joinCandidateRelationships(relationshipCandidatesHashMap);
+
+        for(int key : relationshipCandidatesHashMap.keySet()) {
+            relationshipCandidatesHashMap.get(key).release();
+        }
 
         return QueryUtils.generateQuerySolutions(this.queryKernels, this.queryContext, solutions);
     }
