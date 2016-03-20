@@ -37,31 +37,6 @@ public class QueryUtils {
         return candidateArray;
     }
 
-    public static void printCandidateIndicatorMatrix(Pointer<Boolean> candidateIndicatorsPointer, int dataNodeCount) {
-        StringBuilder builder = new StringBuilder();
-        int j = 1;
-        for(boolean candidate : candidateIndicatorsPointer)  {
-            builder.append((j%dataNodeCount-1) + ":" + candidate + ", ");
-            if(j % dataNodeCount == 0) {
-                builder.append("\n");
-            }
-            j++;
-        }
-        System.out.println(builder.toString());
-    }
-
-    public static void printPossibleSolutionsMatrix(Pointer<Integer> possibleSolutionPointer, int queryNodeCount) {
-        StringBuilder builder = new StringBuilder();
-        int j = 1;
-        for(int solutionElement : possibleSolutionPointer)  {
-            builder.append(solutionElement + ", ");
-            if(j % queryNodeCount == 0) {
-                builder.append("\n");
-            }
-            j++;
-        }
-        System.out.println(builder.toString());
-    }
 
     public static boolean[] pointerBooleanToArray(Pointer<Boolean> pointer, int size) {
         boolean[] result = new boolean[size];

@@ -2,7 +2,7 @@ package se.simonevertsson;
 
 import junit.framework.TestCase;
 import org.neo4j.graphdb.Node;
-import se.simonevertsson.experiments.ExperimentQueryGraphGenerator;
+import se.simonevertsson.experiments.QueryGraphGenerator;
 import se.simonevertsson.query.QueryGraph;
 
 import java.util.ArrayList;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 /**
  * Created by simon.evertsson on 2015-07-14.
  */
-public class ExperimentQueryGeneratorTest extends TestCase {
+public class QueryGraphGeneratorTest extends TestCase {
 
     ArrayList<Node> allNodes;
 
@@ -24,13 +24,15 @@ public class ExperimentQueryGeneratorTest extends TestCase {
 
     public void testReturnsAValidQueryGraph() {
         // Arrange
-        ExperimentQueryGraphGenerator experimentQueryGraphGenerator = new ExperimentQueryGraphGenerator(this.allNodes, 4, 2);
+        QueryGraphGenerator queryGraphGenerator = new QueryGraphGenerator(this.allNodes, 4, 3);
+        queryGraphGenerator.setMinimumQueryGraphAmount(1);
 
         // Act
-        QueryGraph result = experimentQueryGraphGenerator.generate();
+        ArrayList<QueryGraph> result = queryGraphGenerator.generate(1);
 
         // Assert
         assertNotNull(result);
+        assertEquals(1, result.size());
     }
 
 }

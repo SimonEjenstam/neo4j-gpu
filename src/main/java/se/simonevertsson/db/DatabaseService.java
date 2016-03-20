@@ -131,8 +131,9 @@ public class DatabaseService {
 
   public String getDatabaseName() {
     String databaseName = null;
-    if(databasePath != null && databasePath.lastIndexOf("/") >= 0) {
-      databaseName = databasePath.substring(databasePath.lastIndexOf("/"));
+    if(databasePath != null && (databasePath.lastIndexOf("/") >= 0 || databasePath.lastIndexOf("\\") >= 0)) {
+      String separator = databasePath.lastIndexOf("/") > databasePath.lastIndexOf("\\") ? "/" : "\\";
+      databaseName = databasePath.substring(databasePath.lastIndexOf(separator) + 1);
     }
 
     return databaseName;

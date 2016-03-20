@@ -4,11 +4,8 @@ import org.neo4j.graphdb.Node;
 import se.simonevertsson.db.DatabaseService;
 import se.simonevertsson.gpu.*;
 import se.simonevertsson.query.QueryGraph;
-import se.simonevertsson.query.QueryGraphGenerator;
 
-import java.awt.*;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 
 /**
