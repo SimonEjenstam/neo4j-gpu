@@ -1,8 +1,8 @@
 package se.simonevertsson;
 
-import se.simonevertsson.gpu.BufferContainer;
-import se.simonevertsson.gpu.QueryContext;
-import se.simonevertsson.gpu.QueryKernels;
+import se.simonevertsson.gpu.buffer.BufferContainer;
+import se.simonevertsson.gpu.query.QueryContext;
+import se.simonevertsson.gpu.kernel.QueryKernels;
 
 /**
  * Created by simon on 2015-06-23.

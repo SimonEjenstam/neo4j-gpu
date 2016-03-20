@@ -1,13 +1,11 @@
 package se.simonevertsson;
 
 import junit.framework.TestCase;
-import se.simonevertsson.gpu.LabelDictionary;
-import se.simonevertsson.gpu.SpanningTree;
-import se.simonevertsson.gpu.SpanningTreeGenerator;
-import se.simonevertsson.gpu.TypeDictionary;
-import se.simonevertsson.query.QueryGraph;
-
-import java.lang.reflect.Type;
+import se.simonevertsson.gpu.query.dictionary.LabelDictionary;
+import se.simonevertsson.gpu.query.SpanningTree;
+import se.simonevertsson.gpu.query.SpanningTreeGenerator;
+import se.simonevertsson.gpu.query.dictionary.TypeDictionary;
+import se.simonevertsson.runner.QueryGraph;
 
 /**
  * Created by simon on 2015-05-12.

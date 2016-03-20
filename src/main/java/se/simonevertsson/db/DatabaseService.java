@@ -2,15 +2,10 @@ package se.simonevertsson.db;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.io.fs.FileUtils;
 import org.neo4j.tooling.GlobalGraphOperations;
-import se.simonevertsson.experiments.RelationshipTypes;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Service class which handles database connections and queries
@@ -106,11 +101,11 @@ public class DatabaseService {
   }
 
   /**
-   * Executes the supplied Cypher query on the currently conected database. Remember to call {@link DatabaseService#beginTx()}
+   * Executes the supplied Cypher runner on the currently conected database. Remember to call {@link DatabaseService#beginTx()}
    * before executing queries, or Neo4j will throw an exception.
    *
-   * @param query The Cypher query which will be executed.
-   * @return The result of the query
+   * @param query The Cypher runner which will be executed.
+   * @return The result of the runner
    */
   public Result excuteCypherQuery(String query) {
     Result result = null;

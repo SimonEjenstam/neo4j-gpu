@@ -5,13 +5,11 @@ import com.nativelibs4java.opencl.CLMem;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
-import se.simonevertsson.gpu.CandidateRelationshipFinder;
-import se.simonevertsson.gpu.CandidateRelationships;
-import se.simonevertsson.gpu.QueryUtils;
+import se.simonevertsson.gpu.query.relationship.search.CandidateRelationshipFinder;
+import se.simonevertsson.gpu.query.relationship.search.CandidateRelationships;
 
 import java.io.IOException;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 
 /**
  * Created by simon on 2015-06-25.

@@ -4,10 +4,12 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import se.simonevertsson.db.DatabaseService;
-import se.simonevertsson.gpu.QueryKernels;
-import se.simonevertsson.gpu.QueryResult;
-import se.simonevertsson.gpu.QuerySolution;
-import se.simonevertsson.query.QueryGraph;
+import se.simonevertsson.gpu.kernel.QueryKernels;
+import se.simonevertsson.gpu.query.QueryResult;
+import se.simonevertsson.gpu.query.QuerySolution;
+import se.simonevertsson.runner.CypherQueryRunner;
+import se.simonevertsson.runner.GpuQueryRunner;
+import se.simonevertsson.runner.QueryGraph;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -16,7 +18,7 @@ import java.util.*;
 import static se.simonevertsson.experiments.StatisticsUtils.*;
 
 /**
- * Class which is used to execute a experiment which compare the query performance of the GPU queries vs. regular Cypher queries
+ * Class which is used to execute a experiment which compare the runner performance of the GPU queries vs. regular Cypher queries
  * The result of the experiment is written to a file in "results"-directory relative to the execution root.
  */
 public class PerformanceExperiment {
@@ -69,7 +71,7 @@ public class PerformanceExperiment {
 
   private boolean executeGpuAndCypherQuery(int iteration, QueryGraph queryGraph) throws IOException {
     System.out.println("*********** NEW QUERY  **********");
-    System.out.println("Querying with query:");
+    System.out.println("Querying with runner:");
     System.out.println(queryGraph.toCypherQueryString());
 
     GpuQueryRunner gpuQueryRunner = new GpuQueryRunner();
@@ -110,19 +112,19 @@ public class PerformanceExperiment {
 
   private QueryResult executeCyperQuery(QueryGraph queryGraph, CypherQueryRunner cypherQueryRunner) {
     QueryResult cypherQueryResult;
-    System.out.println("Starting Cypher query.");
+    System.out.println("Starting Cypher runner.");
     cypherQueryResult = cypherQueryRunner.runCypherQueryForSolutions(databaseService, queryGraph);
-    System.out.println("Cypher query execution time: " + cypherQueryResult.getQueryExecutionTime() + "ms");
+    System.out.println("Cypher runner execution time: " + cypherQueryResult.getQueryExecutionTime() + "ms");
     System.out.println("Cypher solution count: " + cypherQueryResult.getQuerySolutions().size());
     return cypherQueryResult;
   }
 
   private QueryResult executeGpuQuery(QueryGraph queryGraph, GpuQueryRunner gpuQueryRunner) throws IOException {
     QueryResult gpuQueryResult;
-    System.out.println("Starting GPU query.");
+    System.out.println("Starting GPU runner.");
     gpuQueryResult = gpuQueryRunner.runGpuQuery(databaseService, queryGraph, queryKernels);
     System.out.println("GPU Data conversion execution time: " + gpuQueryResult.getConversionExecutionTime() + "ms");
-    System.out.println("GPU query execution time: " + gpuQueryResult.getQueryExecutionTime() + "ms");
+    System.out.println("GPU runner execution time: " + gpuQueryResult.getQueryExecutionTime() + "ms");
     System.out.println("Number of solutions: " + gpuQueryResult.getQuerySolutions().size());
     return gpuQueryResult;
   }
@@ -158,12 +160,12 @@ public class PerformanceExperiment {
       double gpuSpeedupAvg = meanOfGpuSpeedup(gpuRunTimes.get(i), cypherRunTimes.get(i));
       double gpuSpeedupStdDev = stdDevOfGpuSpeedup(gpuRunTimes.get(i), cypherRunTimes.get(i), gpuSpeedupAvg);
 
-      // Calculate Cypher query run time statistics
+      // Calculate Cypher runner run time statistics
       double cypherAvg = mean(cypherRunTimes.get(i));
       double cypherStdDev = stdDev(cypherRunTimes.get(i), cypherAvg);
 
       // Append the values to the result file
-      writer.append("-----Statistical results for query with " + i + " nodes ----\n");
+      writer.append("-----Statistical results for runner with " + i + " nodes ----\n");
       writer.append("Average GPU conversion time: " + conversionRunTimeAvg + " ms , stdDev: " + conversionRunTimeStdDev + "ms,  avg. speedup: (" + i + ", " + speedupIncludingConversionAvg + ")  speedup stdDev: (" + speedupIncludingConversionStdDev + ")\n");
       writer.append("Average GPU run time: " + gpuRuntimeAvg + " ms , stdDev: " + gpuRuntimeStdDev + "ms,  avg. speedup: (" + i + ", " + gpuSpeedupAvg + ") speedup stdDev: (" + gpuSpeedupStdDev + ")\n");
       writer.append("Average Cypher run time: " + cypherAvg + " ms, stdDev: " + cypherStdDev + "ms\n");
@@ -183,7 +185,7 @@ public class PerformanceExperiment {
   }
 
   /**
-   * Executes a query which touches all nodes and relationships to warm the database caches
+   * Executes a runner which touches all nodes and relationships to warm the database caches
    */
   private void warmDatabaseCaches() {
     for (int i = 0; i < 10; i++) {
@@ -199,7 +201,7 @@ public class PerformanceExperiment {
 
     QueryGraphGenerator experimentQueryGraphGenerator = new QueryGraphGenerator(allNodes, maxQueryGraphNodeCount, minQueryGraphRelationshipCount);
     List<QueryGraph> queryGraphs = experimentQueryGraphGenerator.generate(experimentIterations);
-    System.out.println("Generated " + queryGraphs.size() + " query graphs");
+    System.out.println("Generated " + queryGraphs.size() + " runner graphs");
     return queryGraphs;
   }
 
@@ -237,7 +239,7 @@ public class PerformanceExperiment {
     OutputStreamWriter osw = new OutputStreamWriter(is);
 
     writer = new BufferedWriter(osw);
-    writer.append("Result of query on " + databaseName + " with node count " + maxQueryGraphNodeCount + ", min relationships " + minQueryGraphRelationshipCount + " with " + experimentIterations + " iterations\n");
+    writer.append("Result of runner on " + databaseName + " with node count " + maxQueryGraphNodeCount + ", min relationships " + minQueryGraphRelationshipCount + " with " + experimentIterations + " iterations\n");
     writer.append("node_count, result_count, gpu_conversion_time,gpu_runtime,cypher_runtime\n");
     writer.append("EXPERIMENT STARTED\n");
   }

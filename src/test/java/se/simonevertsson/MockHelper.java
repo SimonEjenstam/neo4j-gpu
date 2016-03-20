@@ -3,8 +3,15 @@ package se.simonevertsson;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import se.simonevertsson.gpu.*;
-import se.simonevertsson.query.*;
+import se.simonevertsson.gpu.buffer.BufferContainer;
+import se.simonevertsson.gpu.buffer.BufferContainerGenerator;
+import se.simonevertsson.gpu.graph.GpuGraph;
+import se.simonevertsson.gpu.graph.GpuGraphConverter;
+import se.simonevertsson.gpu.kernel.QueryKernels;
+import se.simonevertsson.gpu.query.QueryContext;
+import se.simonevertsson.gpu.query.dictionary.LabelDictionary;
+import se.simonevertsson.gpu.query.dictionary.TypeDictionary;
+import se.simonevertsson.runner.*;
 
 import java.io.IOException;
 import java.util.ArrayList;

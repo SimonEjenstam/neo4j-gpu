@@ -2,8 +2,9 @@ package se.simonevertsson.experiments;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import se.simonevertsson.query.QueryGraph;
-import se.simonevertsson.query.QueryNode;
+import se.simonevertsson.runner.AliasDictionary;
+import se.simonevertsson.runner.QueryGraph;
+import se.simonevertsson.runner.QueryNode;
 
 import java.util.*;
 
@@ -26,21 +27,21 @@ public class QueryGraphGenerator {
   private int minimumQueryGraphAmount;
 
   /**
-   * Creates a new generator which will try to generate query graphs from existing sub graphs in the supplied database.
-   * The characteristics of the query graphs which will be attempted to be generated can be controlled with the supplied
+   * Creates a new generator which will try to generate runner graphs from existing sub graphs in the supplied database.
+   * The characteristics of the runner graphs which will be attempted to be generated can be controlled with the supplied
    * parameters.
    *
    * @param allNodes The database represented as a list of node
-   * @param preferredNodeCount The preferred amount of nodes in the query graphs.
-   * @param preferredRelationshipCount The preferred amount of relationships in the query graph. If the amount of
-   * generated query graphs is less than what's set with {@link #setMinimumQueryGraphAmount(int)} (default 10), the
+   * @param preferredNodeCount The preferred amount of nodes in the runner graphs.
+   * @param preferredRelationshipCount The preferred amount of relationships in the runner graph. If the amount of
+   * generated runner graphs is less than what's set with {@link #setMinimumQueryGraphAmount(int)} (default 10), the
    * prefered amount of relationships is decreased to widen the search area.
    */
   public QueryGraphGenerator(List<Node> allNodes, int preferredNodeCount, int preferredRelationshipCount) {
     this.allNodes = allNodes;
     this.preferredNodeCount = preferredNodeCount;
     this.preferredRelationshipCount = preferredRelationshipCount;
-    this.minimumQueryGraphAmount = 10; // Default minimum query graph amount (Used to get better statistical results)
+    this.minimumQueryGraphAmount = 10; // Default minimum runner graph amount (Used to get better statistical results)
   }
 
   public void setMinimumQueryGraphAmount(int minimumQueryGraphAmount) {
@@ -53,7 +54,7 @@ public class QueryGraphGenerator {
     ArrayList<QueryGraph> queryGraphs = null;
     Random random = new Random();
     int startIndex = random.nextInt(this.allNodes.size());
-    System.out.println("Generating query graph from start index " + startIndex);
+    System.out.println("Generating runner graph from start index " + startIndex);
     queryGraphs = generateQueryGraphFromGivenStartIndex(startIndex);
 
     return queryGraphs;
@@ -80,7 +81,7 @@ public class QueryGraphGenerator {
 
         if (generateQueryGraph(queryGraph, rootNode) != null && queryGraph.relationships.size() >= this.currentMinRelationships && queryGraph.nodes.size() == this.preferredNodeCount) {
           if (!queryGraphs.contains(queryGraph)) {
-            System.out.println("Generated query graph with " + this.currentNodeCount + " nodes and minimum " + this.currentMinRelationships + " relationships.");
+            System.out.println("Generated runner graph with " + this.currentNodeCount + " nodes and minimum " + this.currentMinRelationships + " relationships.");
             queryGraphs.add(queryGraph);
           }
         }
@@ -91,7 +92,7 @@ public class QueryGraphGenerator {
       if (queryGraphs.size() < minimumQueryGraphAmount) {
 
         this.currentMinRelationships--;
-        System.out.println("Too few query graphs (" + queryGraphs.size() + "), generating with " + this.currentMinRelationships + " relationships");
+        System.out.println("Too few runner graphs (" + queryGraphs.size() + "), generating with " + this.currentMinRelationships + " relationships");
         queryGraphs = new ArrayList<>();
         rootNodeAttempts = 0;
       } else {
@@ -105,7 +106,7 @@ public class QueryGraphGenerator {
   private QueryGraph generateQueryGraph(QueryGraph queryGraph, Node visitedNode) {
     for (Relationship relationship : visitedNode.getRelationships()) {
       if (this.visitedNodes.size() == this.currentNodeCount && this.visitedRelationships.size() >= this.preferredRelationshipCount) {
-        // The query graph has been generated
+        // The runner graph has been generated
         return queryGraph;
       }
 
@@ -132,7 +133,7 @@ public class QueryGraphGenerator {
     }
 
     if (this.visitedNodes.size() == this.currentNodeCount) {
-            /* The query graph has been generated */
+            /* The runner graph has been generated */
       return queryGraph;
     } else {
       if (this.visitedRelationships.size() >= this.preferredRelationshipCount) {
@@ -188,7 +189,7 @@ public class QueryGraphGenerator {
   private QueryNode addNodeToQueryGraph(QueryGraph queryGraph, Node node) {
     QueryNode queryNode = new QueryNode(node);
     queryGraph.nodes.add(queryNode);
-    queryGraph.aliasDictionary.insertAlias(queryNode, ExperimentUtils.createAlias(this.currentNodeAlias));
+    queryGraph.aliasDictionary.insertAlias(queryNode, AliasDictionary.createAlias(this.currentNodeAlias));
     this.currentNodeAlias++;
     visitedNodes.put(queryNode.getId(), queryNode);
     return queryNode;

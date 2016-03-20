@@ -5,9 +5,9 @@ import com.nativelibs4java.opencl.CLMem;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Relationship;
-import se.simonevertsson.gpu.CandidateRelationships;
-import se.simonevertsson.gpu.PossibleSolutions;
-import se.simonevertsson.gpu.SolutionInitializer;
+import se.simonevertsson.gpu.query.relationship.search.CandidateRelationships;
+import se.simonevertsson.gpu.query.relationship.join.PossibleSolutions;
+import se.simonevertsson.gpu.query.relationship.join.SolutionInitializer;
 
 import java.io.IOException;
 import java.nio.IntBuffer;

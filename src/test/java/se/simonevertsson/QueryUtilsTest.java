@@ -2,8 +2,7 @@ package se.simonevertsson;
 
 import junit.framework.TestCase;
 import org.bridj.Pointer;
-import se.simonevertsson.gpu.GpuQuery;
-import se.simonevertsson.gpu.QueryUtils;
+import se.simonevertsson.gpu.query.QueryUtils;
 
 /**
  * Created by simon on 2015-06-01.

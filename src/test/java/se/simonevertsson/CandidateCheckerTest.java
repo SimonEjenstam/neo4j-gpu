@@ -3,8 +3,8 @@ package se.simonevertsson;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Node;
-import se.simonevertsson.gpu.CandidateChecker;
-import se.simonevertsson.gpu.GpuGraph;
+import se.simonevertsson.gpu.query.candidate.initialization.CandidateChecker;
+import se.simonevertsson.gpu.graph.GpuGraph;
 
 import java.io.IOException;
 

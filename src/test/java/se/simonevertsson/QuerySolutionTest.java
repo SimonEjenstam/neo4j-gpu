@@ -1,8 +1,7 @@
 package se.simonevertsson;
 
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
-import se.simonevertsson.gpu.QuerySolution;
+import se.simonevertsson.gpu.query.QuerySolution;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;

@@ -3,7 +3,7 @@ package se.simonevertsson;
 import junit.framework.TestCase;
 import org.neo4j.graphdb.Node;
 import se.simonevertsson.experiments.QueryGraphGenerator;
-import se.simonevertsson.query.QueryGraph;
+import se.simonevertsson.runner.QueryGraph;
 
 import java.util.ArrayList;
 

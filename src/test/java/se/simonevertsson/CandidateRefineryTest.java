@@ -4,9 +4,9 @@ import com.nativelibs4java.opencl.CLMem;
 import junit.framework.TestCase;
 import org.bridj.Pointer;
 import org.neo4j.graphdb.Node;
-import se.simonevertsson.gpu.CandidateRefinery;
-import se.simonevertsson.gpu.GpuGraph;
-import se.simonevertsson.gpu.QueryUtils;
+import se.simonevertsson.gpu.query.candidate.refinement.CandidateRefinery;
+import se.simonevertsson.gpu.graph.GpuGraph;
+import se.simonevertsson.gpu.query.QueryUtils;
 
 import java.io.IOException;
 
