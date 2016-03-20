@@ -11,66 +11,50 @@ import se.simonevertsson.query.QueryGraph;
 import java.util.*;
 
 /**
- * Created by simon.evertsson on 2015-05-19.
+ * Class which executes Cypher queries on a supplied {@link DatabaseService} from a given {@link QueryGraph}.
  */
 public class CypherQueryRunner {
 
-    public QueryResult runCypherQueryForSolutions(DatabaseService dbService, QueryGraph queryGraph) {
-        long tick = System.currentTimeMillis();
 
+  /**
+   * Executes the Cypher query generated from the supplied {@link QueryGraph} on the supplied {@link DatabaseService} and
+   * returns the result of the query as a {@link QueryResult}.
+   *
+   * @param dbService A valid database service
+   * @param queryGraph The query graph which whose Cypher representation will be executed on the supplied database service.
+   * @return
+   */
+  public QueryResult runCypherQueryForSolutions(DatabaseService dbService, QueryGraph queryGraph) {
+    long tick = System.currentTimeMillis();
 
-        List<QuerySolution> querySolutions;
-        try(Transaction tx = dbService.beginTx()) {
-            Result result = dbService.excuteCypherQuery(queryGraph.toCypherQueryString());
-
-
-            querySolutions = handleResult(result, queryGraph);
-            tx.success();
-        }
-
-        long tock = System.currentTimeMillis();
-        long queryExecutionTime = tock-tick;
-
-        return new QueryResult(querySolutions, 0, queryExecutionTime);
+    List<QuerySolution> querySolutions;
+    try (Transaction tx = dbService.beginTx()) {
+      Result result = dbService.excuteCypherQuery(queryGraph.toCypherQueryString());
+      querySolutions = handleResult(result, queryGraph);
+      tx.success();
     }
 
-    private List<QuerySolution> handleResult(Result result, QueryGraph queryGraph) {
-        List<Map.Entry<String, Integer>> solutionElements;
-        int resultCount = 0;
-        List<String> columns = result.columns();
-        ArrayList<QuerySolution> results = new ArrayList<QuerySolution>();
-        while ( result.hasNext() )
-        {
-            solutionElements = new ArrayList<Map.Entry<String, Integer>>();
+    long tock = System.currentTimeMillis();
+    long queryExecutionTime = tock - tick;
 
-            Map<String,Object> row = result.next();
-            for ( String key : result.columns() )
-            {
-                Node resultNode = ((Node) row.get(key));
-                Map.Entry<String, Integer> solutionElement = new AbstractMap.SimpleEntry<String, Integer>(key, (int) resultNode.getId());
-                solutionElements.add(solutionElement);
-            }
-            QuerySolution querySolution = new QuerySolution(queryGraph, solutionElements);
-            results.add(querySolution);
-//            builder  = new StringBuilder();
-//            resultCount++;
-//            builder.append(Main.EXPERIMENT_QUERY_PREFIX);
-//            builder.append(" WHERE ");
-//            Map<String,Object> row = result.next();
-//            boolean firstReturnNode = true;
-//            for ( Map.Entry<String,Object> column : row.entrySet() )
-//            {
-//                if(!firstReturnNode) {
-//                    builder.append(" AND ");
-//                } else {
-//                    firstReturnNode = false;
-//                }
-//                builder.append("id(" + column.getKey() + ")=" + column.getValue().toString().replaceAll("\\D+",""));
-//            }
-//            builder.append(Main.EXPERIMENT_QUERY_SUFFIX);
-//            results.add(builder.toString());
-        }
-        result.close();
-       return results;
+    return new QueryResult(querySolutions, 0, queryExecutionTime);
+  }
+
+  private List<QuerySolution> handleResult(Result result, QueryGraph queryGraph) {
+    ArrayList<QuerySolution> results = new ArrayList<>();
+    while (result.hasNext()) {
+      List<Map.Entry<String, Integer>> solutionElements = new ArrayList<>();
+      Map<String, Object> resultRow = result.next();
+      for (String key : result.columns()) {
+        Node resultNode = ((Node) resultRow.get(key));
+        Map.Entry<String, Integer> solutionElement = new AbstractMap.SimpleEntry<>(key, (int) resultNode.getId());
+        solutionElements.add(solutionElement);
+      }
+
+      QuerySolution querySolution = new QuerySolution(queryGraph, solutionElements);
+      results.add(querySolution);
     }
+    result.close();
+    return results;
+  }
 }

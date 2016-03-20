@@ -9,131 +9,133 @@ import se.simonevertsson.experiments.RelationshipTypes;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Created by simon on 2015-05-12.
+ * Service class which handles database connections and queries
  */
 public class DatabaseService {
 
-    private GlobalGraphOperations graphOperations;
-    private GraphDatabaseService graphDatabase;
+  private final String databasePath;
+  private GlobalGraphOperations graphOperations;
+  private GraphDatabaseService graphDatabase;
 
-    public DatabaseService(String databasePath, String configPath) {
-        this.graphDatabase = new GraphDatabaseFactory()
-                .newEmbeddedDatabaseBuilder(databasePath)
-                .loadPropertiesFromFile(configPath + "/neo4j.properties")
-                .newGraphDatabase();
-        this.graphOperations = GlobalGraphOperations.at(this.graphDatabase);
-        registerShutdownHook(this.graphDatabase);
+  /**
+   * Creates a new connection to a Neo4j database
+   *
+   * @param databasePath The absolute path to the the database directory.
+   * @param configPath   The absolute path to the database configuration file.
+   */
+  public DatabaseService(String databasePath, String configPath) {
+    this.databasePath = databasePath;
+    this.graphDatabase = new GraphDatabaseFactory()
+        .newEmbeddedDatabaseBuilder(databasePath)
+        .loadPropertiesFromFile(configPath)
+        .newGraphDatabase();
+    this.graphOperations = GlobalGraphOperations.at(this.graphDatabase);
+    registerShutdownHook(this.graphDatabase);
+  }
+
+  private void registerShutdownHook(final GraphDatabaseService graphDb) {
+    // Registers a shutdown hook for the Neo4j instance so that it
+    // shuts down nicely when the VM exits (even if you "Ctrl-C" the
+    // running application).
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        graphDb.shutdown();
+      }
+    });
+  }
+
+  private boolean isConnected() {
+    return graphDatabase != null;
+  }
+
+  /**
+   * Retrieves all nodes in the currently connected database
+   *
+   * @return A list of all nodes in the database
+   */
+  public List<Node> getAllNodes() {
+    ResourceIterable<Node> result = null;
+    ArrayList<Node> allNodes = new ArrayList<>();
+    if (isConnected()) {
+      try {
+        Transaction tx = this.graphDatabase.beginTx();
+        result = this.graphOperations.getAllNodes();
+        tx.success();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      for (Node node : result) {
+        allNodes.add(node);
+      }
     }
 
-    public DatabaseService(String dbPath) throws IOException {
-        createDb(dbPath);
-        this.graphOperations = GlobalGraphOperations.at(this.graphDatabase);
+    return allNodes;
+  }
+
+  /**
+   * Retrieves all relationships in the currently connected database
+   *
+   * @return A list of all relationships in the database
+   */
+  public ArrayList<Relationship> getAllRelationships() {
+    Iterable<Relationship> result = null;
+    ArrayList<Relationship> allRelationships = new ArrayList<>();
+    if (isConnected()) {
+      try {
+        Transaction tx = this.graphDatabase.beginTx();
+        result = this.graphOperations.getAllRelationships();
+        tx.success();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      for (Relationship relationship : result) {
+        allRelationships.add(relationship);
+      }
     }
 
-    private void registerShutdownHook( final GraphDatabaseService graphDb )
-    {
-        // Registers a shutdown hook for the Neo4j instance so that it
-        // shuts down nicely when the VM exits (even if you "Ctrl-C" the
-        // running application).
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                graphDb.shutdown();
-            }
-        });
+    return allRelationships;
+  }
+
+  public Transaction beginTx() {
+    return this.graphDatabase.beginTx();
+  }
+
+  /**
+   * Executes the supplied Cypher query on the currently conected database. Remember to call {@link DatabaseService#beginTx()}
+   * before executing queries, or Neo4j will throw an exception.
+   *
+   * @param query The Cypher query which will be executed.
+   * @return The result of the query
+   */
+  public Result excuteCypherQuery(String query) {
+    Result result = null;
+    if (isConnected()) {
+      result = this.graphDatabase.execute(query);
     }
 
+    return result;
+  }
 
-    void createDb(String dbPath) throws IOException
-    {
-        FileUtils.deleteRecursively(new File(dbPath));
-        this.graphDatabase = new GraphDatabaseFactory().newEmbeddedDatabase( dbPath );
-        registerShutdownHook(this.graphDatabase);
+  /**
+   * Terminates the current database connection
+   */
+  public void shutdown() {
+    this.graphDatabase.shutdown();
+    this.graphDatabase = null;
+  }
+
+  public String getDatabaseName() {
+    String databaseName = null;
+    if(databasePath != null && databasePath.lastIndexOf("/") >= 0) {
+      databaseName = databasePath.substring(databasePath.lastIndexOf("/"));
     }
 
-    public ArrayList<Node> getAllNodes() {
-        ResourceIterable<Node> result = null;
-        ArrayList<Node> allNodes = new ArrayList<>();
-        try {
-            Transaction tx = this.graphDatabase.beginTx();
-            result = this.graphOperations.getAllNodes();
-            tx.success();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        for(Node node : result) {
-            allNodes.add(node);
-        }
-        return allNodes;
-    }
+    return databaseName;
+  }
 
-    public ArrayList<Relationship> getAllRelationships() {
-        Iterable<Relationship> result = null;
-        ArrayList<Relationship> allRelationships = new ArrayList<>();
-        try {
-            Transaction tx = this.graphDatabase.beginTx();
-            result = this.graphOperations.getAllRelationships();
-            tx.success();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        for(Relationship relationship : result) {
-            allRelationships.add(relationship);
-        }
-        return allRelationships;
-    }
-
-    public void deleteData() {
-        try {
-            Transaction tx = this.graphDatabase.beginTx();
-            deleteAllRelationships();
-            deleteAllNodes();
-            tx.success();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void deleteAllRelationships() {
-        Iterable<Relationship> allRelationships = this.graphOperations.getAllRelationships();
-        for(Relationship relationship : allRelationships) {
-            relationship.delete();
-        }
-    }
-
-    private void deleteAllNodes() {
-        Iterable<Node> allNodes = this.graphOperations.getAllNodes();
-        for(Node node : allNodes) {
-            node.delete();
-        }
-    }
-
-    public GraphDatabaseService getGraphDatabase() {
-        return this.graphDatabase;
-    }
-
-    public Result excuteCypherQueryWithinTransaction(String query) {
-        Transaction transaction = this.graphDatabase.beginTx();
-        Result result = this.graphDatabase.execute(
-                query);
-        transaction.success();
-        return result;
-    }
-
-    public Result excuteCypherQuery(String query) {
-        Result result = this.graphDatabase.execute(
-                query);
-        return result;
-    }
-
-    public void shutdown() {
-        this.graphDatabase.shutdown();
-    }
-
-    public Transaction beginTx() {
-        return this.graphDatabase.beginTx();
-    }
 }

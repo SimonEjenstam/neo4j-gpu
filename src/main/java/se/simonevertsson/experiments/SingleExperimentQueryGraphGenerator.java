@@ -12,7 +12,7 @@ import java.util.*;
  */
 public class SingleExperimentQueryGraphGenerator {
 
-    private final ArrayList<Node> allNodes;
+    private final List<Node> allNodes;
     private final int minRelationships;
     private final int maxNodeCount;
     private int currentNodeCount;
@@ -25,7 +25,7 @@ public class SingleExperimentQueryGraphGenerator {
     private QueryGraph oldQueryGraph;
     private int preferredIterationCount;
 
-    public SingleExperimentQueryGraphGenerator(ArrayList<Node> allNodes, int maxNodeCount, int nodeCountDecrease, int minRelationships) {
+    public SingleExperimentQueryGraphGenerator(List<Node> allNodes, int maxNodeCount, int nodeCountDecrease, int minRelationships) {
         this.allNodes = allNodes;
         this.maxNodeCount = maxNodeCount;
         this.nodeCountDecrease = nodeCountDecrease;

@@ -9,10 +9,7 @@ import se.simonevertsson.query.QueryGraph;
 import se.simonevertsson.query.QueryLabel;
 import se.simonevertsson.query.QueryNode;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by simon.evertsson on 2015-09-02.
@@ -25,7 +22,7 @@ public class RandomQueryGraphGenerator {
     public RandomQueryGraphGenerator(DatabaseService databaseService) {
         this.relationshipTypes = new HashSet<>();
         this.nodeLabels = new HashSet<>();
-        ArrayList<Node> allNodes = databaseService.getAllNodes();
+        List<Node> allNodes = databaseService.getAllNodes();
 
         int totalLabelCount = 0;
         for(Node node : allNodes) {
