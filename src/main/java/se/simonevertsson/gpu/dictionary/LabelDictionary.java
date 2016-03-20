@@ -44,6 +44,7 @@ public class LabelDictionary {
 
   /**
    * Returns the GPU translation for the supplied label
+   *
    * @param label A node label whose generated translation should be returned
    * @return The GPU translation for the given label or  {@code -1} if it doesn't exist.
    */
@@ -53,6 +54,7 @@ public class LabelDictionary {
 
   /**
    * Returns the Node label for the supplied GPU translation
+   *
    * @param labelId A GPU label previously translated from a Node label using {@link LabelDictionary#insertLabel(String)}
    * @return The label for the given GPU label id or {@code null} if it doesn't exist.
    */

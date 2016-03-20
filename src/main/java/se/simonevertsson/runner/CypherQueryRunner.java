@@ -19,7 +19,7 @@ public class CypherQueryRunner {
    * Executes the Cypher runner generated from the supplied {@link QueryGraph} on the supplied {@link DatabaseService} and
    * returns the result of the runner as a {@link QueryResult}.
    *
-   * @param dbService A valid database service
+   * @param dbService  A valid database service
    * @param queryGraph The runner graph which whose Cypher representation will be executed on the supplied database service.
    * @return
    */

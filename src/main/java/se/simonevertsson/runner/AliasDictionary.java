@@ -4,17 +4,14 @@ import org.neo4j.graphdb.Node;
 
 import java.util.*;
 
-/**
- * Created by simon.evertsson on 2015-06-30.
- */
 public class AliasDictionary {
   private HashMap<String, Integer> aliasToIds;
 
   private HashMap<Integer, String> idToAliases;
 
   public AliasDictionary() {
-    aliasToIds = new HashMap<String, Integer>();
-    idToAliases = new HashMap<Integer, String>();
+    aliasToIds = new HashMap<>();
+    idToAliases = new HashMap<>();
   }
 
   public void insertAlias(Node node, String alias) {

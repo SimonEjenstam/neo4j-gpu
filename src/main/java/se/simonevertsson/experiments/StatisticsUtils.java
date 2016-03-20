@@ -3,6 +3,9 @@ package se.simonevertsson.experiments;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Utils class which contains classes to calculate means and standard deviations of runtimes, speedups etc.
+ */
 public class StatisticsUtils {
 
   static double stdDevOfGpuSpeedup(ArrayList<Long> gpuRuntimes, ArrayList<Long> cypherRuntimes, double gpuSpeedupAvg) {
